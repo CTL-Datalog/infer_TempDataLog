@@ -817,7 +817,7 @@ F ｜- {current} instr {postconsition }
 let rec findSpecFrom (specs:specification list) (fName: string): specification option = 
   match specs with 
   | [] -> None
-  | (str, li):: rest -> if String.compare str fName == 0 then Some (str, li) else 
+  | ((str, li), facts):: rest -> if String.compare str fName == 0 then Some ((str, li), facts) else 
   findSpecFrom rest fName
   ;;
 

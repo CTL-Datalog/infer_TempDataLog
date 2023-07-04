@@ -40,8 +40,9 @@ type pure = TRUE
 
 
 type mnsigniture = (string *  (string list))
+type fact = (string *  (basic_type list)) 
 
-type specification = (mnsigniture)
+type specification = (mnsigniture * fact list)
 
 
 (* Global States *)

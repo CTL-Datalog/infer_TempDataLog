@@ -20,7 +20,9 @@
 %type <(Ast_utility.pure)> pure
 %type <(Ast_utility.basic_type)> basic_type
 %type <(Ast_utility.basic_type list)> parm
+%type <(Ast_utility.fact list)> factList
 %type <(string list)> formalparm
+%type <(Ast_utility.basic_type list)> actualparm
 %type <(Ast_utility.ltl)> ltl
 %type <(Ast_utility.terms)> term
 %%
@@ -102,8 +104,20 @@ formalparm:
 | str = VAR {[str]}
 | str = VAR COMMA rest=formalparm {str:: rest}
 
+actualparm:
+| {[]}
+| str = basic_type {[str]}
+| str = basic_type COMMA rest=actualparm {str:: rest}
+
+
+factList: 
+| str = VAR LPAR argument=actualparm RPAR {[(str, argument)]}
+
 
 specification: 
-| EOF {(("", []))}
+| EOF {(("", []), [])}
+| LSPEC str = VAR LPAR argument=formalparm RPAR COLON 
+a = factList RSPEC {((str, argument), a)}
+
 
 
