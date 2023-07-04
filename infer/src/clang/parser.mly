@@ -18,15 +18,9 @@
 %start specification
 %type <(Ast_utility.specification)> specification
 %type <(Ast_utility.pure)> pure
-%type <(Ast_utility.effect option * Ast_utility.effect option * Ast_utility.effect option)> optionalPrecondition
-%type <(Ast_utility.effect option * Ast_utility.effect option)> optionalPostcondition
-%type <(Ast_utility.effect option)> optionalFuturecondition
 %type <(Ast_utility.basic_type)> basic_type
 %type <(Ast_utility.basic_type list)> parm
-%type <(Ast_utility.es)> es
 %type <(string list)> formalparm
-%type <(Ast_utility.effect)> effect
-%type <(Ast_utility.es)> es_or_ltl
 %type <(Ast_utility.ltl)> ltl
 %type <(Ast_utility.terms)> term
 %%
@@ -51,16 +45,6 @@ neGationAny:
 | UNDERLINE p=parm  { NotSingleton (("_", p))}
 | str = VAR p=parm { NotSingleton ((str, p))}
 
-es:
-| BOTTOM {Bot}
-| EMPTY {Emp}
-| NOTSINGLE rest =neGationAny {rest }
-| str = VAR p=parm { Singleton ((str, p), None) }
-| LPAR r = es RPAR { r }
-| a = es DISJ b = es { Disj(a, b) }
-| UNDERLINE rest=anyEventOrAny {rest}
-| a = es CONCAT b = es { Concatenate (a, b) } 
-| LPAR a = es  RPAR POWER KLEENE {Kleene a}
 
 term:
 | b = basic_type {Basic b}
@@ -110,54 +94,7 @@ ltl :
 | LPAR p1= ltl LILAND p2= ltl RPAR {AndLTL (p1, p2)}  
 | LPAR p1= ltl LILOR p2= ltl RPAR {OrLTL (p1, p2)}
 
-es_or_ltl:
-| COMMA  b= es  {b}
-| COLON b = ltl {
-  let rec ltlToEs l = 
-    match l with 
-    | Lable str ->  Singleton (str, None)
-    | Next ltl -> Concatenate (Any, ltlToEs ltl)
-    | Global ltl -> Kleene (ltlToEs ltl)
-    | Future ltl -> Concatenate (Kleene Any, ltlToEs ltl)
-    | OrLTL (ltl1, ltl2) -> Disj (ltlToEs ltl1, ltlToEs ltl2)
-    | NotLTL (Lable str) ->  NotSingleton str 
-    | Imply (Lable str, ltl2) -> Disj (NotSingleton str ,  ltlToEs ltl2)
-    | Until (ltl1, ltl2) -> Concatenate(Kleene (ltlToEs ltl1), ltlToEs ltl2)
-    (*
-    | NotLTL of ltl 
-    | Imply of ltl * ltl
-    | AndLTL of ltl * ltl
-     *)
-    | _ ->  Singleton (("ltlToEs not yet", []), None)
-  in ltlToEs b 
-}
 
-effect:
-| LPAR r = effect RPAR { r }
-| a = pure  b = es_or_ltl {[(a, b)]}
-| a = effect  DISJ  b=effect  {List.append a b}
-
-
-
-optionalFuturecondition:
-| {None}
-| FUTURESpec e3 = effect {Some e3}
-
-optionalPostcondition:
-| ENSURE e2 = effect a = optionalFuturecondition {
-  (Some e2, a)
-}
-| a = optionalFuturecondition {
-  (None, a)
-}
-
-optionalPrecondition:
-| REQUIRE e1 = effect a = optionalPostcondition 
-{let (e2, e3) = a in 
-  (Some e1, e2, e3)}
-| a = optionalPostcondition 
-{let (e2, e3) = a in 
-  (None, e2, e3)}
 
 
 formalparm:
@@ -167,18 +104,6 @@ formalparm:
 
 
 specification: 
-| EOF {(("", []), None, None, None)}
-| LSPEC str = VAR LPAR argument=formalparm RPAR COLON 
-a = optionalPrecondition 
-RSPEC {
-  let (e1, e2, e3) = a in 
-  ((str, argument), e1, e2, e3)}
+| EOF {(("", []))}
 
 
-(*
-specification: 
-| EOF {("", None, None, None)}
-| LSPEC str = VAR COLON 
-REQUIRE e1=effect ENSURE e2=effect FUTURESpec e3=effect
-RSPEC {  (str, Some e1, Some e2, Some e3)}
-*)

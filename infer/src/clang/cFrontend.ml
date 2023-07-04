@@ -650,71 +650,6 @@ match gse_info.gse_value with
 
 
 
-let rec dealwithBreakStmt (eff:es) (acc:es) : (es * bool) list = 
-  match eff with 
-  | Singleton ((str, _), _) -> 
-    if String.compare str "BreakStmt" == 0 then [(acc, true)]
-    else [(Concatenate (acc, eff), false)]
-  | Bot   
-  | Emp   
-  | NotSingleton _ 
-  | Any -> [(Concatenate (acc, eff), false )]
-  | Concatenate (eff1, eff2) -> 
-    let temp = dealwithBreakStmt eff1 acc in 
-    let rec flatten li =
-      match li with 
-      | [] -> []
-      | x :: xs -> List.append x (flatten xs)
-    in 
-    flatten (List.map temp ~f:(fun (acc1, b1) -> 
-      (match b1 with 
-      | false -> dealwithBreakStmt eff2 acc1
-      | true -> [(acc1, b1)])
-    ))
-    
-  | Disj (eff1, eff2) ->
-    let temp1 = dealwithBreakStmt eff1 acc in 
-    let temp2 = dealwithBreakStmt eff2 acc in 
-    List.append temp1 temp2
-  | Kleene effIn   -> 
-    let temp = dealwithBreakStmt effIn Emp in 
-    List.map temp ~f:(fun (acc1, b1) -> 
-      (Concatenate(acc, Kleene(acc1)), false)
-    )
-
-
-
-let rec dealwithContinuekStmt (eff:es) (acc:es): (es * bool) list =
-  match eff with 
-  | Singleton ((str, _), _) -> 
-    if String.compare str "ContinueStmt" == 0 then [(acc, true)]
-    else [(Concatenate (acc, eff), false)]
-  | Bot   
-  | Emp   
-  | NotSingleton _ 
-  | Any -> [(Concatenate (acc, eff), false )]
-  | Concatenate (eff1, eff2) -> 
-    let temp = dealwithContinuekStmt eff1 acc in 
-    let rec flatten li =
-      match li with 
-      | [] -> []
-      | x :: xs -> List.append x (flatten xs)
-    in 
-    flatten (List.map temp ~f:(fun (acc1, b1) -> 
-      (match b1 with 
-      | false -> dealwithContinuekStmt eff2 acc1
-      | true -> [(acc1, b1)])
-    ))
-    
-  | Disj (eff1, eff2) ->
-    let temp1 = dealwithContinuekStmt eff1 acc in 
-    let temp2 = dealwithContinuekStmt eff2 acc in 
-    List.append temp1 temp2
-  | Kleene effIn   -> 
-    let temp = dealwithContinuekStmt effIn Emp in 
-    List.map temp ~f:(fun (acc1, b1) -> 
-      (Concatenate(acc, Kleene(acc1)), false)
-    )
 
 
 
@@ -751,17 +686,6 @@ let conjunctPure (pi1:pure) (pi2:pure): pure =
         else  PureAnd (pi1, pi2)
 
 
-let concatenateTwoEffect (eff1:effect) (eff2:effect) : effect = 
-  let (mixLi:(((pure * es) * (pure * es)) list)) = cartesian_product eff1 eff2 in 
-  List.map mixLi ~f:(fun ((pi1, es1), (pi2, es2)) -> 
-    let (trace:es)  = Concatenate(es1, es2) in 
-    match (pi1, pi2) with
-    | (TRUE, p2) -> (p2, trace)
-    | (p1, TRUE) -> (p1, trace)
-    | (_, _) -> 
-      let newPure = conjunctPure pi1 pi2 in 
-      (newPure, trace)
-  )
 
 let rec findReturnValue (pi:pure) : terms option = 
   match pi with
@@ -781,52 +705,11 @@ let rec findReturnValue (pi:pure) : terms option =
       | None -> findReturnValue pi2 
       | Some t -> Some t)
   
-(* be carefule with this function, which is specifically used when checking future condition. *)
-let concatenateTwoEffectswithoutFlag (effectLi4X: programStates) (effectRest: programStates): programStates = 
-  let mixLi = cartesian_product effectLi4X effectRest in 
-  
-  let temp = List.map mixLi ~f:(
-    fun ((pi1, eff_x, t_x, fp1),  (pi2, eff_y, t_y, fp2)) -> 
-      match findReturnValue pi1 with 
-      | Some (Basic (BVAR (retTerm))) -> 
-        (conjunctPure pi1 pi2, Concatenate (eff_x, instantiateRetEs eff_y [(retTerm, BRET)]  ),  t_y, List.append fp1 fp2)
-      | _ -> (conjunctPure pi1 pi2, Concatenate (eff_x, eff_y),  t_y, List.append fp1 fp2)
 
-  ) in 
-  normaliseProgramStates temp
-  
-
-
-let concatenateTwoEffectswithFlag (effectLi4X: programStates) (effectRest: programStates): programStates = 
-  let mixLi = cartesian_product effectLi4X effectRest in 
-  
-  (*
-  print_endline ("============");
-  print_string (string_of_int (List.length effectLi4X) ^ 
-  " x " ^  string_of_int (List.length effectRest)^ "\n");
-
-  print_string (string_of_int (List.length mixLi) ^ "\n");
-  print_endline ("============");
-*)
-
-  let temp = List.map mixLi ~f:(
-    fun ((pi1, eff_x, t_x, fp1),  (pi2, eff_y, t_y, fp2)) -> 
-      if t_x > 0 then (pi1, eff_x, t_x, fp1)
-      else
-      (conjunctPure pi1 pi2, Concatenate (eff_x, eff_y),  t_y, List.append fp1 fp2)
-  ) in 
-  let ret = normaliseProgramStates temp in 
-  ret
-  
 
 
 
   
-  
-let enforePure (p:pure) (eff:programStates) : programStates = 
-  List.map eff ~f:(fun (p1, es, f, fp) ->(conjunctPure p p1, es, f, fp)) 
-
-
 let stmt2Pure_helper (op: string) (t1: terms option) (t2: terms option) : pure option = 
   match (t1, t2) with 
   | (None, _) 
@@ -880,13 +763,6 @@ let rec stmt2Pure (instr: Clang_ast_t.stmt) : pure option =
   | _ -> Some (Gt ((Basic( BVAR (Clang_ast_proj.get_stmt_kind_string instr))), Basic( BVAR ("null"))))
 
 
-  
-let prefixLoction (li: int list) (state:programStates) : programStates= 
-  List.map state ~f:(fun (a, b, c, d) -> (a, b, c, List.append li d))
-
-
-let postfixLoction (li: int list) (state:programStates) : programStates= 
-  List.map state ~f:(fun (a, b, c, d) -> (a, b, c, List.append d li))
 
 
 let getStmtlocation (instr: Clang_ast_t.stmt) : (int option * int option) =
@@ -941,7 +817,7 @@ F ｜- {current} instr {postconsition }
 let rec findSpecFrom (specs:specification list) (fName: string): specification option = 
   match specs with 
   | [] -> None
-  | ((str, li), a, b, c):: rest -> if String.compare str fName == 0 then Some ((str, li), a, b, c) else 
+  | (str, li):: rest -> if String.compare str fName == 0 then Some (str, li) else 
   findSpecFrom rest fName
   ;;
 
@@ -959,116 +835,6 @@ let rec var_binding (formal:string list) (actual: basic_type list) : bindings =
   | _ -> []
   ;;
 
-let specialCases es = 
-  match es with 
-  | Kleene (NotSingleton (str, _)) -> 
-    if String.compare str "_" == 0  then true else false 
-  | _ ->  false 
-  ;;
-
-let rec synthsisFromSpec (effect:(pure * es)) (env:(specification list)) : string option =  
-  print_endline ("synthsisFromSpec " ^ string_of_effect ([effect])); 
-  (*print_endline ("ENV now:\n" ^ List.fold_left env ~init:"" 
-  ~f:(fun acc ((mn, _), _, post, _) -> acc ^ 
-  match post with 
-  | None -> ""
-  | Some eff -> mn ^ ": " ^ string_of_effect eff ^ "\n"
-  ));*)
-
-  let (pi, spec) = effect in 
-  let spec =  normalise_es spec in 
-
-  if specialCases spec then (* to check if the expected spec is (!_(u))^*, if ture just exit *)
-    Some ("if (" ^ string_of_pure_output (normalPure pi) ^ "){ return; }")
-  else 
-
-  let patch = 
-  (match spec with 
-  | Emp -> Some ""
-  | _ -> 
-    let rec auc (currectProof:es) envli : string option = 
-      match envli with 
-      | [] -> 
-        None (* no ingradients from the env *)
-      | ((fName, li::_), _, Some post, _) :: xs  -> 
-
-        let handler = getAllVarFromES currectProof in 
-        let (vb, arg) = 
-          match handler with 
-          | []->([], "")
-          | x ::_ -> 
-          (*print_string ("using " ^ x^ " to replace "^ li ^"\n"); *)
-          ([(li , BVAR x)], x)
-          in 
-        let post = instantiateAugumentSome post vb in 
-        let (result, tree) = effect_inclusion post ([(pi, currectProof)]) in 
-        (*print_string (fName ^ "\n" ^ string_of_binary_tree  tree  ^ "\n"); *)
-
-        let temp = 
-          match result with 
-          | [] -> Some (fName ^ "("^ arg ^"); ") 
-          | (_, a, _, b):: _ -> 
-            (match normalise_es a with 
-            | Emp -> 
-              if comparees (normalise_es b) currectProof == true 
-              then auc currectProof xs 
-              else 
-              let recursiveRes = synthsisFromSpec (pi, b) env in 
-              (match recursiveRes with 
-              | None  -> None 
-              | Some rest -> Some (fName ^ "(); " ^ rest))
-            | _ -> auc currectProof xs 
-            ) in temp
-        (*match temp with 
-        | None -> auc currectProof xs 
-        | _ -> temp*)
-      | ((fName, []), _, Some post, _) :: xs  -> 
-
-        let post = post in 
-        let (result, tree) = effect_inclusion post ([(pi, currectProof)]) in 
-        (*print_string (fName ^ "\n" ^ string_of_binary_tree  tree  ^ "\n"); *)
-
-        let temp = 
-          match result with 
-          | [] -> Some (fName ^ "(); ") 
-          | (_, a, _, b):: _ -> 
-            (match normalise_es a with 
-            | Emp -> 
-              if comparees (normalise_es b) currectProof == true 
-              then auc currectProof xs 
-              else 
-              let recursiveRes = synthsisFromSpec (pi, b) env in 
-              (match recursiveRes with 
-              | None  -> None 
-              | Some rest -> Some (fName ^ "(); " ^ rest))
-            | _ -> auc currectProof xs 
-            ) in temp
-            
-      | x :: xs  -> auc currectProof xs 
-    in auc spec env) in 
-    (match patch with 
-    | None -> None 
-    | Some fix -> 
-       if entailConstrains TRUE pi == false then  
-          Some ("if (" ^ string_of_pure_output (normalPure pi) ^ "){" ^ fix ^"}")
-       else Some fix)
-
-
-  
-let computeAllthePointOnTheErrorPath (p1:pathList) (p2:pathList) : int list = 
-  let correctDots = flattenList p1 in 
-  let errorDots = flattenList p2 in 
-  (*
-  print_endline ("correctDots path:" ^ List.fold_left correctDots ~init:"" ~f:(fun acc a -> acc ^" " ^ string_of_int a)) ; 
-  print_endline ("errorDots path:" ^ List.fold_left errorDots ~init:"" ~f:(fun acc a -> acc ^" " ^ string_of_int a)) ; 
-*)
-  let rec helper li a : bool =
-    match li with 
-    | [] -> false 
-    | x :: xs -> if x==a then true else helper xs a
-  in 
-  List.fold_left errorDots ~init:[] ~f:(fun acc a -> 
-  if helper correctDots a then acc else List.append acc [a]) 
 
 let computeRange intList = 
   match intList with 
@@ -1080,303 +846,14 @@ let computeRange intList =
       else if a > max then (min, a)
       else (min, max)) 
 
-
-let program_repair (info:((error_info list) * binary_tree * pathList * pathList)) specifications : unit = 
-  let (error_paths, tree, correctTraces, errorTraces) = info in 
-  if List.length error_paths == 0 then ()
-  else 
-  (* here the int int are the strat point and the end point *)
-  let (error_lists:((pure * es * (int * int) * es) list)) = bugLocalisation error_paths in 
-  print_endline ("\n<======[Bidirectional Bug Localisation & Possible Proof Repairs]======>\n\n[Repair Options] ");
-
-  let rec helper li = 
-      match li with 
-      | [] -> ""
-      | (pathcondition, realspec, _, spec):: res  -> 
-      ( string_of_pure pathcondition ^ " /\\ " ^ 
-        string_of_es realspec ^ " ~~~> " ^ string_of_es spec ) ^ ";\n" ^ helper res
-  in 
-  let msg = helper error_lists in 
-  print_endline (msg);
-
-  let onlyErrorPostions = computeAllthePointOnTheErrorPath correctTraces errorTraces in 
-
-  (* this is to prevent the same fixes *)
-  let (repairRecord:( (int * int) list) ref) = ref [] in 
-
-
-  let rec existSameRecord recordList start endNum  : bool = 
-    match recordList with 
-    | [] -> false 
-    | (s',e'):: recordListxs -> if start ==s' || endNum==e' then true else existSameRecord recordListxs start endNum
-  in 
-  
-  let rec aux arg : unit  = 
-      let (pathcondition, realspec, (startNum ,endNum),  spec) = arg in 
-        (*print_endline ("init:" ^ (string_of_int startNum) ^ ", "^ (string_of_int endNum)); 
-*)
-        let dotsareOntheErrorPath = List.filter onlyErrorPostions ~f:(fun x -> x >= startNum && x <=endNum) in 
-        let (lowerError, upperError) = computeRange dotsareOntheErrorPath in 
-        let (startNum, endNum) = 
-          let startNum' = if lowerError > startNum then lowerError else startNum in 
-          let endNum' = if upperError < endNum then upperError else endNum in 
-          (startNum', endNum')
-        in 
-
-        if existSameRecord !repairRecord startNum endNum then ()
-        else let () = repairRecord := (startNum ,endNum) :: (!repairRecord) in 
-
-
-          
-        (*  if List.length dotsareOntheErrorPath == 0 then (startNum, endNum)
-          else List.fold_left dotsareOntheErrorPath ~init:(endNum, startNum) 
-        ~f:(fun (min', max') x -> 
-          if x < min' then (x, max')
-          else if x > max' then (min', x)
-          else (min', max')
-          ) in 
-*)
-        (*print_endline ("post:" ^(string_of_int startNum) ^ ", "^ (string_of_int endNum)); 
-*)
-        modifiyTheassertionCounters (); 
-
-        let startTimeStamp = Unix.gettimeofday() in
-        let (specifications: specification list) = List.append specifications !dynamicSpec in 
-        
-        
-        let list_of_functionCalls = synthsisFromSpec (pathcondition, spec) (specifications) in
-
-        let startTimeStamp01 = Unix.gettimeofday() in
-
-        print_endline ("@ line " ^ string_of_int startNum ^ " to line " ^  string_of_int endNum ^ 
-        (match list_of_functionCalls with 
-        | None -> 
-          let (rr, _) = effect_inclusion [(TRUE, Emp)] [(TRUE, spec)] in 
-          if List.length rr == 0 then  
-          let () = reapiredFailedAssertions := !reapiredFailedAssertions + 1 in 
-          " can be deleted." 
-          else 
-          " Sorry, there is no path from the environment!"
-        | Some str -> 
-          let () = reapiredFailedAssertions := !reapiredFailedAssertions + 1 in 
-          if String.compare str "" == 0 then " can be deleted." 
-          else  " can be inserted with code " ^  str ^ ".")
-         ^ "\n" 
-         ^ "[Searching Time] " ^ string_of_float (startTimeStamp01 -. startTimeStamp)^ " seconds."
-        )
-  in 
-  print_endline("[Patches] ");
-  let _ = List.map error_lists ~f:(fun a -> aux a) in ()
-
  
 
-let rec syh_compute_stmt_postcondition (env:(specification list)) (current:programStates) 
-(future:effect option) (instr: Clang_ast_t.stmt) : programStates = 
-
+let rec syh_compute_stmt_facts (env:(specification list)) (instr: Clang_ast_t.stmt) : string = 
+  "facts. " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)
+  (*print_endline ((Clang_ast_proj.get_stmt_kind_string instr)); *)
   
-  
-  (*print_endline ((Clang_ast_proj.get_stmt_kind_string instr));*)
-  
-  
-  let rec helper current' (li: Clang_ast_t.stmt list): programStates  = 
-    (*
-    print_string ("==> helper: ");
-    let _ = List.map li ~f:(fun a-> print_string ((Clang_ast_proj.get_stmt_kind_string a)^", ")) in 
-    print_endline ("");
-    *)
-    
-    
 
-    match li with
-    | [] -> [(TRUE, Emp, 0, [])]
-
-    | DeclStmt (_, [CStyleCastExpr(_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _)], [del]):: xs  
-    | DeclStmt (_, [(CallExpr (stmt_info, stmt_list, ei))], [del]) ::xs 
-    | DeclStmt (_, [(ImplicitCastExpr (_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _))], [del]) ::xs ->
-
-      let () = handlerVar := Some (string_of_decl del) in 
-      helper current' ((Clang_ast_t.CallExpr (stmt_info, stmt_list, ei))::xs)
-
-    | (CallExpr (stmt_info, stmt_list, ei)) ::xs -> 
-      (*print_endline ("I am here call");*)
-      
-(* STEP 0: retrive the spec of the callee *)
-      let (fp, _) = stmt_intfor2FootPrint stmt_info in 
-
-      let ((calleeName, formalLi), prec, postc, futurec) = 
-        match stmt_list with 
-        | [] -> assert false  
-        | x::rest -> 
-          (match extractEventFromFUnctionCall x rest with 
-          | None -> 
-            (("none", []), None, None, None)
-          | Some (calleeName, acturelli) -> (* arli is the actual argument *)
-            
-            
-            
-            (*
-            let () = print_string ("=========================\n") in 
-            print_string (string_of_event (calleeName, acturelli) ^ ":\n");
-            *)
-
-            let spec = findSpecFrom env calleeName in 
-            match spec with
-            | None -> (("none", []), None, None, None)
-            | Some ((signiture, formalLi), prec, postc, futurec)-> 
-              if List.length acturelli == List.length formalLi then 
-                let vb = var_binding formalLi acturelli in 
-                ((signiture, formalLi), 
-                instantiateAugument prec vb, 
-                instantiateAugument postc vb, 
-                instantiateAugument futurec vb)
-                (* spec instantiation *)
-              else 
-              ((signiture, formalLi), prec, postc, futurec)
-            
-          )
-      in 
-
-      
-      (*
-      let () = print_string ("=========================\n") in 
-      print_string (string_of_event (calleeName, []) ^ ":\n");
-      
-      
-      print_string (string_of_function_sepc (prec, postc, futurec)^"\n"); 
-      *)
-        
-
-(* STEP 1: check precondition *)
-      let () = 
-        match prec with 
-        | None -> ()
-        | Some prec -> 
-          let info = 
-            effectwithfootprintInclusion (programStates2effectwithfootprintlist current') prec in 
-
-            let extra_info = 
-            "\n~~~~~~~~~ In function: "^ !currentModule ^" ~~~~~~~~~\n" ^
-            "Pre-condition checking for \'"^calleeName^"\': " in 
-            (*print_endline (string_of_inclusion_results extra_info info); *)
-            program_repair info env; 
-
-            
-      in 
-(* STEP 2: obtain the next state *)
-
-      let (postc: effect option) = enforeceLineNum fp postc in 
-      let (postc, futurec) = 
-        match !handlerVar with 
-        | None -> (postc, futurec)
-        | Some handler ->  
-          (instantiateAugument postc [(handler, BRET)], 
-           instantiateAugument futurec [(handler, BRET)])
-      in 
-
-      let () = handlerVar := None in 
-
-
-      let () = varSet := List.append !varSet (varFromEffects postc) in 
-      (*print_string ("adding varset: "); 
-      print_string (string_of_varSet (!varSet));
-      *)
-
-      let current'' = 
-        match postc with 
-        | None -> current'  
-        | Some postc -> 
-          concatenateTwoEffectswithFlag current' (effects2programStates postc)
-      in 
-
-
-(* STEP 3: compute the effect for the rest code *)
-  (*print_endline ("computing restSpec"  ^ string_of_int(List.length xs));
-*)
-      let effectRest = helper (current'') xs in
-
-      (*print_endline ("effectRest: " ^ string_of_programStates effectRest);
-*)
-      
-(* STEP 4: check the future spec of the callee *)
-
-      let full_extension = 
-        (match postc with 
-        | None ->  effectRest 
-        | Some postc -> 
-          concatenateTwoEffectswithFlag (effects2programStates postc) effectRest
-        ) in 
-
-      (match futurec with 
-      | None -> full_extension
-      | Some futurec -> 
-          let restSpecLHS = 
-            match future with
-            | None -> effectRest 
-            | Some ctxfuture -> 
-              (*print_endline ("+ ctx future spec: " ^ string_of_effect ctxfuture);
-              *)
-              concatenateTwoEffectswithoutFlag (effectRest) (effects2programStates ctxfuture)
-          in 
-          
-          (*
-          print_endline (" = restSpecLHS: " ^ string_of_programStates restSpecLHS);
-          print_endline ("|- RHS: " ^ string_of_effect futurec);
-          *)
-          let info = effectwithfootprintInclusion (programStates2effectwithfootprintlist (normaliseProgramStates restSpecLHS)) futurec in 
-          let extra_info = "\n~~~~~~~~~ In function: "^ !currentModule ^" ~~~~~~~~~\nFuture-condition checking for \'"^calleeName^"\': " in 
-          print_endline (string_of_inclusion_results extra_info info); 
-          
-          program_repair info env; 
-
-          full_extension
-        )  
-
-    | BinaryOperator (_, x::(ImplicitCastExpr (_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _))::_, expr_info, binop_info) :: xs 
-    | BinaryOperator (_, x::(CStyleCastExpr (_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _))::_, expr_info, binop_info) :: xs 
-
-    | BinaryOperator (_, x::(CallExpr (stmt_info, stmt_list, ei))::_, expr_info, binop_info) :: xs ->
-      (match binop_info.boi_kind with
-      | `Assign -> 
-          (* print_endline ("Assign binop"); *)
-          let () = handlerVar := Some (string_of_stmt x) in 
-          helper current' ((Clang_ast_t.CallExpr (stmt_info, stmt_list, ei))::xs)
-       
-          
-      | _ -> 
-        
-        helper current' xs 
-      )
-      
-
-    | DeclStmt (_, [x], _):: xs  ->
-          (
-            match x with
-            | DeclStmt _ ->  
-              helper current' (x::xs)
-      
-            | _ -> 
-            let effectLi4X = syh_compute_stmt_postcondition env current' future x in 
-            let effectRest = helper (concatenateTwoEffectswithFlag current' effectLi4X) xs in 
-            concatenateTwoEffectswithFlag effectLi4X effectRest
-          )
-
-    | (IfStmt (stmt_info, [x;y;z], if_stmt_info)) :: xsifelse -> 
-      let addTail (a:Clang_ast_t.stmt) = 
-        match a with
-        | CompoundStmt (c_stmt_info, c_stmt_list) ->  Clang_ast_t.CompoundStmt (c_stmt_info, List.append c_stmt_list xsifelse) 
-        | _ ->  Clang_ast_t.CompoundStmt (stmt_info, a:: xsifelse)
-      in 
-      let statement' = Clang_ast_t.IfStmt (stmt_info, x::(List.map [y;z] ~f:(fun a -> addTail a)), if_stmt_info) in 
-      syh_compute_stmt_postcondition env current' future statement'
-
-    | x :: xs -> 
-
-      let effectLi4X = syh_compute_stmt_postcondition env current' future x in 
-      let effectRest = helper (concatenateTwoEffectswithFlag current' effectLi4X) xs in 
-      concatenateTwoEffectswithFlag effectLi4X effectRest
-
-  in 
-  match instr with 
+  (*match instr with 
   | ReturnStmt (stmt_info, [ret]) ->
     (*print_endline ("ReturnStmt1:" ^ string_of_stmt_list [ret] " ");*)
 
@@ -1564,44 +1041,8 @@ let rec syh_compute_stmt_postcondition (env:(specification list)) (current:progr
   | CXXConstructExpr _ (* va_list va_list; *)
   | DoStmt _ ->
     
-    
     let (fp, _) = maybeIntToListInt (getStmtlocation instr) in 
     [(TRUE, Emp, 0, fp)]
-
-  (*
-  | BinaryOperator (stmt_info, x::y::rest, expr_info, binop_info) ->
-
-      let stmt_list = x::y::rest in 
-      print_endline (List.fold_left stmt_list ~init:"" ~f:(fun acc a -> acc ^ " " ^ (Clang_ast_proj.get_stmt_kind_string a)));
-
-      (match binop_info.boi_kind with
-      | `Assign -> 
-          print_endline ("Assign binop")
-          
-      | _ -> ()
-      );
-
-      (match y with 
-      | ImplicitCastExpr (stmt_info, yx::_, _, _, _) 
-      | CStyleCastExpr (stmt_info, yx::_, _, _, _) -> 
-        print_endline (Clang_ast_proj.get_stmt_kind_string yx)
-
-      | _ -> ()
-
-      ); 
-
-      
-    let (fp, fp1) =  (getStmtlocation instr) in 
-
-
-    let ev = Singleton (((Clang_ast_proj.get_stmt_kind_string instr ^ " " ^ string_of_int (List.length stmt_list), [])), fp) in 
-    let () = dynamicSpec := ((string_of_stmt instr, []), None, Some [(TRUE, ev )], None) :: !dynamicSpec in 
-
-    let (fp, _) = maybeIntToListInt (fp, fp1) in 
-    [(TRUE, ev, 0, fp)]
-    *)
-
-
 
   | DeclStmt (_, stmt_list, _) -> 
     let (fp, fp1) =  (getStmtlocation instr) in 
@@ -1612,8 +1053,6 @@ let rec syh_compute_stmt_postcondition (env:(specification list)) (current:progr
 
     let (fp, _) = maybeIntToListInt (fp, fp1) in 
     [(TRUE, ev, 0, fp)]
-
-    
 
 
   | ContinueStmt _
@@ -1632,6 +1071,7 @@ let rec syh_compute_stmt_postcondition (env:(specification list)) (current:progr
 
 
     [(TRUE, ev, 0, fp)]
+    *)
 
 
 
@@ -1728,47 +1168,6 @@ let retriveSpecifications (source:string) : (specification list * int * int * in
 
    ;;
 
-let show_effects_option (eff:effect option): string = 
-  match eff with
-  | None -> "None"
-  | Some eff -> string_of_effect eff 
-;;
-
-
-
-(* 
-
-
-
-      (* 
-      "[Pre  Condition] " ^ show_effects_option precondition ^"\n"^ 
-      "[Post Condition] " ^ string_of_effect postcondition ^"\n"^ 
-      "[Future Condition] " ^ show_effects_option futurecondition ^"\n"^ 
-      "[Inferred Post Effects] " ^ string_of_programStates ( final)  ^"\n"^
-      "[Inferring Time] " ^ string_of_float ((startTimeStamp01 -. startTimeStamp) *.1000000.0)^ " us" ^"\n" ^
-      
-      *)
-              
-^ 
-
-
-        (*Clang_ast_proj.get_decl_kind_string dec *)
-    (*| ObjCInterfaceDecl _ -> "ObjCInterfaceDecl"
-    | ObjCProtocolDecl _ -> "ObjCProtocolDecl"
-    | ObjCCategoryDecl _ -> "ObjCCategoryDecl"
-    | ObjCCategoryImplDecl _ -> "ObjCCategoryImplDecl"
-    | ObjCImplementationDecl _ -> "ObjCImplementationDecl"
-    | CXXMethodDecl _ -> "CXXMethodDecl"
-    | CXXConstructorDecl _ -> "CXXConstructorDecl"
-    | CXXConversionDecl _ -> "CXXConversionDecl"
-    | CXXDestructorDecl _ -> "CXXDestructorDecl"
-    | VarDecl _ -> "VarDecl"
-    | ClassTemplateSpecializationDecl _ -> "ClassTemplateSpecializationDecl"
-    | CXXRecordDecl _ -> "CXXRecordDecl"
-    | RecordDecl _ -> "RecordDecl"
-    | _ -> "not yet" ^ Clang_ast_proj.get_decl_kind_string dec
-    *)
-*)
 
 
 let int_of_optionint intop = 
@@ -1777,14 +1176,10 @@ let int_of_optionint intop =
   | Some i -> i ;;
 
 
-
 let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specification list) (source_Address:string): unit  = 
-
   match dec with
     | FunctionDecl (decl_info, named_decl_info, _, function_decl_info) ->
       let source_Addressnow = string_of_source_range  decl_info.di_source_range in 
-
-
       if String.compare source_Address source_Addressnow !=0 then ()
       else 
       let (l1, l2) = decl_info.di_source_range in 
@@ -1796,65 +1191,15 @@ let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specificat
       | Some stmt -> 
       let funcName = named_decl_info.ni_name in 
 
-      (* print_endline ("\nreasoning "^ funcName ^"\n" ); *)
-
-      let functionspec = findSpecFrom specifications funcName in 
-      let (_, precondition, postcondition, futurecondition) = 
-        match functionspec with
-        | None -> ((funcName, []), None, None, None)
-        | Some (sign, precondition, postcondition, futurecondition) 
-          -> (sign, precondition, postcondition, futurecondition)
-      in 
-
-      let () = dynamicSpec := [] in 
-      let () = varSet := [] in 
+      print_endline ("\nFacts for function: "^ funcName ^"\n" ); 
+      print_endline ("Enrty(" ^ string_of_int functionStart ^ ")."); 
       
-      let (defultPrecondition:programStates) = 
-        match precondition with
-        | None -> [(Ast_utility.TRUE, Kleene (Any), 0, [])]
-        | Some eff -> List.map eff ~f:(fun (p, es)->(p, es, 0, []))
-      in 
-      let () = currentModule := funcName in 
-      let (final:programStates) = 
-          ((normaliseProgramStates
-          (syh_compute_stmt_postcondition 
-            specifications 
-            defultPrecondition
-            futurecondition  
-            stmt))) in 
-
-
-
-
-
-
-      match postcondition with 
-        | None -> () (* [(Ast_utility.TRUE, Kleene(Any))] *)
-        | Some postcondition -> 
-        (
-        let final' = programStates2effectwithfootprintlist final in 
-        let info = effectwithfootprintInclusion final' postcondition in 
-        (*let extra_info = 
-          "\n~~~~~~~~~ In function: "^ !currentModule ^" ~~~~~~~~~\n" ^
-          "Post-condition checking: " in 
-        print_endline (string_of_inclusion_results extra_info info); *)
-
-        let (error_paths, _, _, _) = info in 
-        if List.length error_paths == 0 then ()
-        else 
-          (
-
-
-          (match final with 
-          | [TRUE, Emp, _, _] -> ()
-          | _ -> print_endline("\n=====> Actual effects of function: "^ funcName ^" ======>" );
-               print_string (string_of_programStates final ^ "\n")) ;
-
-          program_repair info specifications;) 
-        ) 
+      let msg = (syh_compute_stmt_facts specifications stmt) in 
+      print_endline (msg ^ "\n")
 
       )
     | _ -> () 
+    
    
 
 
@@ -1874,56 +1219,25 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let source_file = translation_unit_context.CFrontend_config.source_file in
   let integer_type_widths = translation_unit_context.CFrontend_config.integer_type_widths in
 
-  (*print_endline ("\n======================================================="); *)
-  (*print_endline ("================ Here is Yahui's Code =================");*)
+  print_endline ("\n======================================================="^
+                  "================ Here is Yahui's Code ================="); 
 
 
-  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in
+  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
   
-  
-  
-  let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
-
-  let () = totol_Lines_of_Code := !totol_Lines_of_Code + lines_of_code in 
-  let () = totol_specifications := List.append !totol_specifications specifications in 
   let start = Unix.gettimeofday () in 
 
+  let () = totol_specifications := List.append !totol_specifications specifications in 
   let reasoning_Res = List.map decl_list  
     ~f:(fun dec -> reason_about_declaration dec !totol_specifications source_Address) in 
   
   let compution_time = (Unix.gettimeofday () -. start) in 
-  (* Input program has  *)
-  let msg = 
-    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
-    ^ "[CURRENT REPORT]:"
-    ^ source_Address ^ "\n"
-    ^ string_of_int ( !totol_Lines_of_Code ) ^ " lines of code; " 
-    ^ string_of_int !totol_Lines_of_Spec ^ " lines of specs; for " 
-    ^ string_of_int (List.length !totol_specifications)(*number_of_protocol*) ^ " protocols. "
-    ^ "Analysis and repair took "^ string_of_float (compution_time)^ " seconds.\n\n"
-    ^ string_of_int !totalAssertions ^ " total assertions, and " 
-    ^ string_of_int !failedAssertions 
-    ^ (if (!failedAssertions) == 1 then " is" else " are") 
-    ^" failed; and " 
-    ^  string_of_int !reapiredFailedAssertions 
-    ^ (if (!reapiredFailedAssertions) == 1 then " is" else " are") 
-    ^ " successfully repaired. "  
-    (*^ "\nIn total, there are " 
-    ^ string_of_int !proofObligations ^ " proof obligations, and "
-    ^ string_of_int (!proofObligations - !failedProofObligations) 
-    ^ (if ((!proofObligations - !failedProofObligations) ) == 1 then " is" else " are") ^" valid.\n" *)
-
-    
-    in 
-
-  print_string (msg); 
 
 
-  let () = totol_execution_time := !totol_execution_time +. compution_time in 
-  print_endline ("Totol_execution_time: " ^ string_of_float !totol_execution_time); 
-  (*print_endline ("\n============ Here is the end of Yahui's Code ============\n" 
-                (*^ "=========================================================\n" *));
-                *)
+  print_endline ("Totol_execution_time: " ^ string_of_float compution_time); 
+  print_endline ("\n============ Here is the end of Yahui's Code ============\n" 
+                 ^ "=========================================================\n" );
+                
   
   
   L.(debug Capture Verbose)
