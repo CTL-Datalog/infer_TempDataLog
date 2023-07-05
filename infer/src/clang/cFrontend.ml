@@ -470,7 +470,9 @@ let rec getLastEle (li:basic_type list) :  basic_type option  =
 let rec lastLocOfFact (facts: fact list) = 
   match facts with 
   | [] -> [] 
-  | (_, argLi) :: xs  -> 
+  | (str, argLi) :: xs  -> 
+    if String.compare str "flow" == 0 then lastLocOfFact xs  
+    else 
     (match getLastEle argLi with 
     | Some (BINT i) -> i :: (lastLocOfFact xs)
     | _ -> lastLocOfFact xs 
@@ -490,8 +492,15 @@ let rec syh_compute_stmt_facts (reachableState: int list) (env:(specification li
       match stmtList with 
       | [] -> [] 
       | x :: xs  -> 
-        let factsX = syh_compute_stmt_facts reachableState env x in 
-        let nextStates = lastLocOfFact factsX in 
+        let factsX = syh_compute_stmt_facts reachable env x in 
+
+        let nextStates = 
+          if List.length factsX == 0 then reachable 
+          else lastLocOfFact factsX 
+        in 
+        (*print_endline (string_of_facts factsX);
+        print_endline (List.fold_left nextStates ~init:"" ~f:(fun acc a-> acc ^" "^ string_of_int a));
+        *)
         let factRest = helper nextStates xs in 
         factsX @ factRest
 
@@ -529,25 +538,24 @@ let rec syh_compute_stmt_facts (reachableState: int list) (env:(specification li
           match spec with
           | None -> []
           | Some ((signiture, formalLi), factSchema)-> 
-            if List.length acturelli == List.length formalLi then 
-              let insRet = 
-                match !handlerVar with 
-                | None -> [] 
-                | Some handler -> [(handler, BRET)]
-              in 
-
-              
-              let vb = var_binding formalLi acturelli in 
-              (instantiateFacts factSchema (vb @ insRet))
+            let facts = 
+              if List.length acturelli == List.length formalLi then 
+                let insRet = 
+                  match !handlerVar with 
+                  | None -> [] 
+                  | Some handler -> [(handler, BRET)]
+                in 
+                let vb = var_binding formalLi acturelli in 
+                (instantiateFacts factSchema (vb @ insRet))
               (* facts instantiation *)
-            else 
-              factSchema
+              else factSchema
+            in 
+            let fp = (int_of_intList fp) in 
+            let callFacts = List.map facts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
+            let flowfact = List.map reachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
+            callFacts @ flowfact
         )
-    in 
-    let fp = (int_of_intList fp) in 
-    let callFacts = List.map facts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
-    let flowfact = List.map reachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
-    callFacts @ flowfact
+    in facts
 
   
   | ImplicitCastExpr (_, x::_, _, _, _) 
