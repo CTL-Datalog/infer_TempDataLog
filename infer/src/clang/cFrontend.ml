@@ -456,7 +456,28 @@ let computeRange intList =
 
  
 
-let rec syh_compute_stmt_facts (env:(specification list)) (instr: Clang_ast_t.stmt) : fact list = 
+let int_of_intList intop = 
+  match intop with 
+  | []  -> (-1)
+  |i ::_ -> i ;;
+
+let rec getLastEle (li:basic_type list) :  basic_type option  = 
+  match li with 
+  | [] -> None 
+  | [l] -> Some l 
+  | _ :: xs -> getLastEle xs 
+
+let rec lastLocOfFact (facts: fact list) = 
+  match facts with 
+  | [] -> [] 
+  | (_, argLi) :: xs  -> 
+    (match getLastEle argLi with 
+    | Some (BINT i) -> i :: (lastLocOfFact xs)
+    | _ -> lastLocOfFact xs 
+    )
+
+
+let rec syh_compute_stmt_facts (reachableState: int list) (env:(specification list)) (instr: Clang_ast_t.stmt) : fact list = 
   
   (*print_endline ("Facts. " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); *)
   
@@ -464,44 +485,81 @@ let rec syh_compute_stmt_facts (env:(specification list)) (instr: Clang_ast_t.st
   match instr with 
   | CompoundStmt (stmt_info, stmt_list) -> 
     (* let (fp, _) = stmt_intfor2FootPrint stmt_info in  *)
-    List.fold_left stmt_list ~init:[] ~f:(fun acc a -> acc @ (syh_compute_stmt_facts env a))
+
+    let rec helper reachable stmtList = 
+      match stmtList with 
+      | [] -> [] 
+      | x :: xs  -> 
+        let factsX = syh_compute_stmt_facts reachableState env x in 
+        let nextStates = lastLocOfFact factsX in 
+        let factRest = helper nextStates xs in 
+        factsX @ factRest
+
+    in 
+    helper reachableState stmt_list
+
+
+  | DeclStmt (_, [CStyleCastExpr(_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _)], [del])  
+  | DeclStmt (_, [(CallExpr (stmt_info, stmt_list, ei))], [del]) 
+  | DeclStmt (_, [(ImplicitCastExpr (_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _))], [del]) ->
+
+      let () = handlerVar := Some (string_of_decl del) in 
+      let stmt = (Clang_ast_t.CallExpr (stmt_info, stmt_list, ei)) in 
+      syh_compute_stmt_facts reachableState env stmt
+
 
   | CallExpr (stmt_info, stmt_list, ei) -> 
     let (fp, _) = stmt_intfor2FootPrint stmt_info in 
+    
     (* STEP 0: retrive the spec of the callee *)
-    let ((*calleeName, formalLi*)_ , facts) = 
+    let facts = 
       match stmt_list with 
       | [] -> assert false  
       | x::rest -> 
         (match extractEventFromFUnctionCall x rest with 
-        | None -> (("none", []), [])
+        | None -> []
         | Some (calleeName, acturelli) -> (* arli is the actual argument *)
           
           
-          let () = print_string ("=========================\n") in 
+          (*let () = print_string ("=========================\n") in 
           print_string (string_of_event (calleeName, acturelli) ^ ":\n");
-          
+          *)
 
           let spec = findSpecFrom env calleeName in 
           match spec with
-          | None -> (("none", []), [])
+          | None -> []
           | Some ((signiture, formalLi), factSchema)-> 
             if List.length acturelli == List.length formalLi then 
+              let insRet = 
+                match !handlerVar with 
+                | None -> [] 
+                | Some handler -> [(handler, BRET)]
+              in 
+
+              
               let vb = var_binding formalLi acturelli in 
-              ((signiture, formalLi), 
-              instantiateFacts factSchema vb)
+              (instantiateFacts factSchema (vb @ insRet))
               (* facts instantiation *)
             else 
-            ((signiture, formalLi), factSchema)
-          
+              factSchema
         )
-    in facts
+    in 
+    let fp = (int_of_intList fp) in 
+    let callFacts = List.map facts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
+    let flowfact = List.map reachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
+    callFacts @ flowfact
 
+  
+  | ImplicitCastExpr (_, x::_, _, _, _) 
+  | DeclStmt (_, [x], _) -> syh_compute_stmt_facts reachableState env x
 
+  | StringLiteral _ 
+  | BinaryOperator _  
+  | DeclStmt _ 
   | ReturnStmt _ -> []
 
   | _ -> 
-    print_endline ("Facts. " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); 
+    print_endline ("Facts to be generated for " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); 
     [] 
 
 
@@ -840,10 +898,10 @@ let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specificat
       | Some stmt -> 
       let funcName = named_decl_info.ni_name in 
 
-      print_endline ("\n<<=== Facts for function: "^ funcName ^" ===>>\n" ); 
+      print_endline ("<<=== Facts for function: "^ funcName ^" ===>>\n" ); 
       print_endline ("Enrty(" ^ string_of_int functionStart ^ ")."); 
       
-      let facts = (syh_compute_stmt_facts specifications stmt) in 
+      let facts = (syh_compute_stmt_facts [functionStart] specifications stmt) in 
       print_endline (string_of_facts facts ^ "\n")
 
       )

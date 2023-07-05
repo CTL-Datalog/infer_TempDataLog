@@ -231,9 +231,20 @@ let string_of_event (str, li) =
   in 
   str ^ "("^temp^")"
 
-  
+
+
+let rec string_of_bt_list (li: basic_type list) : string = 
+    match li with 
+  | [] -> ""
+  | [x] -> string_of_basic_t x 
+  | x::xs -> string_of_basic_t x ^ ", " ^ string_of_bt_list xs
+
+
 let string_of_fact (str, btList) = 
-  str ^ "(" ^ List.fold_left btList ~init:"" ~f:(fun acc a -> acc ^ string_of_basic_t a)^ ")"
+  str ^ "(" ^ 
+  string_of_bt_list btList 
+  (* List.fold_left btList ~init:"" ~f:(fun acc a -> acc ^ string_of_basic_t a) *)
+  ^ ")"
 
 
 let rec string_of_facts (factsLi) = 
