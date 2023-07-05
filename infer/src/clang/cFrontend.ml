@@ -1147,7 +1147,7 @@ let retriveSpecifications (source:string) : (specification list * int * int * in
       else print_endline ("Global specifictaions are: "));
       let sepcifications = List.map partitions 
         ~f:(fun singlespec -> 
-          print_endline (singlespec ^ "\n");
+          print_endline (singlespec);
           Parser.specification Lexer.token (Lexing.from_string singlespec)) in
       
       (*
@@ -1191,7 +1191,7 @@ let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specificat
       | Some stmt -> 
       let funcName = named_decl_info.ni_name in 
 
-      print_endline ("\nFacts for function: "^ funcName ^"\n" ); 
+      print_endline ("\n<<=== Facts for function: "^ funcName ^" ===>>\n" ); 
       print_endline ("Enrty(" ^ string_of_int functionStart ^ ")."); 
       
       let msg = (syh_compute_stmt_facts specifications stmt) in 
@@ -1219,24 +1219,38 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let source_file = translation_unit_context.CFrontend_config.source_file in
   let integer_type_widths = translation_unit_context.CFrontend_config.integer_type_widths in
 
-  print_endline ("\n======================================================="^
-                  "================ Here is Yahui's Code ================="); 
+  print_endline ("\n================ Here is Yahui's Code ================="); 
 
 
   let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
   
+  let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
+
+  let () = totol_Lines_of_Code := !totol_Lines_of_Code + lines_of_code in 
+  let () = totol_specifications := List.append !totol_specifications specifications in 
   let start = Unix.gettimeofday () in 
 
-  let () = totol_specifications := List.append !totol_specifications specifications in 
   let reasoning_Res = List.map decl_list  
     ~f:(fun dec -> reason_about_declaration dec !totol_specifications source_Address) in 
   
   let compution_time = (Unix.gettimeofday () -. start) in 
+    (* Input program has  *)
+    let msg = 
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+      ^ "[CURRENT REPORT]:"
+      ^ source_Address ^ "\n"
+      ^ string_of_int ( !totol_Lines_of_Code ) ^ " lines of code; " 
+      ^ string_of_int !totol_Lines_of_Spec ^ " lines of specs; for " 
+      ^ string_of_int (List.length !totol_specifications)(*number_of_protocol*) ^ " fact generation schemas. "
+      in 
+  
+    print_string (msg); 
 
-
+  (*
   print_endline ("Totol_execution_time: " ^ string_of_float compution_time); 
   print_endline ("\n============ Here is the end of Yahui's Code ============\n" 
                  ^ "=========================================================\n" );
+                 *)
                 
   
   
