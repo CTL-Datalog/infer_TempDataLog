@@ -219,6 +219,64 @@ let rec varFromPure (p:pure): string list =
   | Neg p -> varFromPure p 
 
 
+let string_of_event (str, li) = 
+  let temp = 
+    match li with 
+    | [] -> ""
+    | [x] ->  string_of_basic_t x 
+    | x::xs->
+      List.fold_left xs 
+      ~init:(string_of_basic_t x) 
+      ~f:(fun acc a -> acc ^ "," ^ string_of_basic_t a )
+  in 
+  str ^ "("^temp^")"
+
+  
+let string_of_fact (str, btList) = 
+  str ^ "(" ^ List.fold_left btList ~init:"" ~f:(fun acc a -> acc ^ string_of_basic_t a)^ ")"
+
+
+let rec string_of_facts (factsLi) = 
+  match factsLi with 
+  | [] -> ""
+  | [fact] -> string_of_fact fact
+  | fact :: xs -> string_of_fact fact ^ "\n" ^ string_of_facts xs 
+  
+
+let rec findRetFromBindings (bt:bindings) (str: string) : basic_type option =
+  match bt with
+  | [] -> None 
+  | (formal, artual) :: xs -> 
+    if String.compare formal str == 0 then Some artual else findRetFromBindings xs str
+  
+
+let rec findRetFromBindingsRet (bt:bindings) : string option =
+  match bt with
+  | [] -> None 
+  | (formal, BRET) :: xs -> Some formal 
+  | x :: xs -> findRetFromBindingsRet xs 
+
+
+
+let instantiateRet_basic_type (bt:basic_type) (bds:bindings):  basic_type = 
+  match bt with 
+  | BRET -> 
+    (match findRetFromBindingsRet bds with
+    | None -> bt
+    | Some handler -> BVAR handler
+    )
+  | BVAR str -> 
+    (match findRetFromBindings bds str with
+    | None -> bt
+    | Some term ->  term 
+    )
+  | _ -> bt 
+
+let instantiateFacts (factSchema: fact list) (bds:bindings) : fact list = 
+  (*let () = print_string ("instantiateRet: " ^ string_of_effect eff^ "\n") in *)
+  List.map factSchema ~f:(fun (predicate_Name, args) -> 
+    (predicate_Name, List.map args ~f:(fun a -> instantiateRet_basic_type a bds))) 
+  (*let () = print_string ("instantiateRet after : " ^ string_of_effect temp^ "\n") in *)
 
 (**********************************************)
 exception FooAskz3 of string
