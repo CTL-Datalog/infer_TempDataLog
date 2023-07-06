@@ -112,6 +112,7 @@ actualparm:
 
 factList: 
 | str = VAR LPAR argument=actualparm RPAR {[(str, argument)]}
+| str = VAR LPAR argument=actualparm RPAR COMMA rest = factList {(str, argument)::rest}
 
 
 specification: 

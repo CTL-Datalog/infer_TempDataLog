@@ -419,6 +419,23 @@ let rec findCallSpecFrom (specs:specification list) (fName: string): (mnsignitur
   | _ :: rest -> findCallSpecFrom rest fName    
   ;;
 
+let rec findIfStmtSpecFrom (specs:specification list) (piCondition: pure): (bindings * fact list) option = 
+  match specs with 
+  | [] -> None
+  | (IfStmt (piSpec), facts):: rest -> 
+    (
+    match (piCondition, piSpec) with 
+    | (Lt(Basic(BVAR(t1)), Basic(BVAR(t2))), Lt(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (Gt(Basic(BVAR(t1)), Basic(BVAR(t2))), Gt(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (GtEq(Basic(BVAR(t1)), Basic(BVAR(t2))), GtEq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (LtEq(Basic(BVAR(t1)), Basic(BVAR(t2))), LtEq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (Eq(Basic(BVAR(t1)), Basic(BVAR(t2))), Eq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | _ -> findIfStmtSpecFrom rest piCondition
+    )
+
+  | _ :: rest -> findIfStmtSpecFrom rest piCondition    
+  ;;
+
 
 let string_of_decl (decl:Clang_ast_t.decl) : string = 
   match decl with
@@ -469,34 +486,23 @@ let rec lastLocOfFact (facts: fact list) =
     )
 
 
-let rec syh_compute_stmt_facts (current:programState) (env:(specification list)) (instr: Clang_ast_t.stmt) : programStates = []
-  (*let (currentfacts, currentExitCode, currentreachableState) = current in 
+let rec syh_compute_stmt_facts (current:programState) (env:(specification list)) (instr: Clang_ast_t.stmt) : programStates = 
+  let (currentfacts, currentExitCode, currentreachableState) = current in 
   (* print_endline ("Facts. " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); *)
-  if currentExitCode == 1 then current 
+  if currentExitCode == 1 then [current] 
   else 
   match instr with 
   | CompoundStmt (stmt_info, stmt_list) -> 
-    (* let (fp, _) = stmt_intfor2FootPrint stmt_info in  *)
 
-    let rec helper reachable stmtList = 
+    let rec helper acc stmtList = 
       match stmtList with 
-      | [] -> [] 
+      | [] -> [acc] 
       | x :: xs  -> 
-        let factsX = syh_compute_stmt_facts reachable env x in 
-
-        let nextStates = 
-          if List.length factsX == 0 then reachable 
-          else lastLocOfFact factsX 
-        in 
-        (*print_endline (string_of_facts factsX);
-        print_endline (List.fold_left nextStates ~init:"" ~f:(fun acc a-> acc ^" "^ string_of_int a));
-        *)
-        let factRest = helper nextStates xs in 
-        factsX @ factRest
-
+        let programStatesX = syh_compute_stmt_facts acc env x in 
+        let programStatesXS = List.map programStatesX ~f:(fun state -> helper state xs) in 
+        flattenList programStatesXS 
     in 
-    helper reachableState stmt_list
-
+    helper current stmt_list 
 
   | DeclStmt (_, [CStyleCastExpr(_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _)], [del])  
   | DeclStmt (_, [(CallExpr (stmt_info, stmt_list, ei))], [del]) 
@@ -504,28 +510,27 @@ let rec syh_compute_stmt_facts (current:programState) (env:(specification list))
 
       let () = handlerVar := Some (string_of_decl del) in 
       let stmt = (Clang_ast_t.CallExpr (stmt_info, stmt_list, ei)) in 
-      syh_compute_stmt_facts reachableState env stmt
-
+      syh_compute_stmt_facts current env stmt
 
   | CallExpr (stmt_info, stmt_list, ei) -> 
     let (fp, _) = stmt_intfor2FootPrint stmt_info in 
+    let fp = (int_of_intList fp) in 
     
     (* STEP 0: retrive the spec of the callee *)
-    let facts = 
+    let (facts, nextRechable) = 
       match stmt_list with 
       | [] -> assert false  
       | x::rest -> 
         (match extractEventFromFUnctionCall x rest with 
-        | None -> []
+        | None -> ([], currentreachableState)
         | Some (calleeName, acturelli) -> (* arli is the actual argument *)
           
           (*let () = print_string ("=========================\n") in 
-          print_string (string_of_event (calleeName, acturelli) ^ ":\n");
-          *)
+          print_string (string_of_event (calleeName, acturelli) ^ ":\n");  *)
 
           let spec = findCallSpecFrom env calleeName in 
           match spec with
-          | None -> []
+          | None -> ([], currentreachableState)
           | Some ((signiture, formalLi), factSchema)-> 
             let facts = 
               if List.length acturelli == List.length formalLi then 
@@ -541,107 +546,56 @@ let rec syh_compute_stmt_facts (current:programState) (env:(specification list))
               (* facts instantiation *)
               else factSchema
             in 
-            let fp = (int_of_intList fp) in 
             let callFacts = List.map facts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
-            let flowfact = List.map reachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
-            callFacts @ flowfact
+            let flowfact = List.map currentreachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
+            (callFacts @ flowfact, [fp])
         )
-    in facts
-
-  | IfStmt (stmt_info, conditional::branches, if_stmt_info) -> 
-    let pureOfconditional =  pureOfconditionalStmt conditional in 
-    let factsOfConditional = 
-      match findIfStmtSpecFrom env pureOfconditional with 
-      | None -> [] 
-      | Some -> 
-    in 
-
-    match pureOfconditionalStmt with 
-    | 
-    
-
-    let extra = 
-    (match stmt_list with 
-    | [x; y] -> 
-      (match checkRelavent x with 
-      | None  -> 
-        let facts4X = syh_compute_stmt_facts reachableState env x in 
-        let facts4Y = syh_compute_stmt_facts reachableState env y in 
-        let final = prefixLoction locX 
-          (List.append 
-          (postfixLoction locZ eff4X) 
-          (prefixLoction locY (concatenateTwoEffectswithFlag eff4X eff4Y))) in 
-        (*let () = print_string ("if else [x, y] None: " ^ string_of_programStates final^ "\n") in 
-        *)
-        final
-
-
-      | Some (condition, morevar) -> 
-
-        (*let ()= varSet := (List.append !varSet morevar) in *)
-        let eff4X = syh_compute_stmt_postcondition env current future  x in
-        let eff4Y = syh_compute_stmt_postcondition env current future  y in
-        prefixLoction locX 
-        (List.append 
-        (postfixLoction locZ (enforePure (Neg condition) eff4X))
-        (prefixLoction locY (enforePure (condition) (concatenateTwoEffectswithFlag eff4X eff4Y))))
-        )
-    (*
-    | [x;y;z] -> 
-      let (locX, _) = maybeIntToListInt (getStmtlocation y) in 
-
-      let (locY, _) = maybeIntToListInt (getStmtlocation y) in 
-      let (locZ, _) = maybeIntToListInt (getStmtlocation z) in 
-      (*
-      print_endline ("locY" ^ List.fold_left locY ~init:"" ~f:(fun acc a -> acc ^ " " ^ string_of_int a)); 
-      print_endline ("locZ" ^ List.fold_left locZ ~init:"" ~f:(fun acc a -> acc ^ " " ^ string_of_int a)); 
-      *)
-
-      (match checkRelavent x with 
-      | None  -> 
-        let eff4X = syh_compute_stmt_postcondition env current future x in
-        let eff4Y = syh_compute_stmt_postcondition env current future y in
-        let eff4Z = syh_compute_stmt_postcondition env current future z in
-        prefixLoction locX 
-        (List.append 
-          ((prefixLoction locZ (concatenateTwoEffectswithFlag eff4X eff4Z))) 
-          (prefixLoction locY (concatenateTwoEffectswithFlag eff4X eff4Y)))
-
-      | Some (condition, morevar) -> 
-        (*let ()= varSet := (List.append !varSet morevar) in *)
-
-        let eff4X = syh_compute_stmt_postcondition env current future x in
-        let eff4Y = syh_compute_stmt_postcondition env current future y in
-        let eff4Z = syh_compute_stmt_postcondition env current future z in
-        prefixLoction locX (List.append 
-        (prefixLoction locZ (enforePure (Neg condition) (concatenateTwoEffectswithFlag eff4X eff4Z))) 
-        (prefixLoction locY (enforePure (condition) (concatenateTwoEffectswithFlag eff4X eff4Y))))
-        )
-*)
-
-
-    | _ -> assert false ) in 
-    let final = extra in 
-    (*print_string ("IfStmt:" ^ string_of_programStates final^"\n"); *)
-    final
-    
-
+    in [(currentfacts @ facts, 0, nextRechable)]
 
   
-  | ImplicitCastExpr (_, x::_, _, _, _) 
-  | DeclStmt (_, [x], _) -> syh_compute_stmt_facts reachableState env x
+  | IfStmt (stmt_info, conditional::branches, if_stmt_info) -> 
+    let (fp, _) = stmt_intfor2FootPrint stmt_info in 
+    let fp = (int_of_intList fp) in 
 
+    let prorgamStateThen = 
+      match stmt2Pure conditional with 
+      | None -> current
+      | Some piCondition -> 
+        (match findIfStmtSpecFrom env piCondition with 
+        | None -> current 
+        | Some (vb, factSchema) -> 
+          let rawFacts = instantiateFacts factSchema vb in 
+          let factsWithLineNo = List.map rawFacts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
+          let flowfact = List.map currentreachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
+          (currentfacts @ factsWithLineNo @ flowfact, 0, [fp])
+        )
+    in 
+    let programStateElse = current in 
+
+    (match branches with 
+      | [thenBranch] -> 
+        let programStatesThen = syh_compute_stmt_facts prorgamStateThen env thenBranch in  
+        current :: programStatesThen
+      | [thenBranch; elseBranch] -> 
+        let programStatesThen = syh_compute_stmt_facts prorgamStateThen env thenBranch in  
+        let programStatesElse = syh_compute_stmt_facts programStateElse env elseBranch in  
+        programStatesThen @ programStatesElse 
+      | _ -> raise(Failure "IfStmt has more than 2 branches") 
+    ) 
+    
+
+
+  | ReturnStmt _ -> [(currentfacts, 1, currentreachableState)]
+  | ImplicitCastExpr (_, x::_, _, _, _) 
+  | DeclStmt (_, [x], _) -> syh_compute_stmt_facts current env x
   | ImplicitCastExpr _ 
   | StringLiteral _ 
   | BinaryOperator _  
-  | DeclStmt _ 
-  | ReturnStmt _ -> []
+  | DeclStmt _ -> (* mute *) [current]
+  | _ -> print_endline ("Facts to be generated for " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); 
+         [current] 
 
-  | _ -> 
-    print_endline ("Facts to be generated for " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); 
-    [] 
 
-*)
   (*
   | ReturnStmt (stmt_info, [ret]) ->
     (*print_endline ("ReturnStmt1:" ^ string_of_stmt_list [ret] " ");*)
@@ -858,6 +812,30 @@ let int_of_optionint intop =
   | Some i -> i ;;
 
 
+let removeRedundantFlows factList : facts = 
+  let getTuple4Flows = 
+    List.fold_left factList ~init:[] ~f:(fun acc (_, args) -> 
+      match args with 
+      | [BINT i1; BINT i2] -> acc @ [(i1, i2)]
+      | _ -> acc) 
+  in 
+  let rec existSameRecord recordList start endNum  : bool = 
+    match recordList with 
+    | [] -> false 
+    | (s',e'):: recordListxs -> if start ==s' && endNum==e' then true else existSameRecord recordListxs start endNum
+  in 
+
+  let rec helper tupleList = 
+    match tupleList with 
+    | [] -> []
+    | [x] -> [x]
+    | (i1, i2)::rest -> 
+      if existSameRecord rest i1 i2 then helper rest 
+      else (i1, i2)::helper rest 
+  in 
+  List.map (helper getTuple4Flows) ~f:(fun (i1, i2) -> ("flow", [BINT i1; BINT i2]))
+
+
 let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specification list) (source_Address:string): unit  = 
   match dec with
     | FunctionDecl (decl_info, named_decl_info, _, function_decl_info) ->
@@ -890,7 +868,7 @@ let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specificat
           else (entryFacts', flowFacts', restFacts'@[a])
         ) 
       in 
-      let facts' = entryFacts @ flowFacts @ restFacts in 
+      let facts' = entryFacts @ (removeRedundantFlows flowFacts) @ restFacts in 
       print_endline (string_of_facts facts' ^ "\n")
       )
     | _ -> () 
