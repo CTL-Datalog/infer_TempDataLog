@@ -557,25 +557,36 @@ let rec syh_compute_stmt_facts (current:programState) (env:(specification list))
     let (fp, _) = stmt_intfor2FootPrint stmt_info in 
     let fp = (int_of_intList fp) in 
 
-    let prorgamStateThen = 
+    let (prorgamStateThen, programStateElse) = 
       match stmt2Pure conditional with 
-      | None -> current
+      | None -> (current, current)
       | Some piCondition -> 
         (match findIfStmtSpecFrom env piCondition with 
-        | None -> current 
-        | Some (vb, factSchema) -> 
-          let rawFacts = instantiateFacts factSchema vb in 
-          let factsWithLineNo = List.map rawFacts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
+        | None -> (current, current) 
+        | Some (vb, factSchema:: rest) -> 
           let flowfact = List.map currentreachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
-          (currentfacts @ factsWithLineNo @ flowfact, 0, [fp])
+
+          let rawFactsThen = instantiateFacts [factSchema] vb in 
+          let factsThenWithLineNo = List.map rawFactsThen ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
+
+          let prorgamStateThen' = (currentfacts @ factsThenWithLineNo @ flowfact, 0, [fp]) in 
+          let programStateElse' = 
+            match rest with 
+            | [] -> current 
+            | thenFactSchema :: _ -> 
+              (*print_endline ("second tempate for ifelse" ^ string_of_fact thenFactSchema); *)
+              let rawFactsElse = instantiateFacts [thenFactSchema] vb in 
+              let factsElseWithLineNo = List.map rawFactsElse ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
+              (factsElseWithLineNo, 0, [fp])
+          in (prorgamStateThen', programStateElse')
+        | _ -> raise(Failure "IfStmt spec no facts ") 
         )
     in 
-    let programStateElse = current in 
 
     (match branches with 
       | [thenBranch] -> 
         let programStatesThen = syh_compute_stmt_facts prorgamStateThen env thenBranch in  
-        current :: programStatesThen
+        programStateElse :: programStatesThen
       | [thenBranch; elseBranch] -> 
         let programStatesThen = syh_compute_stmt_facts prorgamStateThen env thenBranch in  
         let programStatesElse = syh_compute_stmt_facts programStateElse env elseBranch in  
