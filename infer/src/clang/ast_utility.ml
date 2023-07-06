@@ -37,12 +37,21 @@ type pure = TRUE
           | PureAnd of pure * pure
           | Neg of pure
 
+type fact = (string *  (basic_type list)) 
+type facts = fact list
+type reachableState = int list 
 
+(* facts is the abstract interpretation, 
+the first int is the exit code, and the reachableState is the most recent pre-states *)
+type programState = (facts * int * reachableState)
+
+type programStates = (programState list)
 
 type mnsigniture = (string *  (string list))
-type fact = (string *  (basic_type list)) 
 
-type specification = (mnsigniture * fact list)
+type stmtPattern = IfStmt of pure | CallStmt of mnsigniture
+
+type specification = (stmtPattern * fact list)
 
 
 (* Global States *)
@@ -250,8 +259,8 @@ let string_of_fact (str, btList) =
 let rec string_of_facts (factsLi) = 
   match factsLi with 
   | [] -> ""
-  | [fact] -> string_of_fact fact
-  | fact :: xs -> string_of_fact fact ^ "\n" ^ string_of_facts xs 
+  | [fact] -> string_of_fact fact ^ "."
+  | fact :: xs -> string_of_fact fact ^ ".\n" ^ string_of_facts xs 
   
 
 let rec findRetFromBindings (bt:bindings) (str: string) : basic_type option =

@@ -35,7 +35,7 @@ rule token = parse
 | "@*/" {RSPEC}
 | "Pre" {REQUIRE}
 | "Post" {ENSURE}
-| "Future" {FUTURESpec}
+| "IfStmt" {IfStmt}
 | "TRUE" { TRUE }
 | "FALSE" { FALSE }
 | "nil" {NULL}

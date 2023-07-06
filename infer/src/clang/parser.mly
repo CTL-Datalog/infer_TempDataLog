@@ -5,7 +5,7 @@
 %token <string> VAR
 %token <int> INTE
 %token EMPTY LPAR RPAR CONCAT  POWER  DISJ   
-%token COLON  REQUIRE ENSURE FUTURESpec LSPEC RSPEC NULL
+%token COLON  REQUIRE ENSURE IfStmt LSPEC RSPEC NULL
 %token UNDERLINE KLEENE EOF BOTTOM NOTSINGLE RETURN
 %token GT LT EQ GTEQ LTEQ CONJ COMMA MINUS 
 %token PLUS TRUE FALSE 
@@ -115,9 +115,13 @@ factList:
 
 
 specification: 
-| EOF {(("", []), [])}
+| EOF {(CallStmt ("", []), [])}
 | LSPEC str = VAR LPAR argument=formalparm RPAR COLON 
-a = factList RSPEC {((str, argument), a)}
+facts = factList RSPEC {(CallStmt (str, argument), facts)}
+| LSPEC IfStmt LPAR condition =pure RPAR COLON 
+facts = factList RSPEC {(IfStmt (condition), facts)}
+
+
 
 
 
