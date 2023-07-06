@@ -135,6 +135,13 @@ let string_of_basic_t v =
   | BNULL -> "NULL"
   | BRET -> "ret"
 
+let string_of_basic_t_aux v = 
+  match v with 
+  | BVAR name -> "\""^name ^"\""
+  | BINT n -> string_of_int n
+  | BNULL -> "NULL"
+  | BRET -> "\"" ^"ret"^ "\""
+
 let basic_type2_string v = 
   match v with 
   | BVAR name -> [name]
@@ -245,8 +252,8 @@ let string_of_event (str, li) =
 let rec string_of_bt_list (li: basic_type list) : string = 
     match li with 
   | [] -> ""
-  | [x] -> string_of_basic_t x 
-  | x::xs -> string_of_basic_t x ^ ", " ^ string_of_bt_list xs
+  | [x] -> string_of_basic_t_aux x 
+  | x::xs -> string_of_basic_t_aux x ^ ", " ^ string_of_bt_list xs
 
 
 let string_of_fact (str, btList) = 

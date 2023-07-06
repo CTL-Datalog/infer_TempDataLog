@@ -863,7 +863,7 @@ let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specificat
       let funcName = named_decl_info.ni_name in 
       let () = varSet := [] in 
 
-      print_endline ("<<=== Facts for function: "^ funcName ^" ===>>\n" ); 
+      print_endline ("//<<=== Facts for function: "^ funcName ^" ===>>\n" ); 
       (* initial states are facts = [] , exit code = 0, rechableState = [] *)
       let prorgamStates = (syh_compute_stmt_facts ([], 0, [functionStart]) specifications stmt) in 
       let factsFromProgram = List.fold_left prorgamStates ~init:[] ~f:(fun acc (fs, _, _) -> acc @ fs) in 
