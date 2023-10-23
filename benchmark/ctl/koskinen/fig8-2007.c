@@ -20,9 +20,9 @@ int unset;
 void main() {
     set = 1;
     while (i < Pdolen) { 
-        DName = ?;  
+        DName = nondet();  
         if (!DName) { break; } 
-        status = ?; 
+        status = nondet(); 
         if (1 != status) { 
             if (2 == status) { 
                 goto loc_continue; 

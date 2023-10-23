@@ -17,7 +17,7 @@ int curr_serv = servers;
 
 void main() {
   while(curr_serv > 0) {
-    if(?) {
+    if(nondet()) {
       c--; curr_serv--;
       resp++;
     } else if (c < curr_serv) {

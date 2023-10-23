@@ -10,13 +10,15 @@
 // Benchmark: acqrel.c
 // Property: AG(a => AF r)
 
-void init() { A = R = 0; }
+//void init() { A = R = 0; }
+int A = 0; 
+int R = 0; 
 
 int body() {
   while(nondet()) {
     A = 1;
     A = 0;
-    n = nondet();
+    int n = nondet();
     while(n>0) {
       n--;
     }

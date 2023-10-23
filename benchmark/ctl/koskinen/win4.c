@@ -10,11 +10,12 @@
 //
 // -ctl_str "AF{AG{WItemsNum >= 1}}"
 //
+#include <stdbool.h>
 void main() {
     int WItemsNum;
     
     while(true) {
-        while(WItemsNum <= 5 || ? == 1) {
+        while(WItemsNum <= 5 || nondet() == 1) {
                if (WItemsNum <= 5) {
                    WItemsNum++;
                } else {

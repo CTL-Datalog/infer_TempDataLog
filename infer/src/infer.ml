@@ -23,7 +23,7 @@ let run driver_mode =
   (* print_string("===========capture===========\n"); *)
   capture driver_mode ~changed_files ;
   print_endline ("\n===========End of Yahui's Code===========\n");
-  analyze_and_report driver_mode ~changed_files ;
+  (*analyze_and_report driver_mode ~changed_files ;*)
   run_epilogue ()
   
   

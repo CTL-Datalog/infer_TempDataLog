@@ -22,7 +22,7 @@ void main() {
     while (i < Pdolen) { 
         // DName = ?;  // leads to bad widening behaviour
         if (!DName) { break; } 
-        status = ?; 
+        status = nondet(); 
         if (1 != status) { 
             if (2 == status) { 
                 goto loc_continue; 

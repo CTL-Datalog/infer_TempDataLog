@@ -37,6 +37,6 @@ int main() {
         r = 0;
     }
 
-    while(true){}
+    while(1){}
 }
 

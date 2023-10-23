@@ -21,7 +21,9 @@ int dcIdi; // [5];
 int Pdoi; //[5];
 int PdoType; int status;
 
-void init() { set = unset = 0; }
+//void init() { set = unset = 0; }
+int set = 0;
+int unset = 0; 
 
 // The Program
 int PPMakeDeviceName(int a, int b, int c, int d) { return nondet(); }
