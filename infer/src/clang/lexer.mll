@@ -33,6 +33,14 @@ rule token = parse
 | "𝝐" { EMPTY }
 | "/*@" {LSPEC}
 | "@*/" {RSPEC}
+| "AX" {AX}  
+| "EX" {EX}
+| "AF" {AF}
+| "EF" {EF}
+| "AG" {AG}
+| "EG" {EG}
+| "AU" {AU}
+| "EU" {EU}
 | "Pre" {REQUIRE}
 | "Post" {ENSURE}
 | "IfStmt" {IfStmt}
@@ -63,7 +71,7 @@ rule token = parse
 | "\\/" {DISJ}
 | "<>" {FUTURE}  
 | "[]" {GLOBAL}
-| "->" {IMPLY}
+| "=>" {IMPLY}
 | '!' {LTLNOT}
 | 'X' {NEXT}
 | 'U' {UNTIL}

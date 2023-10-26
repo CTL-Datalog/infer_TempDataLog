@@ -11,6 +11,15 @@
 // Property: AG(a => AF r)
 
 //void init() { A = R = 0; }
+
+#define SW_CHANNEL_MIN_MEM (1024*64)
+/*@ (x>1) @*/
+/*@ AF (x=0) @*/
+
+/*@ AG(x=0 => AF (x=0)) @*/
+
+ 
+
 int A = 0; 
 int R = 0; 
 
