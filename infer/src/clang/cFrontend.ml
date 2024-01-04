@@ -578,7 +578,7 @@ let rec syh_compute_stmt_facts (current:programState) (env:(specification list))
               let rawFactsElse = instantiateFacts [thenFactSchema] vb in 
               let factsElseWithLineNo = List.map rawFactsElse ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
               (factsElseWithLineNo, 0, [fp])
-          in (prorgamStateThen', programStateElse')
+          in (prorgamStateThen', current (*programStateElse'*))
         | _ -> raise(Failure "IfStmt spec no facts ") 
         )
     in 
@@ -935,7 +935,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
                 
   
   
-  L.(debug Capture Verbose)
+  (*L.(debug Capture Verbose)
     "@\n Start building call/cfg graph for '%a'....@\n" SourceFile.pp source_file ;
   let cfg = compute_icfg translation_unit_context tenv ast in
 
@@ -953,6 +953,6 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
     || Option.is_some Config.icfg_dotty_outfile
   then DotCfg.emit_frontend_cfg source_file cfg ;
   L.debug Capture Verbose "Stored on disk:@[<v>%a@]@." Cfg.pp_proc_signatures cfg ;
-  
+  *)
   
   ()
