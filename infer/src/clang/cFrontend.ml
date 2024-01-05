@@ -512,7 +512,7 @@ let rec syh_compute_stmt_facts (current:programState) (env:(specification list))
       let stmt = (Clang_ast_t.CallExpr (stmt_info, stmt_list, ei)) in 
       syh_compute_stmt_facts current env stmt
 
-  | CallExpr (stmt_info, stmt_list, ei) -> 
+(*| CallExpr (stmt_info, stmt_list, ei) -> 
     let (fp, _) = stmt_intfor2FootPrint stmt_info in 
     let fp = (int_of_intList fp) in 
     
@@ -551,7 +551,7 @@ let rec syh_compute_stmt_facts (current:programState) (env:(specification list))
             (callFacts @ flowfact, [fp])
         )
     in [(currentfacts @ facts, 0, nextRechable)]
-
+*)
   
   | IfStmt (stmt_info, conditional::branches, if_stmt_info) -> 
     let (fp, _) = stmt_intfor2FootPrint stmt_info in 
@@ -776,7 +776,7 @@ let retriveComments (source:string) : (string list) =
   
 
 (* lines of code, lines of sepc, number_of_protocol *)
-let retriveSpecifications (source:string) : (specification list * int * int * int) = 
+let retriveSpecifications (source:string) : (ctl list * int * int * int) = 
   let ic = open_in source in
   try
       let lines =  (input_lines ic ) in
@@ -794,12 +794,12 @@ let retriveSpecifications (source:string) : (specification list * int * int * in
       else print_endline ("Global specifictaions are: "));
       let sepcifications = List.map partitions 
         ~f:(fun singlespec -> 
-          print_endline (singlespec);
-          Parser.specification Lexer.token (Lexing.from_string singlespec)) in
+          (*print_endline (singlespec);*)
+          Parser.ctl Lexer.token (Lexing.from_string singlespec)) in
       
-      (*
-      let _ = List.map sepcifications ~f:(fun (_ , pre, post, future) -> print_endline (string_of_function_sepc (pre, post, future) ) ) in 
-      *)
+      
+      let _ = List.map sepcifications ~f:(fun ctl -> print_endline (string_of_ctl ctl) ) in 
+      
 
       (sepcifications, line_of_code, line_of_spec, List.length partitions)
       (*
@@ -884,7 +884,7 @@ let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specificat
       )
     | _ -> () 
 
-let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * specification list * int * int * int) = 
+let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl list * int * int * int) = 
     match ast_decl with
     | Clang_ast_t.TranslationUnitDecl (decl_info, decl_list, _, translation_unit_decl_info) ->
         let source =  translation_unit_decl_info.tudi_input_path in 
@@ -911,9 +911,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let () = totol_specifications := List.append !totol_specifications specifications in 
   let start = Unix.gettimeofday () in 
 
-  let reasoning_Res = List.map decl_list  
+  (*let reasoning_Res = List.map decl_list  
     ~f:(fun dec -> reason_about_declaration dec !totol_specifications source_Address) in 
-  
+  *)
   let compution_time = (Unix.gettimeofday () -. start) in 
     (* Input program has  *)
     let msg = 
@@ -922,7 +922,6 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       ^ source_Address ^ "\n"
       ^ string_of_int ( !totol_Lines_of_Code ) ^ " lines of code; " 
       ^ string_of_int !totol_Lines_of_Spec ^ " lines of specs; for " 
-      ^ string_of_int (List.length !totol_specifications)(*number_of_protocol*) ^ " fact generation schemas. "
       in 
   
     print_string (msg); 

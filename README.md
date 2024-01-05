@@ -74,3 +74,12 @@ TODO:
 5. find test cases ranging buffer overflow, alias, and other temporal bugs. 
 
 -- Yahui 6th July. 
+
+
+TODO: 
+
+1. write specifications and add a spec parser for the test cases. 
+2. form a file to track all the test cases and their expected results. 
+3. for each test cases, construct the core Datalog output. 
+
+-- Yahui 23 Oct

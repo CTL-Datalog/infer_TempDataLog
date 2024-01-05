@@ -8,15 +8,15 @@
 %token COLON  REQUIRE ENSURE IfStmt LSPEC RSPEC NULL
 %token UNDERLINE KLEENE EOF BOTTOM NOTSINGLE RETURN
 %token GT LT EQ GTEQ LTEQ CONJ COMMA MINUS 
-%token PLUS TRUE FALSE 
+%token PLUS TRUE FALSE AX EX AF EF AG EG AU EU
 %token FUTURE GLOBAL IMPLY LTLNOT NEXT UNTIL LILAND LILOR
 %left DISJ 
 %left CONCAT
 
 
 
-%start specification
-%type <(Ast_utility.specification)> specification
+%start ctl
+%type <(Ast_utility.ctl)> ctl
 %type <(Ast_utility.pure)> pure
 %type <(Ast_utility.basic_type)> basic_type
 %type <(Ast_utility.basic_type list)> parm
@@ -115,7 +115,7 @@ factList:
 | str = VAR LPAR argument=actualparm RPAR COMMA rest = factList {(str, argument)::rest}
 
 
-specification: 
+fact_pattern_spec: 
 | EOF {(CallStmt ("", []), [])}
 | LSPEC str = VAR LPAR argument=formalparm RPAR COLON 
 facts = factList RSPEC {(CallStmt (str, argument), facts)}
@@ -123,6 +123,26 @@ facts = factList RSPEC {(CallStmt (str, argument), facts)}
 facts = factList RSPEC {(IfStmt (condition), facts)}
 
 
+ctl_formula:
+| p =pure {Atom(p)}
+| LPAR ctl = ctl_formula RPAR {ctl}
+| NOTSINGLE ctl = ctl_formula {(Neg ctl)}
+| AX LPAR ctl = ctl_formula RPAR {(AX ctl)}
+| EX LPAR ctl = ctl_formula RPAR {(EX ctl)}
+| AF LPAR ctl = ctl_formula RPAR {(AF ctl)}
+| EF LPAR ctl = ctl_formula RPAR {(EF ctl)}
+| AG LPAR ctl = ctl_formula RPAR {(AG ctl)}
+| EG LPAR ctl = ctl_formula RPAR {(EG ctl)}
+| AU LPAR ctl1 = ctl_formula COMMA ctl2 = ctl_formula RPAR {AU(ctl1, ctl2)}
+| EU LPAR ctl1 = ctl_formula COMMA ctl2 = ctl_formula RPAR {EU(ctl1, ctl2)}
+| ctl1 = ctl_formula CONJ ctl2 = ctl_formula {Conj(ctl1, ctl2)}
+| ctl1 = ctl_formula DISJ ctl2 = ctl_formula {Disj(ctl1, ctl2)}
+| ctl1 = ctl_formula IMPLY ctl2 = ctl_formula {Imply(ctl1, ctl2)}
 
 
+ctl: 
+| EOF {Atom(TRUE)}
+| LSPEC 
+  ctl_formula  = ctl_formula
 
+  RSPEC {ctl_formula}

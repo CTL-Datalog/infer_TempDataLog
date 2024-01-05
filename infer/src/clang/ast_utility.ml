@@ -54,6 +54,24 @@ type stmtPattern = IfStmt of pure | CallStmt of mnsigniture
 type specification = (stmtPattern * fact list)
 
 
+type ctl = 
+    Atom of pure 
+  | Neg of ctl 
+  | Conj of ctl * ctl 
+  | Disj of ctl * ctl 
+  | Imply of ctl * ctl 
+  | AX of ctl 
+  | EX of ctl 
+  | AF of ctl 
+  | EF of ctl 
+  | AG of ctl 
+  | EG of ctl 
+  | AU of ctl * ctl 
+  | EU of ctl * ctl 
+
+
+
+
 (* Global States *)
 let (varSet: (string list) ref) = ref [] 
 let (handlerVar: string option ref) = ref None 
@@ -66,7 +84,7 @@ let totol_Lines_of_Spec  = ref 0
 let currentFunctionLineNumber = ref (0, 0) 
 
 
-let (totol_specifications: (specification list) ref)  = ref []
+let (totol_specifications: (ctl list) ref)  = ref []
 
 
 let rec flattenList lili = 
@@ -184,6 +202,24 @@ let rec string_of_pure (p:pure):string =
   | PureAnd (p1, p2) -> string_of_pure p1 ^ "∧" ^ string_of_pure p2
   | Neg (Eq (t1, t2)) -> "("^(string_of_terms t1) ^ "!=" ^ (string_of_terms t2)^")"
   | Neg p -> "!(" ^ string_of_pure p^")"
+
+let rec string_of_ctl (ctl:ctl) = 
+  match ctl with
+  | Atom p -> string_of_pure p 
+  | Neg c -> "!(" ^ string_of_ctl c ^")"
+  | Conj (c1, c2) -> "(" ^ string_of_ctl c1 ^" /\\ "^ string_of_ctl c2 ^")"
+  | Disj (c1, c2) -> "(" ^ string_of_ctl c1 ^" \\/ "^ string_of_ctl c2 ^")"
+  | Imply (c1, c2) -> "(" ^ string_of_ctl c1 ^" => "^ string_of_ctl c2 ^")"
+  | AX c -> "AX(" ^ string_of_ctl c ^")"
+  | EX c -> "EX(" ^ string_of_ctl c ^")"
+  | AF c -> "AF(" ^ string_of_ctl c ^")"
+  | EF c -> "EF(" ^ string_of_ctl c ^")"
+  | AG c -> "AG(" ^ string_of_ctl c ^")"
+  | EG c -> "EG(" ^ string_of_ctl c ^")"
+  | AU (c1, c2) -> "AU(" ^ string_of_ctl c1 ^","^ string_of_ctl c2 ^")"
+  | EU (c1, c2) -> "EU(" ^ string_of_ctl c1 ^","^ string_of_ctl c2 ^")"
+ 
+
 
 let rec string_of_pure_output (p:pure):string =   
   match p with
