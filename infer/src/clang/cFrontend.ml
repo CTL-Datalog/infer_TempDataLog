@@ -51,150 +51,6 @@ module IDM = Map.Make(String)
 let node_map = ref IDM.empty
 let node_val = ref 0
 
-let get_facts procedure =
-  let process facts (node: Procdesc.Node.t) = 
-
-    let get_key node = 
-      let key = (Procdesc.NodeKey.to_string (Procdesc.Node.compute_key node)) in
-      (* Simplification of the identifiers *)
-      match IDM.find !node_map key with
-      | Some(x) -> x
-      | None -> let v = !node_val in 
-        incr node_val; 
-        let k = Int.to_string v 
-      in node_map:= IDM.set !node_map ~key:key ~data:k ; k in
-
-    let node_loc = 
-        let loc = (Procdesc.Node.get_loc node) in
-        Printf.sprintf "%s:%s" (SourceFile.to_string loc.file) (Location.to_string loc)
-    in
-    let node_key =  get_key node in
-    let node_kind = Procdesc.Node.get_kind node in
-    let instructions = List.rev (Instrs.fold (Procdesc.Node.get_instrs node) ~init:[] ~f:(fun instructions ins -> 
-      (match ins with 
-      | Load l -> Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)
-      | Store s -> Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)
-      | Prune _ -> "IPrune"
-      | Call ((ret_id, _), e_fun, arg_ts, _, _)  -> 
-        let args = (String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x) arg_ts)) in
-          Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) 
-      | Metadata _
-      -> "IMetadata") :: instructions      
-      ))  in
-    let succs = (Procdesc.Node.get_succs node) in
-    let node_facts =
-    match node_kind with
-      | Start_node -> [
-        (Printf.sprintf "Start(%s)." node_key);
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        ]
-      | Exit_node ->  [
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "End(%s)." node_key);
-        "\n"
-        ]
-      | Join_node ->  [
-        (Printf.sprintf "Join(%s)." node_key);
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        ] 
-      | Skip_node t ->  [
-        (Printf.sprintf "Skip(%s,%s)." node_key t);
-
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        ] 
-      | Prune_node (f,_,_) ->  [
-        (Printf.sprintf "Prune(%s,%b)." node_key f);
-
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        ]
-      | Stmt_node stmt_kind ->  
-        let info = match stmt_kind with 
-        | AssertionFailure ->  (Printf.sprintf "AssertionFailure(%s)." node_key)
-        | AtomicCompareExchangeBranch -> (Printf.sprintf "AtomicCompareExchangeBranch(%s)." node_key)
-        | AtomicExpr -> (Printf.sprintf "AtomicExpr(%s)." node_key)
-        | BetweenJoinAndExit -> (Printf.sprintf "BetweenJoinAndExit(%s)." node_key)
-        | BinaryConditionalStmtInit -> (Printf.sprintf "BinaryConditionalStmtInit(%s)." node_key)
-        | BinaryOperatorStmt (x)  -> (Printf.sprintf "BinaryOperatorStmt(%s,%s)." node_key x)
-        | CallObjCNew -> (Printf.sprintf "CallObjCNew(%s)." node_key)
-        | CaseStmt -> (Printf.sprintf "CaseStmt(%s)." node_key)
-        | ClassCastException -> (Printf.sprintf "ClassCastException(%s)." node_key)
-        | CompoundStmt -> (Printf.sprintf "CompoundStmt(%s)." node_key)
-        | ConditionalStmtBranch -> (Printf.sprintf "ConditionalStmtBranch(%s)." node_key)
-        | ConstructorInit -> (Printf.sprintf "ConstructorInit(%s)." node_key)
-        | CXXDynamicCast -> (Printf.sprintf "CXXDynamicCast(%s)." node_key)
-        | CXXNewExpr -> (Printf.sprintf "CXXNewExpr(%s)." node_key)
-        | CXXStdInitializerListExpr -> (Printf.sprintf "CXXStdInitializerListExpr(%s)." node_key)
-        | MessageCall (x) -> (Printf.sprintf "MessageCall(%s,%s)" node_key x) 
-        | Call(x) -> (Printf.sprintf "Call(%s,%s)." node_key x) 
-        | CXXTemporaryMarkerSet
-        | CXXTry
-        | CXXTypeidExpr
-        | DeclStmt
-        | DefineBody
-        | Destruction _
-        | Erlang
-        | ErlangCaseClause
-        | ErlangExpression
-        | ExceptionHandler
-        | ExceptionsSink
-        | ExprWithCleanups
-        | FinallyBranch
-        | GCCAsmStmt
-        | GenericSelectionExpr
-        | IfStmtBranch
-        | InitializeDynamicArrayLength
-        | InitListExp
-        | LoopBody
-        | LoopIterIncr
-        | LoopIterInit
-        | MethodBody
-        | MonitorEnter
-        | MonitorExit
-        | ObjCCPPThrow
-        | ObjCIndirectCopyRestoreExpr
-        | OutOfBound
-        | ReturnStmt
-        | Scope _
-        | Skip _
-        | SwitchStmt
-        | ThisNotNull
-        | Throw
-        | ThrowNPE
-        | UnaryOperator 
-         -> (Printf.sprintf "Other(%s)." node_key)
-      in
-
-        [
-        info;
-        (Printf.sprintf "Stmt(%s)." node_key);
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        ]
-    in
-
-
-    let create_edge succ = 
-      let succ_key = get_key succ in
-      [Printf.sprintf "Flow(%s,%s)." node_key succ_key];
-    in
-
-
-    List.fold (List.map succs ~f:create_edge) ~init:(List.append facts node_facts) ~f:List.append 
-  in 
-    Procdesc.fold_nodes procedure ~init:[] ~f:process
-
-
-
 let string_of_source_range ((s1, s2):Clang_ast_t.source_range) :string = 
   match (s1.sl_file, s2.sl_file) with 
   | (Some name, _) 
@@ -1041,6 +897,176 @@ let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl 
  
     | _ -> assert false
 
+let get_facts procedure =
+  let process facts (node: Procdesc.Node.t) = 
+
+    let get_key node = 
+      let key = (Procdesc.NodeKey.to_string (Procdesc.Node.compute_key node)) in
+      (* Simplification of the identifiers *)
+      match IDM.find !node_map key with
+      | Some(x) -> x
+      | None -> let v = !node_val in 
+        incr node_val; 
+        let k = Int.to_string v 
+      in node_map:= IDM.set !node_map ~key:key ~data:k ; k in
+
+    let node_loc = 
+        let loc = (Procdesc.Node.get_loc node) in
+        (*Printf.sprintf "%s:%s" (SourceFile.to_string loc.file) (Location.to_string loc)*)
+        Printf.sprintf "%s" (Location.to_string loc)
+
+    in
+    let node_key =  get_key node in
+    let node_kind = Procdesc.Node.get_kind node in
+    let instructions = List.rev (Instrs.fold (Procdesc.Node.get_instrs node) ~init:[] ~f:(fun instructions ins -> 
+      (match ins with 
+      | Load l -> Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)
+      | Store s -> Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)
+      | Prune _ -> "IPrune"
+      | Call ((ret_id, _), e_fun, arg_ts, _, _)  -> 
+        let args = (String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x) arg_ts)) in
+          Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) 
+      | Metadata _ -> "IMetadata") :: instructions      
+      ))  in
+    let succs = (Procdesc.Node.get_succs node) in
+    let node_facts =
+    match node_kind with
+      | Start_node -> [
+        (Printf.sprintf "Start_node(%s)." node_key);
+        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
+        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        "\n"
+        ]
+      | Exit_node ->  [
+        (Printf.sprintf "Exit_node(%s,%s)." node_key node_loc);
+        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
+        (Printf.sprintf "End(%s)." node_key);
+        "\n"
+        ]
+      | Join_node ->  [
+        (Printf.sprintf "Join_node(%s)." node_key);
+        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
+        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        "\n"
+        ] 
+      | Skip_node t ->  [
+        (Printf.sprintf "Skip_node(%s,%s)." node_key t);
+
+        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
+        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        "\n"
+        ] 
+      | Prune_node (f,_,_) ->  [
+        (Printf.sprintf "Prune_node(%s,%b)." node_key f);
+
+        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
+        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        "\n"
+        ]
+      | Stmt_node stmt_kind ->  
+        let info = match stmt_kind with 
+        | AssertionFailure ->  (Printf.sprintf "AssertionFailure(%s)." node_key)
+        | AtomicCompareExchangeBranch -> (Printf.sprintf "AtomicCompareExchangeBranch(%s)." node_key)
+        | AtomicExpr -> (Printf.sprintf "AtomicExpr(%s)." node_key)
+        | BetweenJoinAndExit -> (Printf.sprintf "BetweenJoinAndExit(%s)." node_key)
+        | BinaryConditionalStmtInit -> (Printf.sprintf "BinaryConditionalStmtInit(%s)." node_key)
+        | BinaryOperatorStmt (x)  -> (Printf.sprintf "BinaryOperatorStmt(%s,%s)." node_key x)
+        | CallObjCNew -> (Printf.sprintf "CallObjCNew(%s)." node_key)
+        | CaseStmt -> (Printf.sprintf "CaseStmt(%s)." node_key)
+        | ClassCastException -> (Printf.sprintf "ClassCastException(%s)." node_key)
+        | CompoundStmt -> (Printf.sprintf "CompoundStmt(%s)." node_key)
+        | ConditionalStmtBranch -> (Printf.sprintf "ConditionalStmtBranch(%s)." node_key)
+        | ConstructorInit -> (Printf.sprintf "ConstructorInit(%s)." node_key)
+        | CXXDynamicCast -> (Printf.sprintf "CXXDynamicCast(%s)." node_key)
+        | CXXNewExpr -> (Printf.sprintf "CXXNewExpr(%s)." node_key)
+        | CXXStdInitializerListExpr -> (Printf.sprintf "CXXStdInitializerListExpr(%s)." node_key)
+        | MessageCall (x) -> (Printf.sprintf "MessageCall(%s,%s)" node_key x) 
+        | Call(x) -> (Printf.sprintf "Call(%s,%s)." node_key x) 
+        | CXXTemporaryMarkerSet
+        | CXXTry
+        | CXXTypeidExpr
+        | DeclStmt
+        | DefineBody
+        | Destruction _
+        | Erlang
+        | ErlangCaseClause
+        | ErlangExpression
+        | ExceptionHandler
+        | ExceptionsSink
+        | ExprWithCleanups
+        | FinallyBranch
+        | GCCAsmStmt
+        | GenericSelectionExpr
+        | IfStmtBranch
+        | InitializeDynamicArrayLength
+        | InitListExp
+        | LoopBody
+        | LoopIterIncr
+        | LoopIterInit
+        | MethodBody
+        | MonitorEnter
+        | MonitorExit
+        | ObjCCPPThrow
+        | ObjCIndirectCopyRestoreExpr
+        | OutOfBound
+        | ReturnStmt
+        | Scope _
+        | Skip _
+        | SwitchStmt
+        | ThisNotNull
+        | Throw
+        | ThrowNPE
+        | UnaryOperator 
+         -> (Printf.sprintf "Other(%s)." node_key)
+      in
+
+        [
+        info;
+        (Printf.sprintf "Stmt(%s)." node_key);
+        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
+        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        "\n"
+        ]
+    in
+
+
+    let create_edge succ = 
+      let succ_key = get_key succ in
+      [Printf.sprintf "Flow(%s,%s)." node_key succ_key];
+    in
+
+
+    List.fold (List.map succs ~f:create_edge) ~init:(List.append facts node_facts) ~f:List.append 
+  in 
+  print_endline ("------------each procedure-----------\n");
+  let startNode = Procdesc.get_start_node procedure in 
+
+  let rec iterateProc nodeList n : unit = 
+    if n == 0 then ()
+    else 
+      print_endline (List.fold_left nodeList ~init:"" ~f:(fun acc a -> acc ^
+        ", " ^ 
+        Location.to_string (Procdesc.Node.get_loc a)));
+
+      let not_exit_node = List.filter ~f:(fun node ->
+        match Procdesc.Node.get_kind node with 
+        | Exit_node -> 
+          print_endline ("exit" ^  Location.to_string (Procdesc.Node.get_loc node));
+          false 
+        | _ -> true 
+        ) nodeList
+      in 
+      let nextNodes =  
+          List.fold_left not_exit_node ~init:[] ~f:(fun acc n -> acc @ (Procdesc.Node.get_succs n)) in 
+        iterateProc (nextNodes) (n-1)
+
+  in 
+  iterateProc [startNode] 5;
+
+  Procdesc.fold_nodes procedure ~init:[] ~f:process
+
+
+
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
   let tenv = Tenv.create () in
   CType_decl.add_predefined_types tenv ;
@@ -1060,7 +1086,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   L.(debug Capture Verbose) "@\n Start buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
   let facts = (Cfg.fold_sorted cfg ~init:[] ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
-    Out_channel.write_lines "fact_test.txt" facts;
+  Out_channel.write_lines "fact_test.txt" facts;
     (*List.iter facts ~f:(fun l -> L.(debug Capture Verbose) "%s %a\n" l SourceFile.pp source_file) ;*) 
 
   L.(debug Capture Verbose) "@\n End buidling facts for '%a'.@\n" SourceFile.pp source_file ;
