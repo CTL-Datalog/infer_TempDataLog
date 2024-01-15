@@ -901,7 +901,8 @@ let get_facts procedure =
   let out_c = Out_channel.create "zprint" in
   let fmt = F.formatter_of_out_channel out_c in
 
-  let process facts (node: Procdesc.Node.t) = 
+  let process acc (node: Procdesc.Node.t) = 
+    let flows, facts = acc in 
     let get_key node = 
       let key = (Procdesc.NodeKey.to_string (Procdesc.Node.compute_key node)) in
       (* Simplification of the identifiers *)
@@ -914,59 +915,60 @@ let get_facts procedure =
 
     let node_loc = 
         let loc = (Procdesc.Node.get_loc node) in
-        Printf.sprintf "%s" (Location.to_string loc)
+        Printf.sprintf "@%s" (Location.to_string loc)
         (*Printf.sprintf "%s:%s" (SourceFile.to_string loc.file) (Location.to_string loc)*)
     in
     let node_key =  get_key node in
     let node_kind = Procdesc.Node.get_kind node in
-    let instructions = List.rev 
-      (Instrs.fold (Procdesc.Node.get_instrs node) ~init:[] ~f:(fun instructions ins -> 
-        (match ins with 
-        | Load l -> Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)
-        | Store s -> Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)
-        | Prune _ -> "IPrune"
+    let instructions = 
+      (Instrs.fold (Procdesc.Node.get_instrs node) ~init:[] 
+      ~f:(fun acc ins -> 
+        acc @ (match ins with 
+        | Load l -> [Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)]
+        | Store s -> [Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)]
+        | Prune (e, loc, f, _) -> [(Printf.sprintf "Prune(%s, %b)" (Exp.to_string e) f)]
         | Call ((ret_id, _), e_fun, arg_ts, _, _)  -> 
           let args = (String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x) arg_ts)) in
-            Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) 
-        | Metadata _ -> "IMetadata"
+            [Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) ]
+        | Metadata _ -> [] (* "IMetadata"  *)
         ) 
-        :: 
-        instructions      
+        
+              
       ))  in
     let succs = (Procdesc.Node.get_succs node) in
     let node_facts =
     match node_kind with
       | Start_node -> [
-        (Printf.sprintf "Start(%s)." node_key);
+        (Printf.sprintf "Start(%s). // %s" node_key node_loc);
         (*Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);*)
+        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
         "\n"
+        *)
         ]
       | Exit_node ->  [
-        (Printf.sprintf "Exit(%s,%s)." node_key node_loc);
+        (Printf.sprintf "Exit(%s).  // %s" node_key node_loc);
         (*(Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
         (Printf.sprintf "End(%s)." node_key);
-        *)
         "\n"
+        *)
         ]
       | Join_node ->  [
-        (Printf.sprintf "Join(%s)." node_key);
+        (Printf.sprintf "Join(%s).  // %s" node_key node_loc);
         (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        (*(Printf.sprintf "Node(%s,%s)." node_key node_loc);*)
         "\n"
         ] 
       | Skip_node t ->  [
-        (Printf.sprintf "Skip(%s,%s)." node_key t);
-
+        (Printf.sprintf "Skip(%s,%s).  // %s" node_key t node_loc);
         (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        (*(Printf.sprintf "Node(%s,%s)." node_key node_loc);*)
         "\n"
         ] 
       | Prune_node (f,_,_) ->  [
-        (Printf.sprintf "Prune(%s,%b)." node_key f);
+        (Printf.sprintf "PruneNode(%s,%b). // %s" node_key f node_loc);
 
         (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        (*(Printf.sprintf "Node(%s,%s)." node_key node_loc);*)
         "\n"
         ]
       | Stmt_node stmt_kind ->  
@@ -1030,9 +1032,9 @@ let get_facts procedure =
 
         [
         info;
-        (Printf.sprintf "Stmt(%s)." node_key);
+        (Printf.sprintf "Stmt(%s). // %s" node_key node_loc);
         (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
+        (*(Printf.sprintf "Node(%s,%s)." node_key node_loc); *)
         "\n"
         ]
     in
@@ -1040,10 +1042,10 @@ let get_facts procedure =
 
     let create_edge succ = 
       let succ_key = get_key succ in
-      [Printf.sprintf "Flow(%s,%s)." node_key succ_key];
+      (Printf.sprintf "Flow(%s,%s)." node_key succ_key);
     in
-
-    (List.fold (List.map succs ~f:create_edge) ~init:(List.append facts node_facts) ~f:List.append)
+    List.append flows (List.map succs ~f:create_edge), (List.append facts node_facts)
+    (* (List.fold (List.map succs ~f:create_edge) ~init:(List.append facts node_facts) ~f:List.append) *)
   in 
   print_endline ("------------each procedure-----------\n");
   let startNode = Procdesc.get_start_node procedure in 
@@ -1070,8 +1072,13 @@ let get_facts procedure =
   in 
   iterateProc [startNode] 20;
 
+  let localVariables = Procdesc.get_locals procedure in 
+  let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
+
+
   let header = (Printf.sprintf "\n//-- Facts for Procedure <%s> \n" (Procname.to_string (Procdesc.get_proc_name procedure))) in 
-  header :: (Procdesc.fold_nodes procedure ~init:[] ~f:process)
+  let finalFlow, finialFacts = (Procdesc.fold_nodes procedure ~init:([], []) ~f:process) in 
+  header:: finalFlow @ ("\n") ::finialFacts
 
 
 
