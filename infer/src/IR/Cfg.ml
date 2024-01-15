@@ -62,4 +62,6 @@ let store source_file cfg =
 let pp_proc_signatures fmt cfg =
   F.fprintf fmt "@[<v>METHOD SIGNATURES@;" ;
   iter_sorted ~f:(Procdesc.pp_signature fmt) cfg ;
+  iter_sorted ~f:(Procdesc.iter_nodes (fun node -> Procdesc.Node.pp fmt node)) cfg ;
+
   F.fprintf fmt "@]"
