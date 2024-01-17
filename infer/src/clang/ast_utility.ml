@@ -251,7 +251,7 @@ let rec string_of_regularExpr re =
 
   | Bot              -> "⏊"
   | Emp (state)       -> "𝝐 " ^ string_of_loc state
-  | Singleton (p, state)  -> string_of_pure p ^ string_of_loc state
+  | Singleton (p, state)  -> "(" ^string_of_pure p  ^ ")"^ string_of_loc state
   | Concate (eff1, eff2) -> string_of_regularExpr eff1 ^ " · " ^ string_of_regularExpr eff2 
   | Disjunction (eff1, eff2) ->
       "(" ^ string_of_regularExpr eff1 ^ " \\/ " ^ string_of_regularExpr eff2 ^ ")"

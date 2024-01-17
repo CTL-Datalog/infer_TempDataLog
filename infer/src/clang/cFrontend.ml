@@ -1065,26 +1065,27 @@ let get_facts procedure =
 let expressionToTerm (exp:Exp.t) : terms  = 
   match exp with 
   | Var t -> Basic (BVAR (Ident.to_string t)) (** Pure variable: it is not an lvalue *)
+  | Lvar t -> Basic (BVAR (Pvar.to_string t))  (** The address of a program variable *)
+
   | Const t ->  (** Constants *)
     (match t with 
     | Cint i -> Basic (BINT (IntLit.to_int_exn i ))  (** integer constants *)
     | _ -> Basic BNULL
     )
-  | _ -> Basic BNULL
 
-(*  | UnOp of Unop.t * t * Typ.t option  (** Unary operator with type of the result if known *)
-  | BinOp of Binop.t * t * t  (** Binary operator *)
-  | Exn of t  (** Exception *)
-  | Closure of closure  (** Anonymous function *)
-  | Cast of Typ.t * t  (** Type cast *)
-  | Lvar of Pvar.t  (** The address of a program variable *)
-  | Lfield of t * Fieldname.t * Typ.t
-      (** A field offset, the type is the surrounding struct type *)
-  | Lindex of t * t  (** An array index offset: [exp1\[exp2\]] *)
-  | Sizeof of sizeof_data
-  *)
+  | UnOp _ -> Basic (BVAR ("UnOp"))
+  | BinOp _ -> Basic (BVAR ("BinOp"))
+  | Exn _ -> Basic (BVAR ("Exn"))
+  | Closure _ -> Basic (BVAR ("Closure"))
+  | Cast _ -> Basic (BVAR ("Cast"))
+  | Lfield _ -> Basic (BVAR ("Lfield"))
+  | Lindex _ -> Basic (BVAR ("Lindex"))
+  | Sizeof _ -> Basic (BVAR ("Sizeof"))
+  
 
-let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure option = None
+let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure option = 
+  print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
+  None
   (*match instrs with 
     | Load l -> [Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)]
     | Store s -> [Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)]
@@ -1094,10 +1095,23 @@ let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure opt
         [Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) ]
     | Metadata _ -> [] (* "IMetadata"  *)
   *)
+
+let string_of_instruction (ins:Sil.instr) : string = 
+  match ins with 
+  | Load _ -> "Load"
+  | Store _ -> "Store"
+  | Prune _ -> "Prune"
+  | Call _ -> "Call"
+  | Metadata _ -> "Metadata"
+
+
   
 let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure option = 
+  print_endline ("getPureFromDeclStmtInstructions: " ^ string_of_int (List.length instrs));
+  print_endline (List.fold instrs ~init:"" ~f:(fun acc a -> acc ^ "," ^ string_of_instruction a)); 
   match instrs with 
-  | [Store s] -> 
+  | Store s :: _ -> 
+    print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2);
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
     Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
@@ -1114,7 +1128,10 @@ let regularExpr_of_Node node : regularExpr=
   | Prune_node (f,_,_) ->  Emp(node_key) 
   | Stmt_node stmt_kind ->         
     let instrs_raw =  (Procdesc.Node.get_instrs node) in  
-    let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc a -> acc @ [a]) in 
+    let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc (a:Sil.instr) -> 
+      match a with 
+      | Metadata _ -> acc 
+      | _ -> acc @ [a]) in 
     match stmt_kind with 
     | BinaryOperatorStmt _ -> 
       (match getPureFromBinaryOperatorStmtInstructions instrs with 
