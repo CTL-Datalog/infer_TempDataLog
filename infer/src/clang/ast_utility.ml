@@ -1,6 +1,6 @@
 open Z3
 
-type basic_type = BINT of int | BVAR of string | BNULL | BRET
+type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY
 
 type event = string * (basic_type list)
 
@@ -151,6 +151,7 @@ let string_of_basic_t v =
   | BINT n -> string_of_int n
   | BNULL -> "NULL"
   | BRET -> "ret"
+  | ANY -> "*"
 
 let string_of_basic_t_aux v = 
   match v with 
@@ -158,6 +159,8 @@ let string_of_basic_t_aux v =
   | BINT n -> string_of_int n
   | BNULL -> "NULL"
   | BRET -> "\"" ^"ret"^ "\""
+  | ANY -> "*"
+
 
 let basic_type2_string v = 
   match v with 
@@ -385,6 +388,7 @@ let rec convertTerm (t:terms):string =
   | (Basic (BNULL)) -> " " ^ "nil" ^ " "
   | Plus (t1, t2) -> ("(+") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
   | Minus (t1, t2) -> ("(-") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
+  | Basic ANY -> raise (Failure "convertTerm not yet")
   ;;
 
 let rec convertPure (pi:pure) (acc:string):string = 
@@ -506,6 +510,7 @@ let rec term_to_expr ctx : terms -> Z3.Expr.expr = function
   | (Basic(BVAR v))           -> Z3.Arithmetic.Real.mk_const_s ctx v
   | (Basic(BNULL))           -> Z3.Arithmetic.Real.mk_const_s ctx "nil"
   | (Basic(BRET))           -> Z3.Arithmetic.Real.mk_const_s ctx "ret"
+  | Basic ANY -> raise (Failure "term_to_expr not yet")
 
   (*
   | Gen i          -> Z3.Arithmetic.Real.mk_const_s ctx ("t" ^ string_of_int i ^ "'")

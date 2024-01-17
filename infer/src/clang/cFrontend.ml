@@ -1083,9 +1083,23 @@ let expressionToTerm (exp:Exp.t) : terms  =
   | Sizeof _ -> Basic (BVAR ("Sizeof"))
   
 
-let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure option = 
-  print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
-  None
+let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) : pure option = 
+  (*print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
+  *)
+  if String.compare op "Assign" == 0 then 
+    match instrs with 
+    | Store s :: _ -> 
+      print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2);
+      let exp1 = s.e1 in 
+      let exp2 = s.e2 in 
+      Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
+    | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
+      if String.compare (Exp.to_string e_fun) "_fun__nondet_int" == 0 then 
+        let exp1 = s.e1 in 
+        Some (Eq (expressionToTerm exp1, Basic(ANY)))
+      else None 
+    | _ -> None 
+  else None
   (*match instrs with 
     | Load l -> [Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)]
     | Store s -> [Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)]
@@ -1107,8 +1121,9 @@ let string_of_instruction (ins:Sil.instr) : string =
 
   
 let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure option = 
-  print_endline ("getPureFromDeclStmtInstructions: " ^ string_of_int (List.length instrs));
+  (*print_endline ("getPureFromDeclStmtInstructions: " ^ string_of_int (List.length instrs));
   print_endline (List.fold instrs ~init:"" ~f:(fun acc a -> acc ^ "," ^ string_of_instruction a)); 
+  *)
   match instrs with 
   | Store s :: _ -> 
     print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2);
@@ -1133,8 +1148,8 @@ let regularExpr_of_Node node : regularExpr=
       | Metadata _ -> acc 
       | _ -> acc @ [a]) in 
     match stmt_kind with 
-    | BinaryOperatorStmt _ -> 
-      (match getPureFromBinaryOperatorStmtInstructions instrs with 
+    | BinaryOperatorStmt (op) -> 
+      (match getPureFromBinaryOperatorStmtInstructions op instrs with 
       | Some pure -> Singleton (pure, node_key)
       | None -> Emp(node_key) )
 
