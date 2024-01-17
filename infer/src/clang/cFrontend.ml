@@ -1084,7 +1084,7 @@ let expressionToTerm (exp:Exp.t) : terms  =
   | Sizeof of sizeof_data
   *)
 
-let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure = TRUE
+let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure option = None
   (*match instrs with 
     | Load l -> [Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)]
     | Store s -> [Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)]
@@ -1095,13 +1095,13 @@ let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure = T
     | Metadata _ -> [] (* "IMetadata"  *)
   *)
   
-let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure = 
+let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure option = 
   match instrs with 
   | [Store s] -> 
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
-    Eq (expressionToTerm exp1, expressionToTerm exp2)
-  | _ -> FALSE
+    Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
+  | _ -> None
 
 let regularExpr_of_Node node : regularExpr= 
   let node_kind = Procdesc.Node.get_kind node in
@@ -1117,13 +1117,14 @@ let regularExpr_of_Node node : regularExpr=
     let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc a -> acc @ [a]) in 
     match stmt_kind with 
     | BinaryOperatorStmt _ -> 
-      let pure = getPureFromBinaryOperatorStmtInstructions instrs in 
-      Singleton (pure, node_key)
+      (match getPureFromBinaryOperatorStmtInstructions instrs with 
+      | Some pure -> Singleton (pure, node_key)
+      | None -> Emp(node_key) )
 
     | DeclStmt -> 
-      let pure = getPureFromDeclStmtInstructions instrs in 
-      Singleton (pure, node_key)
-
+      (match getPureFromDeclStmtInstructions instrs with 
+      | Some pure -> Singleton (pure, node_key)
+      | None -> Emp(node_key) )
     | _ -> Emp(node_key) 
 
 
