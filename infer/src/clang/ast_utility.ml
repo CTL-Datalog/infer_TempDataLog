@@ -42,6 +42,8 @@ type stmtPattern = IfStmt of pure | CallStmt of mnsigniture
 
 type specification = (stmtPattern * fact list)
 
+type stack = (Exp.t * Ident.t) list
+
 type regularExpr = 
   | Bot 
   | Emp of state 
@@ -50,8 +52,7 @@ type regularExpr =
   | Concate of (regularExpr * regularExpr)
   | Kleene of regularExpr
   | Omega of regularExpr 
-  | Guard of (pure * regularExpr) 
-
+  | Guard of (pure * state)
 
 type ctl = 
     Atom of pure 
@@ -257,14 +258,14 @@ let rec string_of_regularExpr re =
   | Singleton (p, state)  -> "(" ^string_of_pure p  ^ ")"^ string_of_loc state
   | Concate (eff1, eff2) -> string_of_regularExpr eff1 ^ " · " ^ string_of_regularExpr eff2 
   | Disjunction (eff1, eff2) ->
-      "(" ^ string_of_regularExpr eff1 ^ " \\/ " ^ string_of_regularExpr eff2 ^ ")"
+      "((" ^ string_of_regularExpr eff1 ^ ") \\/ (" ^ string_of_regularExpr eff2 ^ "))"
   | Kleene effIn          ->
       "(" ^ string_of_regularExpr effIn ^ ")^*"
      
   | Omega effIn          ->
       "(" ^ string_of_regularExpr effIn ^ ")^w"
 
-  | Guard (p, effIn) -> "[" ^ string_of_pure p^ "]" ^ string_of_regularExpr effIn
+  | Guard (p, state) -> "[" ^ string_of_pure p^ "]" ^ string_of_loc state (*^ string_of_regularExpr effIn*)
 
 
 

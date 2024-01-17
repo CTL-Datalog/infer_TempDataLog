@@ -1062,9 +1062,21 @@ let get_facts procedure =
   let finalFlow, finialFacts = (Procdesc.fold_nodes procedure ~init:([], []) ~f:process) in 
   header:: (List.rev finalFlow) @ ("\n") ::finialFacts
 
-let expressionToTerm (exp:Exp.t) : terms  = 
+let rec existStack stack t : Exp.t option = 
+  match stack with 
+  | [] -> None 
+  | (exp, ident) :: xs  -> 
+    if String.compare (Ident.to_string t)  (Ident.to_string ident) == 0 
+    then Some exp
+    else  existStack xs t
+
+let expressionToTerm (exp:Exp.t) stack : terms  = 
   match exp with 
-  | Var t -> Basic (BVAR (Ident.to_string t)) (** Pure variable: it is not an lvalue *)
+  | Var t -> 
+    (match existStack stack t with 
+    | Some exp -> Basic (BVAR (Exp.to_string exp )) (** Pure variable: it is not an lvalue *)
+    | None  ->  Basic (BVAR (Ident.to_string t)) (** Pure variable: it is not an lvalue *)
+    )
   | Lvar t -> Basic (BVAR (Pvar.to_string t))  (** The address of a program variable *)
 
   | Const t ->  (** Constants *)
@@ -1081,9 +1093,50 @@ let expressionToTerm (exp:Exp.t) : terms  =
   | Lfield _ -> Basic (BVAR ("Lfield"))
   | Lindex _ -> Basic (BVAR ("Lindex"))
   | Sizeof _ -> Basic (BVAR ("Sizeof"))
+
+let rec expressionToPure (exp:Exp.t) stack: pure option = 
+  match exp with 
+  | BinOp (bop, e1, e2) -> 
+    let t1 = expressionToTerm e1 stack in 
+    let t2 = expressionToTerm e2 stack in 
+    (match bop with 
+    | Eq  -> Some (Eq (t1, t2))
+    | Lt -> Some (Lt (t1, t2))
+    | Gt -> Some (Gt (t1, t2))
+    | Le -> Some (LtEq (t1, t2))
+    | Ge -> Some (GtEq (t1, t2))
+    | _ -> None
+    )
+    (*
+    | LAnd  (** logical and. Does not always evaluate both operands. *)
+    | LOr  (** logical or. Does not always evaluate both operands. *)  
+    | PlusA of Typ.ikind option  (** arithmetic + *)
+    | PlusPI  (** pointer + integer *)
+    | MinusA of Typ.ikind option  (** arithmetic - *)
+    | MinusPI  (** pointer - integer *)
+    | MinusPP  (** pointer - pointer *)
+    | Mult of Typ.ikind option  (** * *)
+    | DivI  (** / for integers *)
+    | DivF  (** / for floats *)
+    | Mod  (** % *)
+    | Shiftlt  (** shift left *)
+    | Shiftrt  (** shift right *)
+    | Ne  (** != (arithmetic comparison) *)
+    | BAnd  (** bitwise and *)
+    | BXor  (** exclusive-or *)
+    | BOr  (** inclusive-or *)
+    *)
   
 
-let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) : pure option = 
+  | UnOp (Neg, e, _) -> 
+    (match expressionToPure e stack with 
+    | Some p -> Some (Neg p)
+    | None -> None 
+    )
+  | _ -> None 
+  
+
+let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
   (*print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
   *)
   if String.compare op "Assign" == 0 then 
@@ -1092,11 +1145,11 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
       (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
       let exp1 = s.e1 in 
       let exp2 = s.e2 in 
-      Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
+      Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
       if String.compare (Exp.to_string e_fun) "_fun__nondet_int" == 0 then 
         let exp1 = s.e1 in 
-        Some (Eq (expressionToTerm exp1, Basic(ANY)))
+        Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
       else None 
     | _ -> None 
   else None
@@ -1120,7 +1173,7 @@ let string_of_instruction (ins:Sil.instr) : string =
 
 
   
-let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure option = 
+let getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option = 
   (*print_endline ("getPureFromDeclStmtInstructions: " ^ string_of_int (List.length instrs));
   print_endline (List.fold instrs ~init:"" ~f:(fun acc a -> acc ^ "," ^ string_of_instruction a)); 
   *)
@@ -1129,43 +1182,62 @@ let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure option =
     (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
-    Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
+    Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
   | _ -> None
 
-let regularExpr_of_Node node : regularExpr= 
+let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  get_key node in
-  match node_kind with
-  | Start_node -> Singleton (Predicate ("Start", []), node_key)
-  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key)
-  | Join_node ->  Emp(node_key)
-  | Skip_node t ->  Emp(node_key) 
-  | Prune_node (f,_,_) ->  Emp(node_key) 
-  | Stmt_node stmt_kind ->         
-    let instrs_raw =  (Procdesc.Node.get_instrs node) in  
-    let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc (a:Sil.instr) -> 
+  let instrs_raw =  (Procdesc.Node.get_instrs node) in  
+  let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc (a:Sil.instr) -> 
       match a with 
       | Metadata _ -> acc 
-      | _ -> acc @ [a]) in 
+      | _ -> acc @ [a]) 
+  in 
+  match node_kind with
+  | Start_node -> Singleton (Predicate ("Start", []), node_key), []
+  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
+  | Join_node ->  Emp(node_key) , []
+  | Skip_node t ->  Emp(node_key) , []
+  | Prune_node (f,_,_) ->  
+    (match instrs with 
+    | Prune (e, loc, f, _):: _ ->  
+      (match expressionToPure e stack with 
+      | Some p -> Guard(p, node_key)
+      | None -> Emp(node_key) ), []
+    | _ -> Emp(node_key) , []
+    )
+  
+
+  | Stmt_node stmt_kind ->         
     match stmt_kind with 
     | BinaryOperatorStmt (op) -> 
-      (match getPureFromBinaryOperatorStmtInstructions op instrs with 
-      | Some pure -> Singleton (pure, node_key)
-      | None -> Emp(node_key) )
+      if String.compare op "EQ" == 0 then 
+        let stack = List.fold_left instrs ~init:[] ~f:(fun acc (ins:Sil.instr) -> 
+          match ins with 
+          | Load l -> (l.e, l.id) :: acc 
+          | _ -> acc
+        ) in 
+        Emp(node_key), stack
+
+      else 
+        (match getPureFromBinaryOperatorStmtInstructions op instrs stack with 
+        | Some pure -> Singleton (pure, node_key), []
+        | None -> Emp(node_key), [] )
 
     | DeclStmt -> 
-      (match getPureFromDeclStmtInstructions instrs with 
-      | Some pure -> Singleton (pure, node_key)
-      | None -> Emp(node_key) )
+      (match getPureFromDeclStmtInstructions instrs stack with 
+      | Some pure -> Singleton (pure, node_key), []
+      | None -> Emp(node_key), [] )
     | ReturnStmt -> 
       (match instrs with 
       | Store s :: _ -> 
         (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
         let exp2 = s.e2 in 
-        Singleton (Predicate ("Ret", [expressionToTerm exp2]), node_key)
-      | _ -> Singleton (Predicate ("Ret", []), node_key)
+        Singleton (Predicate ("Ret", [expressionToTerm exp2 stack]), node_key), []
+      | _ -> Singleton (Predicate ("Ret", []), node_key), []
       )
-    | _ -> Emp(node_key) 
+    | _ -> Emp(node_key) , []
 
 
 let rec existRecord li n = 
@@ -1186,25 +1258,32 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   *)
   let startState = Procdesc.get_start_node procedure in 
 
-  let rec iterateProc history (currentState:Procdesc.Node.t) : regularExpr = 
+  let rec iterateProc env (currentState:Procdesc.Node.t) : regularExpr = 
+    let (history, stack) = env in 
     let node_key =  get_key currentState in
-    if existRecord history node_key then regularExpr_of_Node currentState
+    if existRecord history node_key then 
+      let re, _ = regularExpr_of_Node currentState stack in 
+      re 
     else 
       let nextStates = Procdesc.Node.get_succs currentState in 
       match nextStates with 
       | [next] -> 
-        let eventHd = regularExpr_of_Node currentState in 
-        let eventTail = iterateProc (history@[node_key]) next in 
+        let eventHd, stack' = regularExpr_of_Node currentState stack in 
+        let env' = ((history@[node_key], stack@stack')) in 
+
+        let eventTail = iterateProc env' next in 
         Concate (eventHd, eventTail)
-      | [] -> regularExpr_of_Node currentState
+      | [] -> 
+        let re, _ = regularExpr_of_Node currentState stack in 
+        re 
       | succLi -> 
-        let eventHd = regularExpr_of_Node currentState in 
-        let newRecord = (history@[node_key]) in 
-        let residues = List.map succLi ~f:(fun next -> iterateProc newRecord next) in 
+        let eventHd,stack'  = regularExpr_of_Node currentState stack in 
+        let env' = ((history@[node_key], stack@stack')) in 
+        let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
         let eventTail = disjunctRE residues in 
         Concate (eventHd, eventTail)
   in 
-  iterateProc [] startState;;
+  iterateProc ([], []) startState;;
 
 
 
