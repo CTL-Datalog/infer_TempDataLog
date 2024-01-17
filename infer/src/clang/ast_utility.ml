@@ -2,21 +2,9 @@ open Z3
 
 type basic_type = BINT of int | BVAR of string | BNULL | BRET
 
-
 type event = string * (basic_type list)
 
-
-type ltl = Lable of event 
-        | Next of ltl
-        | Until of ltl * ltl
-        | Global of ltl
-        | Future of ltl
-        | NotLTL of ltl
-        | Imply of ltl * ltl
-        | AndLTL of ltl * ltl
-        | OrLTL of ltl * ltl
-
-type line_number = int option
+type state = int
 
 type bindings = (string * basic_type) list
 
@@ -36,6 +24,7 @@ type pure = TRUE
           | PureOr of pure * pure
           | PureAnd of pure * pure
           | Neg of pure
+          | Predicate of (string * terms)
 
 type fact = (string *  (basic_type list)) 
 type facts = fact list
@@ -52,6 +41,15 @@ type mnsigniture = (string *  (string list))
 type stmtPattern = IfStmt of pure | CallStmt of mnsigniture
 
 type specification = (stmtPattern * fact list)
+
+type regularExpr = 
+    Emp of state 
+  | Singleton of (pure * state)
+  | Disjction of (regularExpr * regularExpr)
+  | Concateation of (regularExpr * regularExpr)
+  | Klenne of regularExpr
+  | Omega of regularExpr 
+  | Guard of (pure * regularExpr) 
 
 
 type ctl = 
