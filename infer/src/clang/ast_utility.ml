@@ -24,7 +24,7 @@ type pure = TRUE
           | PureOr of pure * pure
           | PureAnd of pure * pure
           | Neg of pure
-          | Predicate of (string * terms)
+          | Predicate of (string * terms list)
 
 type fact = (string *  (basic_type list)) 
 type facts = fact list
@@ -43,11 +43,12 @@ type stmtPattern = IfStmt of pure | CallStmt of mnsigniture
 type specification = (stmtPattern * fact list)
 
 type regularExpr = 
-    Emp of state 
+  | Bot 
+  | Emp of state 
   | Singleton of (pure * state)
-  | Disjction of (regularExpr * regularExpr)
-  | Concateation of (regularExpr * regularExpr)
-  | Klenne of regularExpr
+  | Disjunction of (regularExpr * regularExpr)
+  | Concate of (regularExpr * regularExpr)
+  | Kleene of regularExpr
   | Omega of regularExpr 
   | Guard of (pure * regularExpr) 
 
@@ -165,6 +166,7 @@ let basic_type2_string v =
   | BNULL 
   | BRET -> []
 
+let string_of_loc n = "@" ^ string_of_int n
 
 
 let argumentsTerms2basic_types (t: (terms option) list): (basic_type list) = 
@@ -187,6 +189,12 @@ let string_of_termOption t : string option  =
   | None -> None 
   | Some t -> Some (string_of_terms t)
 
+let rec string_of_list_terms tL: string = 
+  match tL with 
+  | [] -> ""
+  | [t] -> string_of_terms t 
+  | x :: xs ->  string_of_terms x ^", "^ string_of_list_terms xs 
+
 let rec string_of_pure (p:pure):string =   
   match p with
     TRUE -> "⊤"
@@ -200,6 +208,8 @@ let rec string_of_pure (p:pure):string =
   | PureAnd (p1, p2) -> string_of_pure p1 ^ "∧" ^ string_of_pure p2
   | Neg (Eq (t1, t2)) -> "("^(string_of_terms t1) ^ "!=" ^ (string_of_terms t2)^")"
   | Neg p -> "!(" ^ string_of_pure p^")"
+  | Predicate (str, termLi) -> str ^ "(" ^ string_of_list_terms termLi ^ ")"
+
 
 let rec string_of_ctl (ctl:ctl) = 
   match ctl with
@@ -232,6 +242,29 @@ let rec string_of_pure_output (p:pure):string =
   | PureAnd (p1, p2) -> string_of_pure_output p1 ^ "∧" ^ string_of_pure_output p2
   | Neg (Eq (t1, t2)) -> "("^(string_of_terms t1) ^ "!=" ^ (string_of_terms t2)^")"
   | Neg p -> "!(" ^ string_of_pure_output p^")"
+  | Predicate (str, termLi) -> str ^ "(" ^ string_of_list_terms termLi ^ ")"
+
+
+
+let rec string_of_regularExpr re = 
+  match re with 
+
+  | Bot              -> "⏊"
+  | Emp (state)       -> "𝝐 " ^ string_of_loc state
+  | Singleton (p, state)  -> string_of_pure p ^ string_of_loc state
+  | Concate (eff1, eff2) -> string_of_regularExpr eff1 ^ " · " ^ string_of_regularExpr eff2 
+  | Disjunction (eff1, eff2) ->
+      "(" ^ string_of_regularExpr eff1 ^ " \\/ " ^ string_of_regularExpr eff2 ^ ")"
+  | Kleene effIn          ->
+      "(" ^ string_of_regularExpr effIn ^ ")^*"
+     
+  | Omega effIn          ->
+      "(" ^ string_of_regularExpr effIn ^ ")^w"
+
+  | Guard (p, effIn) -> "[" ^ string_of_pure p^ "]" ^ string_of_regularExpr effIn
+
+
+
 
 let rec varFromTerm (t:terms): string list =   
   match t with
@@ -267,6 +300,8 @@ let rec varFromPure (p:pure): string list =
   | PureOr (p1, p2) 
   | PureAnd (p1, p2) -> List.append (varFromPure p1) (varFromPure p2)
   | Neg p -> varFromPure p 
+  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ varFromTerm t)
+
 
 
 let string_of_event (str, li) = 
@@ -346,6 +381,7 @@ let rec convertTerm (t:terms):string =
   match t with
   | (Basic (BVAR name)) -> " " ^ name ^ " "
   | (Basic (BINT n)) -> " " ^ string_of_int n ^ " "
+  | (Basic BRET) -> "ret"
   | (Basic (BNULL)) -> " " ^ "nil" ^ " "
   | Plus (t1, t2) -> ("(+") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
   | Minus (t1, t2) -> ("(-") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
@@ -386,6 +422,8 @@ let rec convertPure (pi:pure) (acc:string):string =
       let temp1 = convertPure pi1 "" in
       let temp2 = convertPure pi2 "" in
       acc ^ "(or" ^temp1 ^ temp2 ^ ")"
+  | Predicate (str, termLi) -> raise (Failure "to z3 not yet for predicate")
+
       ;;
 
 
@@ -439,6 +477,8 @@ let rec getAllVarFromPure (pi:pure) (acc:string list):string list =
       let temp1 = getAllVarFromPure pi1 [] in
       let temp2 = getAllVarFromPure pi2 [] in
       List.append acc (List.append temp1 temp2) 
+  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllVarFromTerm t [])
+
   ;;
 
 
@@ -512,6 +552,8 @@ let rec pi_to_expr ctx : pure -> Expr.expr = function
   (*| Imply (pi1, pi2)    -> Z3.Boolean.mk_implies ctx (pi_to_expr ctx pi1) (pi_to_expr ctx pi2)
   *)
   | Neg pi              -> Z3.Boolean.mk_not ctx (pi_to_expr ctx pi)
+  | Predicate (str, termLi) -> raise (Failure "to z3  expr not yet for predicate")
+
 
 
 let check pi =

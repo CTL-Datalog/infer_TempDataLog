@@ -897,6 +897,16 @@ let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl 
  
     | _ -> assert false
 
+let get_key node : int  = 
+  let key = (Procdesc.NodeKey.to_string (Procdesc.Node.compute_key node)) in
+  (* Simplification of the identifiers *)
+  match IDM.find !node_map key with
+  | Some(x) -> x
+  | None -> let v = !node_val in 
+    incr node_val; 
+    let k = v 
+    in node_map:= IDM.set !node_map ~key:key ~data:k ; k 
+
 
 let get_facts procedure =
   let out_c = Out_channel.create "zprint" in
@@ -904,22 +914,13 @@ let get_facts procedure =
 
   let process acc (node: Procdesc.Node.t) = 
     let flows, facts = acc in 
-    let get_key node = 
-      let key = (Procdesc.NodeKey.to_string (Procdesc.Node.compute_key node)) in
-      (* Simplification of the identifiers *)
-      match IDM.find !node_map key with
-      | Some(x) -> x
-      | None -> let v = !node_val in 
-        incr node_val; 
-        let k = Int.to_string v 
-      in node_map:= IDM.set !node_map ~key:key ~data:k ; k in
 
     let node_loc = 
         let loc = (Procdesc.Node.get_loc node) in
         Printf.sprintf "@%s" (Location.to_string loc)
         (*Printf.sprintf "%s:%s" (SourceFile.to_string loc.file) (Location.to_string loc)*)
     in
-    let node_key =  get_key node in
+    let node_key =  Int.to_string (get_key node) in
     let node_kind = Procdesc.Node.get_kind node in
     let instructions = 
       (Instrs.fold (Procdesc.Node.get_instrs node) ~init:[] 
@@ -1049,45 +1050,106 @@ let get_facts procedure =
 
 
     let create_edge succ = 
-      let succ_key = get_key succ in
+      let succ_key = Int.to_string (get_key succ) in
       let succ_loc = (Location.to_string (Procdesc.Node.get_loc succ)) in 
       (Printf.sprintf "Flow(%s,%s). //%s-%s" node_key succ_key node_loc succ_loc);
     in
     List.append flows (List.map succs ~f:create_edge), (List.append facts node_facts)
     (* (List.fold (List.map succs ~f:create_edge) ~init:(List.append facts node_facts) ~f:List.append) *)
   in 
-  print_endline ("------------each procedure-----------\n");
-  let startNode = Procdesc.get_start_node procedure in 
-
-  let rec iterateProc nodeList n : unit = 
-
-    if n == 0 || List.length nodeList == 0 then ()
-    else 
-      let printing =  
-        List.fold_left nodeList ~init:"" ~f:(fun acc a -> acc ^ ", " ^  (Location.to_string (Procdesc.Node.get_loc a))) in 
-      print_endline (printing);
-
-
-      let not_exit_node = List.filter ~f:(fun node ->
-        match Procdesc.Node.get_kind node with 
-        | Exit_node -> false 
-        | _ -> true 
-        ) nodeList
-      in 
-      let nextNodes =  
-          List.fold_left not_exit_node ~init:[] ~f:(fun acc n -> acc @ (Procdesc.Node.get_succs n)) in 
-      iterateProc (nextNodes) (n-1)
-
-  in 
-  iterateProc [startNode] 20;
-
-  let localVariables = Procdesc.get_locals procedure in 
-  let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
-
 
   let header = (Printf.sprintf "\n//-- Facts for Procedure <%s> \n" (Procname.to_string (Procdesc.get_proc_name procedure))) in 
   let finalFlow, finialFacts = (Procdesc.fold_nodes procedure ~init:([], []) ~f:process) in 
   header:: (List.rev finalFlow) @ ("\n") ::finialFacts
+
+let expressionToTerm (exp:Exp.t) : terms  = 
+  match exp with 
+  | Var t -> Basic (BVAR (Ident.to_string t)) (** Pure variable: it is not an lvalue *)
+  | Const t ->  (** Constants *)
+    (match t with 
+    | Cint i -> Basic (BINT (IntLit.to_int_exn i ))  (** integer constants *)
+    | _ -> Basic BNULL
+    )
+  | _ -> Basic BNULL
+
+(*  | UnOp of Unop.t * t * Typ.t option  (** Unary operator with type of the result if known *)
+  | BinOp of Binop.t * t * t  (** Binary operator *)
+  | Exn of t  (** Exception *)
+  | Closure of closure  (** Anonymous function *)
+  | Cast of Typ.t * t  (** Type cast *)
+  | Lvar of Pvar.t  (** The address of a program variable *)
+  | Lfield of t * Fieldname.t * Typ.t
+      (** A field offset, the type is the surrounding struct type *)
+  | Lindex of t * t  (** An array index offset: [exp1\[exp2\]] *)
+  | Sizeof of sizeof_data
+  *)
+
+let getPureFromBinaryOperatorStmtInstructions (instrs:Sil.instr list) : pure = TRUE
+  (*match instrs with 
+    | Load l -> [Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)]
+    | Store s -> [Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)]
+    | Prune (e, loc, f, _) -> [(Printf.sprintf "Prune(%s, %b)" (Exp.to_string e) f)]
+    | Call ((ret_id, _), e_fun, arg_ts, _, _)  -> 
+      let args = (String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x) arg_ts)) in
+        [Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) ]
+    | Metadata _ -> [] (* "IMetadata"  *)
+  *)
+  
+let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure = 
+  match instrs with 
+  | [Store s] -> 
+    let exp1 = s.e1 in 
+    let exp2 = s.e2 in 
+    Eq (expressionToTerm exp1, expressionToTerm exp2)
+  | _ -> FALSE
+
+let regularExpr_of_Node node : regularExpr= 
+  let node_kind = Procdesc.Node.get_kind node in
+  let node_key =  get_key node in
+  match node_kind with
+  | Start_node -> Singleton (Predicate ("Start", []), node_key)
+  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key)
+  | Join_node ->  Emp(node_key)
+  | Skip_node t ->  Emp(node_key) 
+  | Prune_node (f,_,_) ->  Emp(node_key) 
+  | Stmt_node stmt_kind ->         
+    let instrs_raw =  (Procdesc.Node.get_instrs node) in  
+    let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc a -> acc @ [a]) in 
+    match stmt_kind with 
+    | BinaryOperatorStmt _ -> 
+      let pure = getPureFromBinaryOperatorStmtInstructions instrs in 
+      Singleton (pure, node_key)
+
+    | DeclStmt -> 
+      let pure = getPureFromDeclStmtInstructions instrs in 
+      Singleton (pure, node_key)
+
+    | _ -> Emp(node_key) 
+
+
+
+let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
+  let localVariables = Procdesc.get_locals procedure in 
+  (*let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
+  *)
+  let startState = Procdesc.get_start_node procedure in 
+
+  let rec iterateProc (currentState:Procdesc.Node.t) : regularExpr = 
+    let nextStates = Procdesc.Node.get_succs currentState in 
+    match nextStates with 
+    | [next] -> 
+      let eventHd = regularExpr_of_Node currentState in 
+      let eventTail = iterateProc next in 
+      Concate (eventHd, eventTail)
+    | _ -> Emp(0)
+
+  in 
+  iterateProc startState;;
+
+
+
+
+
 
 
 
@@ -1108,6 +1170,16 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   if Config.debug_mode then Tenv.store_debug_file_for_source source_file tenv ;
 
   L.(debug Capture Verbose) "@\n Start buidling facts for '%a'.@\n" SourceFile.pp source_file ;
+
+  let summaries = (Cfg.fold_sorted cfg ~init:[] 
+    ~f:(fun accs procedure -> 
+      let summary = computeSummaryFromCGF procedure in 
+      print_endline ("For procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":");
+      print_endline (string_of_regularExpr summary); 
+      List.append accs [summary] )) 
+  in
+
+  
 
   let facts = (Cfg.fold_sorted cfg ~init:[] ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
   Out_channel.write_lines "fact_test.txt" facts;
