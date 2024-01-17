@@ -1089,7 +1089,7 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
   if String.compare op "Assign" == 0 then 
     match instrs with 
     | Store s :: _ -> 
-      print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2);
+      (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
       let exp1 = s.e1 in 
       let exp2 = s.e2 in 
       Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
@@ -1126,7 +1126,7 @@ let getPureFromDeclStmtInstructions (instrs:Sil.instr list) : pure option =
   *)
   match instrs with 
   | Store s :: _ -> 
-    print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2);
+    (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
     Some (Eq (expressionToTerm exp1, expressionToTerm exp2))
@@ -1157,27 +1157,54 @@ let regularExpr_of_Node node : regularExpr=
       (match getPureFromDeclStmtInstructions instrs with 
       | Some pure -> Singleton (pure, node_key)
       | None -> Emp(node_key) )
+    | ReturnStmt -> 
+      (match instrs with 
+      | Store s :: _ -> 
+        (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
+        let exp2 = s.e2 in 
+        Singleton (Predicate ("Ret", [expressionToTerm exp2]), node_key)
+      | _ -> Singleton (Predicate ("Ret", []), node_key)
+      )
     | _ -> Emp(node_key) 
 
 
+let rec existRecord li n = 
+  match li with 
+  | [] -> false 
+  | x :: xs  -> if x == n then true else existRecord xs n 
+
+let rec disjunctRE (li:regularExpr list): regularExpr = 
+  match li with 
+  | [] -> Bot 
+  | [x] -> x 
+  | x :: xs -> Disjunction (x, disjunctRE xs)
 
 let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
+  (*
   let localVariables = Procdesc.get_locals procedure in 
-  (*let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
+  let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
   let startState = Procdesc.get_start_node procedure in 
 
-  let rec iterateProc (currentState:Procdesc.Node.t) : regularExpr = 
-    let nextStates = Procdesc.Node.get_succs currentState in 
-    match nextStates with 
-    | [next] -> 
-      let eventHd = regularExpr_of_Node currentState in 
-      let eventTail = iterateProc next in 
-      Concate (eventHd, eventTail)
-    | _ -> Emp(0)
-
+  let rec iterateProc history (currentState:Procdesc.Node.t) : regularExpr = 
+    let node_key =  get_key currentState in
+    if existRecord history node_key then regularExpr_of_Node currentState
+    else 
+      let nextStates = Procdesc.Node.get_succs currentState in 
+      match nextStates with 
+      | [next] -> 
+        let eventHd = regularExpr_of_Node currentState in 
+        let eventTail = iterateProc (history@[node_key]) next in 
+        Concate (eventHd, eventTail)
+      | [] -> regularExpr_of_Node currentState
+      | succLi -> 
+        let eventHd = regularExpr_of_Node currentState in 
+        let newRecord = (history@[node_key]) in 
+        let residues = List.map succLi ~f:(fun next -> iterateProc newRecord next) in 
+        let eventTail = disjunctRE residues in 
+        Concate (eventHd, eventTail)
   in 
-  iterateProc startState;;
+  iterateProc [] startState;;
 
 
 
@@ -1207,7 +1234,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       let summary = computeSummaryFromCGF procedure in 
-      print_endline ("For procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":");
+      print_endline ("\n-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":");
       print_endline (string_of_regularExpr summary); 
       List.append accs [summary] )) 
   in
