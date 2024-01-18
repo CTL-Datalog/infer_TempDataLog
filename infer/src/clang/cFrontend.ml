@@ -1080,6 +1080,42 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
 
 
 
+let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
+  let rec ietrater reIn (previousState:int option) : (relation list * rule list) = 
+    let fstSet = fst reIn in 
+    match fstSet with 
+    | [] -> ([], [])
+    | li -> 
+      List.fold_left li ~init:([], []) ~f:(fun (reAcc, ruAcc) f -> 
+        match f with 
+        | PureEv (p, state) -> 
+          (match previousState with 
+          | Some previousState -> 
+            let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
+            let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
+            (reAcc@ flows@reAcc', ruAcc@ruAcc')
+          | None -> 
+            let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
+            (reAcc@reAcc', ruAcc@ruAcc')
+          
+          )
+          
+        | GuardEv (p, state) ->           
+          (match previousState with 
+          | Some previousState -> 
+            let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
+            let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
+            (reAcc@ flows@reAcc', ruAcc@ruAcc')
+          | None -> 
+            let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
+            (reAcc@reAcc', ruAcc@ruAcc')
+          
+          )
+        | CycleEv recycle -> 
+          ietrater recycle previousState
+      )
+  in 
+  ietrater re None 
 
 
 
@@ -1106,8 +1142,13 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       let summary = computeSummaryFromCGF procedure in 
+      let (facts, rules) = convertRE2Datalog summary in 
       print_endline ("\n-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":");
       print_endline (string_of_regularExpr summary); 
+      print_endline ("\n-------------\n"); 
+      print_endline (string_of_facts facts);
+      print_endline (string_of_rules rules);
+
       List.append accs [summary] )) 
   in
 

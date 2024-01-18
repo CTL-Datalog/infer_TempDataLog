@@ -546,19 +546,7 @@ let rec string_of_bt_list (li: basic_type list) : string =
   | x::xs -> string_of_basic_t_aux x ^ ", " ^ string_of_bt_list xs
 
 
-let string_of_fact (str, btList) = 
-  str ^ "(" ^ 
-  string_of_bt_list btList 
-  (* List.fold_left btList ~init:"" ~f:(fun acc a -> acc ^ string_of_basic_t a) *)
-  ^ ")"
 
-
-let rec string_of_facts (factsLi) = 
-  match factsLi with 
-  | [] -> ""
-  | [fact] -> string_of_fact fact ^ "."
-  | fact :: xs -> string_of_fact fact ^ ".\n" ^ string_of_facts xs 
-  
 
 let rec findRetFromBindings (bt:bindings) (str: string) : basic_type option =
   match bt with
@@ -872,6 +860,7 @@ type rule = head * (body list)
 type datalog = decl list * rule list
 
 
+
 let rec expand_args (sep: string) (x:string list) = 
   match x with 
   [] -> ""
@@ -997,6 +986,7 @@ let string_of_relation (relation:relation) =
   match relation with
   (name,vars) -> let variables = expand_args "," (List.map vars ~f:string_of_terms) in name ^ "(" ^ variables ^ ")"  
 
+  
 
 let string_of_bodies (bodies:body list) = 
   expand_args ", " (List.map ~f:(fun body -> match body with
@@ -1017,6 +1007,12 @@ let string_of_decls = List.fold_left ~f:(fun acc decl -> acc ^ (if acc != "" the
 
 let rec string_of_rules =  
   List.fold_left ~f:(fun acc (head,bodies) -> acc ^ (if acc != "" then "\n" else "") ^ string_of_relation head ^ " :- " ^ string_of_bodies bodies ^ "." ) ~init:""
+
+let rec string_of_facts =  
+  List.fold_left ~f:(fun acc (relation) -> acc ^ "\n" ^ string_of_relation relation ^ "." ) ~init:""
+
+  
+
 
 let param_compare (a:param) (b:param) =
   match (a,b) with
