@@ -44,9 +44,10 @@ type specification = (stmtPattern * fact list)
 
 type stack = (Exp.t * Ident.t) list
 
+
 type regularExpr = 
   | Bot 
-  | Emp of state 
+  | Emp 
   | Singleton of (pure * state)
   | Disjunction of (regularExpr * regularExpr)
   | Concate of (regularExpr * regularExpr)
@@ -54,8 +55,9 @@ type regularExpr =
   | Omega of regularExpr 
   | Guard of (pure * state)
 
-  
-type reCFG  = (Procdesc.Node.t list)
+type fstElem = PureEv of (pure * state) | GuardEv of (pure * state) | CycleEv of regularExpr
+
+type reCFG  = (Procdesc.Node.t list * stack)
 
 type ctl = 
     Atom of pure 
@@ -172,6 +174,7 @@ let basic_type2_string v =
   | BINT _ 
   | BNULL 
   | BRET -> []
+  | ANY -> ["_"]
 
 let string_of_loc n = "@" ^ string_of_int n
 
@@ -255,9 +258,8 @@ let rec string_of_pure_output (p:pure):string =
 
 let rec string_of_regularExpr re = 
   match re with 
-
   | Bot              -> "⏊"
-  | Emp (state)       -> "𝝐 " ^ string_of_loc state
+  | Emp              -> "𝝐 " 
   | Singleton (p, state)  -> "(" ^string_of_pure p  ^ ")"^ string_of_loc state
   | Concate (eff1, eff2) -> string_of_regularExpr eff1 ^ " · " ^ string_of_regularExpr eff2 
   | Disjunction (eff1, eff2) ->
@@ -270,8 +272,145 @@ let rec string_of_regularExpr re =
 
   | Guard (p, state) -> "[" ^ string_of_pure p^ "]" ^ string_of_loc state (*^ string_of_regularExpr effIn*)
 
+let compareBasic_type (bt1:basic_type) (bt2:basic_type) : bool = 
+  match (bt1, bt2) with 
+  | ((BVAR s1), (BVAR s2)) -> String.compare s1 s2 == 0
+  | (BINT n1, BINT n2) -> n1 == n2 
+  | (BNULL, BNULL)
+  | (BRET, BRET) -> true 
+  | _ -> false 
+
+let rec stricTcompareTerm (term1:terms) (term2:terms) : bool = 
+  match (term1, term2) with 
+  | (Basic t1, Basic t2) -> compareBasic_type t1 t2
+  | (Plus (tIn1, num1), Plus (tIn2, num2)) -> stricTcompareTerm tIn1 tIn2 && stricTcompareTerm num1  num2
+  | (Minus (tIn1, num1), Minus (tIn2, num2)) -> stricTcompareTerm tIn1 tIn2 && stricTcompareTerm num1  num2
+  | _ -> false 
+
+let rec compareTermList tl1 tl2 : bool = 
+  match tl1, tl2 with 
+  | [], [] -> true 
+  | (x:: xs, y:: ys) -> stricTcompareTerm x y && compareTermList xs ys 
+  | _ -> false 
+
+let rec comparePure (pi1:pure) (pi2:pure):bool = 
+  match (pi1 , pi2) with 
+    (TRUE, TRUE) -> true
+  | (FALSE, FALSE) -> true 
+  | (Gt (t1, t11), Gt (t2, t22)) -> stricTcompareTerm t1 t2 && stricTcompareTerm t11  t22
+  | (Lt (t1, t11), Lt (t2, t22)) -> stricTcompareTerm t1 t2 && stricTcompareTerm t11  t22
+  | (GtEq (t1, t11), GtEq (t2, t22)) -> stricTcompareTerm t1 t2 && stricTcompareTerm t11  t22
+  | (LtEq (t1, t11), LtEq (t2, t22)) -> stricTcompareTerm t1 t2 && stricTcompareTerm t11  t22
+  | (Eq (t1, t11), Eq (t2, t22)) -> stricTcompareTerm t1 t2 && stricTcompareTerm t11  t22
+  | (PureOr (p1, p2), PureOr (p3, p4)) ->
+      (comparePure p1 p3 && comparePure p2 p4) || (comparePure p1 p4 && comparePure p2 p3)
+  | (PureAnd (p1, p2), PureAnd (p3, p4)) ->
+      (comparePure p1 p3 && comparePure p2 p4) || (comparePure p1 p4 && comparePure p2 p3)
+  | (Neg p1, Neg p2) -> comparePure p1 p2
+  | (Predicate (s1, tLi1), Predicate (s2, tLi2)) -> 
+    String.compare s1 s2 == 0  &&  compareTermList tLi1 tLi2
+  | _ -> false
 
 
+
+let rec nullable (eff:regularExpr) : bool = 
+  match eff with 
+  | Bot              -> false 
+  | Emp            -> true 
+  | Singleton _ -> false
+  | Guard _     -> false 
+  | Concate (eff1, eff2) -> nullable eff1 && nullable eff2  
+  | Disjunction (eff1, eff2) -> nullable eff1 || nullable eff2  
+  | Kleene _      -> true
+  | Omega _       -> false 
+   
+
+
+let rec fst (eff:regularExpr) : (fstElem list) = 
+  match eff with 
+  | Bot             -> []   
+  | Emp  -> []
+  | Singleton s     -> [(PureEv s)]
+  | Guard s         -> [(GuardEv s)]
+  | Concate (eff1, eff2) -> 
+    if nullable eff1 then  (fst eff1) @  (fst eff2)
+    else (fst eff1)
+  | Disjunction (eff1, eff2) -> List.append (fst eff1) (fst eff2)
+  | Kleene effIn      -> [CycleEv effIn]
+  | Omega _  -> raise (Failure "fst should not have omega")
+
+let rec compareRE re1 re2 : bool = 
+  match (re1, re2) with 
+  | (Bot, Bot) -> true 
+  | (Emp, Emp) -> true 
+  | (Singleton (p1, s1), Singleton (p2, s2)) 
+  | (Guard (p1, s1), Guard (p2, s2))  -> 
+    comparePure p1 p2 && s1 == s2
+  | (Disjunction (eff1, eff2), Disjunction (eff3, eff4)) 
+  | (Concate (eff1, eff2), Concate (eff3, eff4)) ->  
+    compareRE eff1 eff3 && compareRE eff2 eff4
+  | (Omega effIn, Omega effIn2)
+  | (Kleene effIn, Kleene effIn2) -> compareRE effIn effIn2
+  | _ -> false  
+
+let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
+  match (ev1, ev2) with 
+  | (PureEv (p1, s1), PureEv(p2, s2))
+  | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2 && s1 == s2 
+  | (CycleEv re1, CycleEv re2) -> compareRE re1 re2
+  | _ -> false 
+
+let removeRedundantFst (fset:(fstElem list)) : (fstElem list) = 
+  let rec existAux (li:(fstElem list)) (ele:fstElem) = 
+    match li with 
+    | [] ->  false 
+    | x :: xs -> if compareEvent x ele then true else existAux xs ele
+  in 
+  let rec helper (li:(fstElem list)) = 
+    match li with 
+    | [] -> []
+    | y:: ys -> if existAux ys y then helper ys else y :: (helper ys)
+
+  in helper fset
+
+
+
+let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr = 
+  match eff with 
+  | Bot        
+  | Emp -> Bot    
+  | Singleton (p1, s1) -> 
+    (match f with 
+    | PureEv (p2, s2) -> if comparePure p1 p2 && s1 == s2 then Emp else Bot
+    | _ -> Bot 
+    )
+  | Guard (p1, s1) -> 
+    (match f with 
+    | GuardEv (p2, s2) -> if comparePure p1 p2 && s1 == s2 then Emp else Bot
+    | _ -> Bot 
+    )
+  | Concate (eff1, eff2) -> 
+    let forsure = Concate (derivitives f eff1, eff2) in 
+    if nullable eff1 then  Disjunction (forsure, derivitives f eff2)
+    else forsure
+  | Disjunction (eff1, eff2) -> 
+    Disjunction (derivitives f eff1, derivitives f eff2)
+  | Kleene effIn      -> 
+    (match f with 
+    | CycleEv (effIn1) -> if compareRE effIn effIn1 then Emp else Bot
+    | _ -> Bot 
+    )
+  | Omega _  -> raise (Failure "derivitives should not have omega")
+
+
+
+
+
+let eventToRe (ev:fstElem) : regularExpr = 
+  match ev with 
+  | PureEv s -> Singleton s 
+  | GuardEv s -> Guard s 
+  | CycleEv re -> Kleene re
 
 let rec varFromTerm (t:terms): string list =   
   match t with

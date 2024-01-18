@@ -29,4 +29,3 @@ int main() {
 // \/ [i<=10]((emp@18))); 
 // ([x=y] (x=y @ 21)^w) \/ [x=y](emp@21 ; term=1@23; return(0));)
 // (exit)^w 
-

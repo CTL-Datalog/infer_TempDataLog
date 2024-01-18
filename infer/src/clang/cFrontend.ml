@@ -467,10 +467,6 @@ let computeRange intList =
 
  
 
-let int_of_intList intop = 
-  match intop with 
-  | []  -> (-1)
-  |i ::_ -> i ;;
 
 let rec getLastEle (li:basic_type list) :  basic_type option  = 
   match li with 
@@ -489,240 +485,6 @@ let rec lastLocOfFact (facts: fact list) =
     | _ -> lastLocOfFact xs 
     )
 
-
-let rec syh_compute_stmt_facts (current:programState) (env:(specification list)) (instr: Clang_ast_t.stmt) : programStates = 
-  let (currentfacts, currentExitCode, currentreachableState) = current in 
-  (* print_endline ("Facts. " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); *)
-  if currentExitCode == 1 then [current] 
-  else 
-  match instr with 
-  | CompoundStmt (stmt_info, stmt_list) -> 
-
-    let rec helper acc stmtList = 
-      match stmtList with 
-      | [] -> [acc] 
-      | x :: xs  -> 
-        let programStatesX = syh_compute_stmt_facts acc env x in 
-        let programStatesXS = List.map programStatesX ~f:(fun state -> helper state xs) in 
-        flattenList programStatesXS 
-    in 
-    helper current stmt_list 
-
-  | DeclStmt (_, [CStyleCastExpr(_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _)], [del])  
-  | DeclStmt (_, [(CallExpr (stmt_info, stmt_list, ei))], [del]) 
-  | DeclStmt (_, [(ImplicitCastExpr (_, [(CallExpr (stmt_info, stmt_list, ei))], _, _, _))], [del]) ->
-
-      let () = handlerVar := Some (string_of_decl del) in 
-      let stmt = (Clang_ast_t.CallExpr (stmt_info, stmt_list, ei)) in 
-      syh_compute_stmt_facts current env stmt
-
-(*| CallExpr (stmt_info, stmt_list, ei) -> 
-    let (fp, _) = stmt_intfor2FootPrint stmt_info in 
-    let fp = (int_of_intList fp) in 
-    
-    (* STEP 0: retrive the spec of the callee *)
-    let (facts, nextRechable) = 
-      match stmt_list with 
-      | [] -> assert false  
-      | x::rest -> 
-        (match extractEventFromFUnctionCall x rest with 
-        | None -> ([], currentreachableState)
-        | Some (calleeName, acturelli) -> (* arli is the actual argument *)
-          
-          (*let () = print_string ("=========================\n") in 
-          print_string (string_of_event (calleeName, acturelli) ^ ":\n");  *)
-
-          let spec = findCallSpecFrom env calleeName in 
-          match spec with
-          | None -> ([], currentreachableState)
-          | Some ((signiture, formalLi), factSchema)-> 
-            let facts = 
-              if List.length acturelli == List.length formalLi then 
-                let insRet = 
-                  match !handlerVar with 
-                  | None -> [] 
-                  | Some handler -> 
-                    let () = varSet := !varSet @ [handler] in 
-                    [(handler, BRET)]
-                in 
-                let vb = var_binding formalLi acturelli in 
-                (instantiateFacts factSchema (vb @ insRet))
-              (* facts instantiation *)
-              else factSchema
-            in 
-            let callFacts = List.map facts ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
-            let flowfact = List.map currentreachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
-            (callFacts @ flowfact, [fp])
-        )
-    in [(currentfacts @ facts, 0, nextRechable)]
-*)
-  
-  | IfStmt (stmt_info, conditional::branches, if_stmt_info) -> 
-    let (fp, _) = stmt_intfor2FootPrint stmt_info in 
-    let fp = (int_of_intList fp) in 
-
-    let (prorgamStateThen, programStateElse) = 
-      match stmt2Pure conditional with 
-      | None -> (current, current)
-      | Some piCondition -> 
-        (match findIfStmtSpecFrom env piCondition with 
-        | None -> (current, current) 
-        | Some (vb, factSchema:: rest) -> 
-          let flowfact = List.map currentreachableState ~f:(fun a -> ("flow", [BINT a; BINT fp])) in 
-
-          let rawFactsThen = instantiateFacts [factSchema] vb in 
-          let factsThenWithLineNo = List.map rawFactsThen ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
-
-          let prorgamStateThen' = (currentfacts @ factsThenWithLineNo @ flowfact, 0, [fp]) in 
-          let programStateElse' = 
-            match rest with 
-            | [] -> current 
-            | thenFactSchema :: _ -> 
-              (*print_endline ("second tempate for ifelse" ^ string_of_fact thenFactSchema); *)
-              let rawFactsElse = instantiateFacts [thenFactSchema] vb in 
-              let factsElseWithLineNo = List.map rawFactsElse ~f:(fun (str, args) -> (str, args@[(BINT fp)])) in 
-              (factsElseWithLineNo, 0, [fp])
-          in (prorgamStateThen', current (*programStateElse'*))
-        | _ -> raise(Failure "IfStmt spec no facts ") 
-        )
-    in 
-
-    (match branches with 
-      | [thenBranch] -> 
-        let programStatesThen = syh_compute_stmt_facts prorgamStateThen env thenBranch in  
-        programStateElse :: programStatesThen
-      | [thenBranch; elseBranch] -> 
-        let programStatesThen = syh_compute_stmt_facts prorgamStateThen env thenBranch in  
-        let programStatesElse = syh_compute_stmt_facts programStateElse env elseBranch in  
-        programStatesThen @ programStatesElse 
-      | _ -> raise(Failure "IfStmt has more than 2 branches") 
-    ) 
-    
-
-
-  | ReturnStmt _ -> [(currentfacts, 1, currentreachableState)]
-  | ImplicitCastExpr (_, x::_, _, _, _) 
-  | DeclStmt (_, [x], _) -> syh_compute_stmt_facts current env x
-  | ImplicitCastExpr _ 
-  | StringLiteral _ 
-  | BinaryOperator _  
-  | DeclStmt _ -> (* mute *) [current]
-  | _ -> print_endline ("Facts to be generated for " ^ ": "^ (Clang_ast_proj.get_stmt_kind_string instr)); 
-         [current] 
-
-
-  (*
-  | ReturnStmt (stmt_info, [ret]) ->
-    (*print_endline ("ReturnStmt1:" ^ string_of_stmt_list [ret] " ");*)
-
-    let (fp, _) = stmt_intfor2FootPrint stmt_info in 
-    let fp1 = match fp with | [] -> None | x::_ -> Some x in 
-
-    let optionTermToList inp = 
-      match inp  with 
-      | Some (Basic (BVAR t)) -> [(BVAR t)] 
-      | _ -> [] 
-    in 
-
-    let (extrapure, es) = match ret with
-    | CallExpr (stmt_info, _::stmt_list, ei) ->
-      let arg = List.fold_left stmt_list ~init:[] ~f:(fun acc a -> acc @(optionTermToList (stmt2Term a))) in 
-      let es  = Singleton (("RET", arg), fp1) in 
-      (Ast_utility.TRUE, es)
-    | _ -> 
-    let retTerm = stmt2Term ret in 
-    let extrapure = 
-      match retTerm with 
-      | Some (Basic (BINT n)) -> Eq(Basic(BRET), Basic(BINT n))
-      | Some (Basic (BVAR str)) -> Eq(Basic(BRET), Basic(BVAR str))
-      | _ -> Ast_utility.TRUE
-    in 
-    let retTerm1 = optionTermToList retTerm in 
-    let es = if List.length (retTerm1 ) ==0 then Emp else Singleton (("RET", (retTerm1)), fp1) in 
-    (extrapure, es)
-
-    in 
-    [(extrapure, es, 1, fp)]
-  
-  | ReturnStmt (stmt_info, stmt_list) ->
-    (*print_endline ("ReturnStmt:" ^ string_of_stmt_list stmt_list " ");*)
-    let (fp, _) = stmt_intfor2FootPrint stmt_info in 
-    [(Ast_utility.TRUE, Emp, 1, fp)]
-  
-
-  | ForStmt (stmt_info, stmt_list)
-
-
-
-  
-
-  | MemberExpr (stmt_info, x::_, _, _) -> 
-    let (fp, _) =  getStmtlocation instr in 
-    let ev = Singleton ((("deref", [(BVAR(string_of_stmt x))])), fp) in 
-    let () = dynamicSpec := ((string_of_stmt instr, []), None, Some [(TRUE, ev )], None) :: !dynamicSpec in 
-
-    let fp = match fp with | None -> [] | Some l -> [l] in 
-    [(TRUE, ev, 0, fp)]
-
-
-  | UnaryOperator _ (*stmt_info, stmt_list, _, _*)   
-  | BinaryOperator _ 
-  | MemberExpr _
-  | NullStmt _
-  | CharacterLiteral _ 
-  | FixedPointLiteral _ 
-  | FloatingLiteral _ 
-  | IntegerLiteral _ 
-  | StringLiteral _ 
-  | RecoveryExpr _ 
-  | DeclRefExpr _  
-  | DeclStmt (_, [], _) 
-  | WhileStmt _ 
-  | SwitchStmt _ 
-  | ParenExpr _ (* assert(max > min); *)
-  (*| ForStmt _ *)
-  | CallExpr _ (* nested calls:  if (swoole_timer_is_available()) {    *)
-  | CXXOperatorCallExpr _ 
-  | CXXDeleteExpr _ (* delete g_logger_instance; *)
-  (*| CStyleCastExpr _ *) (*  char *buf = (char * ) sw_malloc(n); *)
-  | ExprWithCleanups _ (* *value = std::stoi(e);  *)
-  | CXXConstructExpr _ (* va_list args; *)
-  | CompoundAssignOperator _  (* retval += sw_snprintf(sw ...*)
-  | CXXMemberCallExpr _ (* sw_logger()->put *)
-  | CXXConstructExpr _ (* va_list va_list; *)
-  | DoStmt _ ->
-    
-    let (fp, _) = maybeIntToListInt (getStmtlocation instr) in 
-    [(TRUE, Emp, 0, fp)]
-
-  | DeclStmt (_, stmt_list, _) -> 
-    let (fp, fp1) =  (getStmtlocation instr) in 
-
-
-    let ev = Singleton (((Clang_ast_proj.get_stmt_kind_string instr ^ " " ^ string_of_int (List.length stmt_list), [])), fp) in 
-    let () = dynamicSpec := ((string_of_stmt instr, []), None, Some [(TRUE, ev )], None) :: !dynamicSpec in 
-
-    let (fp, _) = maybeIntToListInt (fp, fp1) in 
-    [(TRUE, ev, 0, fp)]
-
-
-  | ContinueStmt _
-  | BreakStmt _
-  | ParenExpr _
-  | ArraySubscriptExpr _
-  | UnaryExprOrTypeTraitExpr _
-  | CStyleCastExpr _ 
-  | _ -> 
-    let (fp, fp1) =  (getStmtlocation instr) in 
-
-    let ev = Singleton ((Clang_ast_proj.get_stmt_kind_string instr, []), fp) in 
-    let () = dynamicSpec := ((string_of_stmt instr, []), None, Some [(TRUE, ev )], None) :: !dynamicSpec in 
-
-    let (fp, _) = maybeIntToListInt (fp, fp1) in 
-
-
-    [(TRUE, ev, 0, fp)]
-    *)
 
 
 
@@ -850,43 +612,6 @@ let removeRedundantFlows factList : facts =
   in 
   List.map (helper getTuple4Flows) ~f:(fun (i1, i2) -> ("flow", [BINT i1; BINT i2]))
 
-
-let reason_about_declaration (dec: Clang_ast_t.decl) (specifications: specification list) (source_Address:string): unit  = 
-  match dec with
-    | FunctionDecl (decl_info, named_decl_info, _, function_decl_info) ->
-      let source_Addressnow = string_of_source_range  decl_info.di_source_range in 
-      if String.compare source_Address source_Addressnow !=0 then ()
-      else 
-      let (l1, l2) = decl_info.di_source_range in 
-      let (functionStart, functionEnd) = (int_of_optionint (l1.sl_line), int_of_optionint (l2.sl_line)) in 
-      let () = currentFunctionLineNumber := (functionStart, functionEnd) in 
-      (
-      match function_decl_info.fdi_body with 
-      | None -> ()
-      | Some stmt -> 
-      let funcName = named_decl_info.ni_name in 
-      let () = varSet := [] in 
-
-      print_endline ("//<<=== Facts for function: "^ funcName ^" ===>>\n" ); 
-      (* initial states are facts = [] , exit code = 0, rechableState = [] *)
-      let prorgamStates = (syh_compute_stmt_facts ([], 0, [functionStart]) specifications stmt) in 
-      let factsFromProgram = List.fold_left prorgamStates ~init:[] ~f:(fun acc (fs, _, _) -> acc @ fs) in 
-      let facts = ("Entry", [(BINT functionStart)]) :: factsFromProgram in 
-      let (entryFacts, flowFacts, restFacts) = 
-        List.fold_left facts
-        ~init:([], [], [])
-        ~f:
-        (fun (entryFacts', flowFacts', restFacts') a ->
-          let (str, args) = a in 
-          if String.compare "Entry" str == 0 then (entryFacts'@[a], flowFacts', restFacts')
-          else if String.compare "flow" str == 0 then (entryFacts', flowFacts'@[a], restFacts')
-          else (entryFacts', flowFacts', restFacts'@[a])
-        ) 
-      in 
-      let facts' = entryFacts @ (removeRedundantFlows flowFacts) @ restFacts in 
-      print_endline (string_of_facts facts' ^ "\n")
-      )
-    | _ -> () 
 
 let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl list * int * int * int) = 
     match ast_decl with
@@ -1231,15 +956,15 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   match node_kind with
   | Start_node -> Singleton (Predicate ("Start", []), node_key), []
   | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
-  | Join_node ->  Emp(node_key) , []
-  | Skip_node t ->  Emp(node_key) , []
+  | Join_node ->  Singleton(TRUE, node_key) , []
+  | Skip_node t ->  Singleton(TRUE, node_key) , []
   | Prune_node (f,_,_) ->  
     (match instrs with 
     | Prune (e, loc, f, _):: _ ->  
       (match expressionToPure e stack with 
       | Some p -> Guard(p, node_key)
-      | None -> Emp(node_key) ), []
-    | _ -> Emp(node_key) , []
+      | None -> Singleton(TRUE, node_key) ), []
+    | _ -> Singleton(TRUE, node_key) , []
     )
   
 
@@ -1252,17 +977,17 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           | Load l -> (l.e, l.id) :: acc 
           | _ -> acc
         ) in 
-        Emp(node_key), stack
+        Singleton(TRUE, node_key), stack
 
       else 
         (match getPureFromBinaryOperatorStmtInstructions op instrs stack with 
         | Some pure -> Singleton (pure, node_key), []
-        | None -> Emp(node_key), [] )
+        | None -> Singleton(TRUE, node_key), [] )
 
     | DeclStmt -> 
       (match getPureFromDeclStmtInstructions instrs stack with 
       | Some pure -> Singleton (pure, node_key), []
-      | None -> Emp(node_key), [] )
+      | None -> Singleton(TRUE, node_key), [] )
     | ReturnStmt -> 
       (match instrs with 
       | Store s :: _ -> 
@@ -1271,7 +996,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         Singleton (Predicate ("Ret", [expressionToTerm exp2 stack]), node_key), []
       | _ -> Singleton (Predicate ("Ret", []), node_key), []
       )
-    | _ -> Emp(node_key) , []
+    | _ -> Singleton(TRUE, node_key) , []
 
 
 let rec existRecord (li: Procdesc.Node.t list) n : ((Procdesc.Node.t list) * (Procdesc.Node.t list)) option = 
@@ -1293,7 +1018,7 @@ let rec disjunctRE (li:regularExpr list): regularExpr =
 
 let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * stack) = 
   match li with 
-  | [] -> Emp(-1), []
+  | [] -> Emp, []
   | [currentState] -> regularExpr_of_Node currentState stack
   | currentState :: xs  -> 
     let eventHd, stack' = regularExpr_of_Node currentState stack in 
@@ -1301,27 +1026,36 @@ let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * sta
     Concate(eventHd, eventTail), (stack@stack'@stack'')
 
 
-let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t) : regularExpr = 
-  let (history) = env in 
+let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr = 
+  let (history, stack) = env in 
   let node_key =  get_key currentState in
   match existRecord history node_key with 
   | Some (prefix, cycle) -> 
-    let prefix', stack' = recordToRegularExpr prefix [] in 
+    let prefix', stack' = recordToRegularExpr prefix stack in 
     let cycle', _ = recordToRegularExpr cycle stack' in 
     Concate (prefix', Kleene(cycle'))
   | None -> 
     let nextStates = Procdesc.Node.get_succs currentState in 
     match nextStates with 
     | [] -> 
-      let final, _ = recordToRegularExpr (history@[currentState]) [] in 
+      let final, _ = recordToRegularExpr (history@[currentState]) stack in 
       final
 
     | succLi -> 
-      let env' = ((history@[currentState])) in 
+      let env' = ((history@[currentState], stack)) in 
       let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
       let eventTail = disjunctRE residues in 
       eventTail
 
+let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
+  let (fstSet:(fstElem list)) = fst re in 
+  let fstSet' = removeRedundantFst fstSet in 
+  let disjunctions = List.map fstSet' ~f:(fun f -> 
+    let deriv = derivitives f re in 
+    Concate (eventToRe f, normaliseTheDisjunctions deriv)
+  ) in 
+  disjunctRE disjunctions
+  
 
 let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
   (*
@@ -1329,7 +1063,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
   let startState = Procdesc.get_start_node procedure in 
-  let firstPass = iterateProc ([]) startState in 
+  let firstPass = iterateProc ([], []) startState in 
+  let secondPass = normaliseTheDisjunctions firstPass in 
   firstPass
   ;;
 
