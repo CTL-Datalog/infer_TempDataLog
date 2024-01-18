@@ -277,6 +277,7 @@ let compareBasic_type (bt1:basic_type) (bt2:basic_type) : bool =
   | ((BVAR s1), (BVAR s2)) -> String.compare s1 s2 == 0
   | (BINT n1, BINT n2) -> n1 == n2 
   | (BNULL, BNULL)
+  | (ANY, ANY)
   | (BRET, BRET) -> true 
   | _ -> false 
 
@@ -324,7 +325,11 @@ let rec nullable (eff:regularExpr) : bool =
   | Kleene _      -> true
   | Omega _       -> false 
    
-
+let string_of_fst_event (ele:fstElem) : string = 
+  match ele with 
+  | PureEv (p, s) -> string_of_pure p ^ string_of_loc s 
+  | GuardEv (p, s) -> "[" ^string_of_pure p ^ "]" ^ string_of_loc s 
+  | CycleEv re -> "(" ^ string_of_regularExpr re ^ ")^*"
 
 let rec fst (eff:regularExpr) : (fstElem list) = 
   match eff with 
@@ -403,7 +408,39 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
   | Omega _  -> raise (Failure "derivitives should not have omega")
 
 
-
+let rec normalise_es (eff:regularExpr) : regularExpr = 
+  match eff with 
+  | Disjunction(es1, es2) -> 
+    let es1 = normalise_es es1 in 
+    let es2 = normalise_es es2 in 
+    (match (es1, es2) with 
+    | (Emp, Emp) -> Emp
+    | (Emp, _) -> if nullable es2 then es2 else (Disjunction (es2, es1))
+    | (Bot, es) -> normalise_es es 
+    | (es, Bot) -> normalise_es es 
+    | (Disjunction (es11, es12), es3) -> Disjunction (es11, Disjunction (es12, es3))
+    | _ -> 
+      (Disjunction (es1, es2))
+    )
+  | Concate (es1, es2) -> 
+    let es1 = normalise_es es1 in 
+    let es2 = normalise_es es2 in 
+    (match (es1, es2) with 
+    | (Emp, _) -> normalise_es es2
+    | (_, Emp) -> normalise_es es1
+    | (Bot, _) -> Bot
+    | (_, Bot) -> Bot
+    | (Disjunction (es11, es12), es3) -> Disjunction(Concate (es11,es3),  Concate (es12, es3))
+    | (Concate (es11, es12), es3) -> (Concate (es11, Concate (es12, es3)))
+    | _ -> (Concate (es1, es2))
+    )
+  | Kleene effIn -> 
+    let effIn' = normalise_es effIn in 
+    (match effIn' with 
+    | Emp -> Emp 
+    | _ ->  
+    Kleene (effIn'))
+  | _ -> eff 
 
 
 let eventToRe (ev:fstElem) : regularExpr = 
@@ -447,20 +484,6 @@ let rec varFromPure (p:pure): string list =
   | PureAnd (p1, p2) -> List.append (varFromPure p1) (varFromPure p2)
   | Neg p -> varFromPure p 
   | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ varFromTerm t)
-
-
-
-let string_of_event (str, li) = 
-  let temp = 
-    match li with 
-    | [] -> ""
-    | [x] ->  string_of_basic_t x 
-    | x::xs->
-      List.fold_left xs 
-      ~init:(string_of_basic_t x) 
-      ~f:(fun acc a -> acc ^ "," ^ string_of_basic_t a )
-  in 
-  str ^ "("^temp^")"
 
 
 
