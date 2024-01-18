@@ -1074,7 +1074,8 @@ let expressionToTerm (exp:Exp.t) stack : terms  =
   match exp with 
   | Var t -> 
     (match existStack stack t with 
-    | Some exp -> Basic (BVAR (Exp.to_string exp )) (** Pure variable: it is not an lvalue *)
+    | Some (Lvar t) -> Basic (BVAR (Pvar.to_string t )) (** Pure variable: it is not an lvalue *)
+    | Some exp -> Basic (BVAR (Exp.to_string exp ))
     | None  ->  Basic (BVAR (Ident.to_string t)) (** Pure variable: it is not an lvalue *)
     )
   | Lvar t -> Basic (BVAR (Pvar.to_string t))  (** The address of a program variable *)
@@ -1105,7 +1106,10 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     | Gt -> Some (Gt (t1, t2))
     | Le -> Some (LtEq (t1, t2))
     | Ge -> Some (GtEq (t1, t2))
-    | _ -> None
+    | Ne -> Some (Neg (Eq (t1, t2)))
+    | _ -> 
+      print_endline ("expressionToPure None : " ^ Exp.to_string exp); 
+      None
     )
     (*
     | LAnd  (** logical and. Does not always evaluate both operands. *)
@@ -1121,19 +1125,49 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     | Mod  (** % *)
     | Shiftlt  (** shift left *)
     | Shiftrt  (** shift right *)
-    | Ne  (** != (arithmetic comparison) *)
     | BAnd  (** bitwise and *)
     | BXor  (** exclusive-or *)
     | BOr  (** inclusive-or *)
     *)
   
 
-  | UnOp (Neg, e, _) -> 
+  | UnOp (_, e, _) -> 
     (match expressionToPure e stack with 
     | Some p -> Some (Neg p)
     | None -> None 
     )
-  | _ -> None 
+  (*| Var _ -> 
+    print_endline ("expressionToPure Var None : " ^ Exp.to_string exp); 
+    None 
+  | Exn _ -> 
+    print_endline ("expressionToPure Exn None : " ^ Exp.to_string exp); 
+    None 
+  | Closure _ -> 
+    print_endline ("expressionToPure Closure None : " ^ Exp.to_string exp); 
+    None 
+  | Const _ -> 
+    print_endline ("expressionToPure Const None : " ^ Exp.to_string exp); 
+    None 
+  | Cast _ -> 
+    print_endline ("expressionToPure Cast None : " ^ Exp.to_string exp); 
+    None 
+  | Lvar _ -> 
+    print_endline ("expressionToPure Lvar None : " ^ Exp.to_string exp); 
+    None 
+  | Lfield _ -> 
+    print_endline ("expressionToPure Lfield None : " ^ Exp.to_string exp); 
+    None 
+      (** A field offset, the type is the surrounding struct type *)
+  | Lindex  _ -> 
+    print_endline ("expressionToPure Lindex None : " ^ Exp.to_string exp); 
+    None 
+  | Sizeof  _ -> 
+    print_endline ("expressionToPure Sizeof None : " ^ Exp.to_string exp); 
+    None 
+    *)
+  | _ -> 
+    print_endline ("expressionToPure 3 None : " ^ Exp.to_string exp); 
+    None 
   
 
 let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
@@ -1212,7 +1246,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   | Stmt_node stmt_kind ->         
     match stmt_kind with 
     | BinaryOperatorStmt (op) -> 
-      if String.compare op "EQ" == 0 then 
+      if String.compare op "EQ" == 0 || String.compare op "GT" == 0 then 
         let stack = List.fold_left instrs ~init:[] ~f:(fun acc (ins:Sil.instr) -> 
           match ins with 
           | Load l -> (l.e, l.id) :: acc 
