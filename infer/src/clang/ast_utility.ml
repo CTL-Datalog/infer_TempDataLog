@@ -408,6 +408,39 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
   | Omega _  -> raise (Failure "derivitives should not have omega")
 
 
+let eventToRe (ev:fstElem) : regularExpr = 
+  match ev with 
+  | PureEv s -> Singleton s 
+  | GuardEv s -> Guard s 
+  | CycleEv re -> Kleene re
+
+
+let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) option = 
+    (match fst re with 
+    | [f] -> 
+      (match f with 
+      | PureEv (Predicate (s, _), state) -> 
+        if String.compare "Join" s == 0 then 
+          let deriv = (derivitives f re) in 
+          Some (state, Emp, deriv)
+        else 
+          let deriv = (derivitives f re) in 
+          (match findTheFirstJoint deriv with 
+          | None  -> None 
+          | Some (a, b, c) -> Some (a, Concate (eventToRe f, b), c)
+          )
+
+      | _ -> 
+        let deriv = (derivitives f re) in 
+        (match findTheFirstJoint deriv with 
+        | None  -> None 
+        | Some (a, b, c) -> Some (a, Concate (eventToRe f, b), c)
+        )
+
+      )
+    | _ -> None )
+
+
 let rec normalise_es (eff:regularExpr) : regularExpr = 
   match eff with 
   | Disjunction(es1, es2) -> 
@@ -418,9 +451,26 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | (Emp, _) -> if nullable es2 then es2 else (Disjunction (es2, es1))
     | (Bot, es) -> normalise_es es 
     | (es, Bot) -> normalise_es es 
+    (*
     | (Disjunction (es11, es12), es3) -> Disjunction (es11, Disjunction (es12, es3))
+    | (Concate(e11, Concate(e12, Concate(Singleton e13, rest1))), Concate(e21, Concate(Singleton e22,rest2))) -> 
+      let (p1, s1) = e13 in 
+      let (p2, s2) = e22 in 
+
+      if comparePure p1 p2 && s1 == s2 && compareRE rest1 rest2 then 
+        Concate ( Disjunction(Concate(e11, e12), e21), Concate (Singleton e13,rest1))
+      else (Disjunction (es1, es2))
+    *)
     | _ -> 
-      (Disjunction (es1, es2))
+      match (findTheFirstJoint es1, findTheFirstJoint es2) with 
+      | (Some (jointState1, pre1, post1), Some (jointState2, pre2, post2)) -> 
+        print_endline (string_of_int jointState1 ^ " : " ^ string_of_regularExpr pre1 ^" : "^ string_of_regularExpr post1);
+        print_endline (string_of_int jointState2 ^ " : " ^ string_of_regularExpr pre2 ^" : "^ string_of_regularExpr post2);
+
+        if jointState1 == jointState2 && compareRE (normalise_es post1) (normalise_es post2) 
+        then normalise_es (Concate (Disjunction(pre1, pre2), post1))
+        else (Disjunction (es1, es2))
+      | _ ->  (Disjunction (es1, es2))
     )
   | Concate (es1, es2) -> 
     let es1 = normalise_es es1 in 
@@ -443,11 +493,6 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
   | _ -> eff 
 
 
-let eventToRe (ev:fstElem) : regularExpr = 
-  match ev with 
-  | PureEv s -> Singleton s 
-  | GuardEv s -> Guard s 
-  | CycleEv re -> Kleene re
 
 let rec varFromTerm (t:terms): string list =   
   match t with

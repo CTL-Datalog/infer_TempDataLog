@@ -956,7 +956,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   match node_kind with
   | Start_node -> Singleton (Predicate ("Start", []), node_key), []
   | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
-  | Join_node ->  Singleton(TRUE, node_key) , []
+  | Join_node ->  Singleton(Predicate ("Join", []), node_key) , []
   | Skip_node t ->  Singleton(TRUE, node_key) , []
   | Prune_node (f,_,_) ->  
     (match instrs with 
@@ -1058,7 +1058,7 @@ let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr =
   *)
 
   match fstSet' with 
-  | [] -> normalise_es re 
+  | [] -> normalise_es re     
   | _ -> 
     let disjunctions = List.map fstSet' ~f:(fun f -> 
       let deriv = normalise_es (derivitives f re) in 
