@@ -1274,10 +1274,16 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
     | _ -> Emp(node_key) , []
 
 
-let rec existRecord li n = 
+let rec existRecord (li: Procdesc.Node.t list) n : ((Procdesc.Node.t list) * (Procdesc.Node.t list)) option = 
   match li with 
-  | [] -> false 
-  | x :: xs  -> if x == n then true else existRecord xs n 
+  | [] ->  None 
+  | x :: xs  -> 
+    if (get_key x) == n 
+    then Some ([], li) 
+    else 
+      match existRecord xs n with 
+      | None -> None 
+      | Some (prefix, cycle) -> Some (x::prefix, cycle)
 
 let rec disjunctRE (li:regularExpr list): regularExpr = 
   match li with 
@@ -1285,39 +1291,47 @@ let rec disjunctRE (li:regularExpr list): regularExpr =
   | [x] -> x 
   | x :: xs -> Disjunction (x, disjunctRE xs)
 
+let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * stack) = 
+  match li with 
+  | [] -> Emp(-1), []
+  | [currentState] -> regularExpr_of_Node currentState stack
+  | currentState :: xs  -> 
+    let eventHd, stack' = regularExpr_of_Node currentState stack in 
+    let eventTail, stack'' = recordToRegularExpr xs (stack@stack') in 
+    Concate(eventHd, eventTail), (stack@stack'@stack'')
+
+
+let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t) : regularExpr = 
+  let (history) = env in 
+  let node_key =  get_key currentState in
+  match existRecord history node_key with 
+  | Some (prefix, cycle) -> 
+    let prefix', stack' = recordToRegularExpr prefix [] in 
+    let cycle', _ = recordToRegularExpr cycle stack' in 
+    Concate (prefix', Kleene(cycle'))
+  | None -> 
+    let nextStates = Procdesc.Node.get_succs currentState in 
+    match nextStates with 
+    | [] -> 
+      let final, _ = recordToRegularExpr (history@[currentState]) [] in 
+      final
+
+    | succLi -> 
+      let env' = ((history@[currentState])) in 
+      let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
+      let eventTail = disjunctRE residues in 
+      eventTail
+
+
 let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
   (*
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
   let startState = Procdesc.get_start_node procedure in 
-
-  let rec iterateProc env (currentState:Procdesc.Node.t) : regularExpr = 
-    let (history, stack) = env in 
-    let node_key =  get_key currentState in
-    if existRecord history node_key then 
-      let re, _ = regularExpr_of_Node currentState stack in 
-      re 
-    else 
-      let nextStates = Procdesc.Node.get_succs currentState in 
-      match nextStates with 
-      | [next] -> 
-        let eventHd, stack' = regularExpr_of_Node currentState stack in 
-        let env' = ((history@[node_key], stack@stack')) in 
-
-        let eventTail = iterateProc env' next in 
-        Concate (eventHd, eventTail)
-      | [] -> 
-        let re, _ = regularExpr_of_Node currentState stack in 
-        re 
-      | succLi -> 
-        let eventHd,stack'  = regularExpr_of_Node currentState stack in 
-        let env' = ((history@[node_key], stack@stack')) in 
-        let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
-        let eventTail = disjunctRE residues in 
-        Concate (eventHd, eventTail)
-  in 
-  iterateProc ([], []) startState;;
+  let firstPass = iterateProc ([]) startState in 
+  firstPass
+  ;;
 
 
 

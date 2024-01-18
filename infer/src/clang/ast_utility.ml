@@ -54,6 +54,9 @@ type regularExpr =
   | Omega of regularExpr 
   | Guard of (pure * state)
 
+  
+type reCFG  = (Procdesc.Node.t list)
+
 type ctl = 
     Atom of pure 
   | Neg of ctl 
