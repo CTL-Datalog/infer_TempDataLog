@@ -1048,12 +1048,14 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
       eventTail
 
 let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
-  print_endline (" ============ \n" ^ string_of_regularExpr re ^ ":\n");
   let (fstSet:(fstElem list)) = fst re in 
-  print_endline (List.fold_left fstSet ~init:"" ~f:(fun acc a -> acc ^ ", " ^  (string_of_fst_event a)) ^ "\n");
-  
   let fstSet' = removeRedundantFst fstSet in 
+
+  (*
+  print_endline (" ============ \n" ^ string_of_regularExpr re ^ ":\n"); 
+  print_endline (List.fold_left fstSet ~init:"" ~f:(fun acc a -> acc ^ ", " ^  (string_of_fst_event a)) ^ "\n");
   print_endline (List.fold_left fstSet' ~init:"" ~f:(fun acc a -> acc ^ ", " ^ (string_of_fst_event a)));
+  *)
 
   match fstSet' with 
   | [] -> normalise_es re 
@@ -1072,7 +1074,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   *)
   let startState = Procdesc.get_start_node procedure in 
   let firstPass = iterateProc ([], []) startState in 
-  let secondPass = normaliseTheDisjunctions firstPass in 
+  let secondPass = normalise_es (normaliseTheDisjunctions firstPass) in 
   secondPass
   ;;
 
