@@ -1,6 +1,6 @@
 open Z3
 
-type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY
+type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
 type event = string * (basic_type list)
 
@@ -59,8 +59,10 @@ type fstElem = PureEv of (pure * state) | GuardEv of (pure * state) | CycleEv of
 
 type reCFG  = (Procdesc.Node.t list * stack)
 
+type propositions = string * pure
+
 type ctl = 
-    Atom of pure 
+    Atom of propositions 
   | Neg of ctl 
   | Conj of ctl * ctl 
   | Disj of ctl * ctl 
@@ -135,6 +137,7 @@ let printTree ?line_prefix ~get_name ~get_children x =
   to_buffer ?line_prefix ~get_name ~get_children buf x;
   Buffer.contents buf
 
+let takefst (a ,_) = a
 type binary_tree =
   | Node of string * (binary_tree  list )
   | Leaf
@@ -158,6 +161,7 @@ let string_of_basic_t v =
   | BNULL -> "NULL"
   | BRET -> "ret"
   | ANY -> "*"
+  | BSTR s -> s 
 
 let string_of_basic_t_aux v = 
   match v with 
@@ -166,6 +170,7 @@ let string_of_basic_t_aux v =
   | BNULL -> "NULL"
   | BRET -> "\"" ^"ret"^ "\""
   | ANY -> "*"
+  | BSTR s -> s
 
 
 let basic_type2_string v = 
@@ -175,6 +180,7 @@ let basic_type2_string v =
   | BNULL 
   | BRET -> []
   | ANY -> ["_"]
+  | BSTR s -> [s]
 
 let string_of_loc n = "@" ^ string_of_int n
 
@@ -223,7 +229,7 @@ let rec string_of_pure (p:pure):string =
 
 let rec string_of_ctl (ctl:ctl) = 
   match ctl with
-  | Atom p -> string_of_pure p 
+  | Atom (s, p) -> s ^  string_of_pure p 
   | Neg c -> "!(" ^ string_of_ctl c ^")"
   | Conj (c1, c2) -> "(" ^ string_of_ctl c1 ^" /\\ "^ string_of_ctl c2 ^")"
   | Disj (c1, c2) -> "(" ^ string_of_ctl c1 ^" \\/ "^ string_of_ctl c2 ^")"
@@ -274,6 +280,7 @@ let rec string_of_regularExpr re =
 
 let compareBasic_type (bt1:basic_type) (bt2:basic_type) : bool = 
   match (bt1, bt2) with 
+  | (BSTR s1, BSTR s2)
   | ((BVAR s1), (BVAR s2)) -> String.compare s1 s2 == 0
   | (BINT n1, BINT n2) -> n1 == n2 
   | (BNULL, BNULL)
@@ -464,9 +471,9 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | _ -> 
       match (findTheFirstJoint es1, findTheFirstJoint es2) with 
       | (Some (jointState1, pre1, post1), Some (jointState2, pre2, post2)) -> 
-        print_endline (string_of_int jointState1 ^ " : " ^ string_of_regularExpr pre1 ^" : "^ string_of_regularExpr post1);
+        (*print_endline (string_of_int jointState1 ^ " : " ^ string_of_regularExpr pre1 ^" : "^ string_of_regularExpr post1);
         print_endline (string_of_int jointState2 ^ " : " ^ string_of_regularExpr pre2 ^" : "^ string_of_regularExpr post2);
-
+*)
         if jointState1 == jointState2 && compareRE (normalise_es post1) (normalise_es post2) 
         then normalise_es (Concate (Disjunction(pre1, pre2), post1))
         else (Disjunction (es1, es2))
@@ -480,7 +487,7 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | (_, Emp) -> normalise_es es1
     | (Bot, _) -> Bot
     | (_, Bot) -> Bot
-    | (Disjunction (es11, es12), es3) -> Disjunction(Concate (es11,es3),  Concate (es12, es3))
+    (*| (Disjunction (es11, es12), es3) -> Disjunction(Concate (es11,es3),  Concate (es12, es3)) *)
     | (Concate (es11, es12), es3) -> (Concate (es11, Concate (es12, es3)))
     | _ -> (Concate (es1, es2))
     )
@@ -599,6 +606,7 @@ let rec convertTerm (t:terms):string =
   | (Basic (BNULL)) -> " " ^ "nil" ^ " "
   | Plus (t1, t2) -> ("(+") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
   | Minus (t1, t2) -> ("(-") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
+  | Basic (BSTR _)
   | Basic ANY -> raise (Failure "convertTerm not yet")
   ;;
 
@@ -721,6 +729,7 @@ let rec term_to_expr ctx : terms -> Z3.Expr.expr = function
   | (Basic(BVAR v))           -> Z3.Arithmetic.Real.mk_const_s ctx v
   | (Basic(BNULL))           -> Z3.Arithmetic.Real.mk_const_s ctx "nil"
   | (Basic(BRET))           -> Z3.Arithmetic.Real.mk_const_s ctx "ret"
+  | Basic (BSTR _)
   | Basic ANY -> raise (Failure "term_to_expr not yet")
 
   (*
@@ -847,3 +856,541 @@ let askZ3 pi =
 
 let string_of_binary_tree tree = printTree ~line_prefix:"* " ~get_name ~get_children tree;; 
 
+
+(***************************************)
+(***************************************)
+
+
+type basic_Type = Number | Symbol
+type param  = string * basic_Type
+type decl = string * (param list)
+
+type relation = string * (terms list)
+type head = relation
+type body = Pos of relation | Neg of relation | Pure of pure 
+type rule = head * (body list) 
+type datalog = decl list * rule list
+
+
+let rec expand_args (sep: string) (x:string list) = 
+  match x with 
+  [] -> ""
+  | [x] -> x
+  | x :: xs -> x ^ sep ^ (expand_args sep xs)
+
+
+
+let sort_uniq cmp l =
+  let rec rev_merge l1 l2 accu =
+    match l1, l2 with
+    | [], l2 -> List.rev_append l2 accu
+    | l1, [] -> List.rev_append l1 accu
+    | h1::t1, h2::t2 ->
+        let c = cmp h1 h2 in
+        if c == 0 then rev_merge t1 t2 (h1::accu)
+        else if c < 0
+        then rev_merge t1 l2 (h1::accu)
+        else rev_merge l1 t2 (h2::accu)
+  in
+  let rec rev_merge_rev l1 l2 accu =
+    match l1, l2 with
+    | [], l2 -> List.rev_append l2 accu
+    | l1, [] -> List.rev_append l1 accu
+    | h1::t1, h2::t2 ->
+        let c = cmp h1 h2 in
+        if c == 0 then rev_merge_rev t1 t2 (h1::accu)
+        else if c > 0
+        then rev_merge_rev t1 l2 (h1::accu)
+        else rev_merge_rev l1 t2 (h2::accu)
+  in
+  let rec sort n l =
+    match n, l with
+    | 2, x1 :: x2 :: tl ->
+        let s =
+          let c = cmp x1 x2 in
+          if c == 0 then [x1] else if c < 0 then [x1; x2] else [x2; x1]
+        in
+        (s, tl)
+    | 3, x1 :: x2 :: x3 :: tl ->
+        let s =
+          let c = cmp x1 x2 in
+          if c == 0 then
+            let c = cmp x2 x3 in
+            if c == 0 then [x2] else if c < 0 then [x2; x3] else [x3; x2]
+          else if c < 0 then
+            let c = cmp x2 x3 in
+            if c == 0 then [x1; x2]
+            else if c < 0 then [x1; x2; x3]
+            else
+              let c = cmp x1 x3 in
+              if c == 0 then [x1; x2]
+              else if c < 0 then [x1; x3; x2]
+              else [x3; x1; x2]
+          else
+            let c = cmp x1 x3 in
+            if c == 0 then [x2; x1]
+            else if c < 0 then [x2; x1; x3]
+            else
+              let c = cmp x2 x3 in
+              if c == 0 then [x2; x1]
+              else if c < 0 then [x2; x3; x1]
+              else [x3; x2; x1]
+        in
+        (s, tl)
+    | n, l ->
+        let n1 = n asr 1 in
+        let n2 = n - n1 in
+        let s1, l2 = rev_sort n1 l in
+        let s2, tl = rev_sort n2 l2 in
+        (rev_merge_rev s1 s2 [], tl)
+  and rev_sort n l =
+    match n, l with
+    | 2, x1 :: x2 :: tl ->
+        let s =
+          let c = cmp x1 x2 in
+          if c == 0 then [x1] else if c > 0 then [x1; x2] else [x2; x1]
+        in
+        (s, tl)
+    | 3, x1 :: x2 :: x3 :: tl ->
+        let s =
+          let c = cmp x1 x2 in
+          if c == 0 then
+            let c = cmp x2 x3 in
+            if c == 0 then [x2] else if c > 0 then [x2; x3] else [x3; x2]
+          else if c > 0 then
+            let c = cmp x2 x3 in
+            if c == 0 then [x1; x2]
+            else if c > 0 then [x1; x2; x3]
+            else
+              let c = cmp x1 x3 in
+              if c == 0 then [x1; x2]
+              else if c > 0 then [x1; x3; x2]
+              else [x3; x1; x2]
+          else
+            let c = cmp x1 x3 in
+            if c == 0 then [x2; x1]
+            else if c > 0 then [x2; x1; x3]
+            else
+              let c = cmp x2 x3 in
+              if c == 0 then [x2; x1]
+              else if c > 0 then [x2; x3; x1]
+              else [x3; x2; x1]
+        in
+        (s, tl)
+    | n, l ->
+        let n1 = n asr 1 in
+        let n2 = n - n1 in
+        let s1, l2 = sort n1 l in
+        let s2, tl = sort n2 l2 in
+        (rev_merge s1 s2 [], tl)
+  in
+  let len = List.length l in
+  if len < 2 then l else takefst (sort len l)
+
+
+let string_of_param x =     
+  match x with
+  (n, Number) -> n ^ ":number"
+| (s, Symbol) -> s ^ ":symbol" 
+
+let string_of_relation (relation:relation) =
+  match relation with
+  (name,vars) -> let variables = expand_args "," (List.map vars ~f:string_of_terms) in name ^ "(" ^ variables ^ ")"  
+
+
+let string_of_bodies (bodies:body list) = 
+  expand_args ", " (List.map ~f:(fun body -> match body with
+    Pos r -> string_of_relation r
+  | Neg r -> "!"  ^ string_of_relation r
+  | Pure p -> string_of_pure p 
+
+  
+  
+  ) bodies)
+
+
+let string_of_decl (decl:decl) =
+  match decl with
+  name,args -> ".decl "^ name ^ "(" ^ (expand_args "," (List.map ~f:string_of_param args ))  ^ ")"
+
+let string_of_decls = List.fold_left ~f:(fun acc decl -> acc ^ (if acc != "" then "\n" else "") ^ string_of_decl decl ) ~init:""
+
+let rec string_of_rules =  
+  List.fold_left ~f:(fun acc (head,bodies) -> acc ^ (if acc != "" then "\n" else "") ^ string_of_relation head ^ " :- " ^ string_of_bodies bodies ^ "." ) ~init:""
+
+let param_compare (a:param) (b:param) =
+  match (a,b) with
+  (a_name,a_type), (b_name,b_type) -> 
+    let nameDiff = String.compare a_name b_name in
+    if nameDiff == 0 then (
+      match (a_type, b_type) with
+      (Number, Number)
+      | (Symbol, Symbol) -> 0
+      | (Number,Symbol) -> 1
+      | (Symbol,Number) -> -1
+    ) else nameDiff
+
+
+let string_of_datalog (datalog:datalog) : string = 
+  let (decls, rules) = datalog in 
+  string_of_decls decls ^ string_of_rules rules
+
+let rec infer_variables (pure:pure) =
+  let get_variable_terms (x: terms) =
+    match x with
+    Basic (BVAR x) -> [Basic (BVAR x)]
+    | _ -> [] in 
+ let x = match pure with 
+  TRUE -> []
+  | FALSE -> []
+  | Gt (a,b) -> (get_variable_terms a) @ (get_variable_terms b) 
+  | Lt (a,b) ->  (get_variable_terms a) @ (get_variable_terms b)
+  | GtEq (a,b) ->  (get_variable_terms a) @ (get_variable_terms b)
+  | LtEq (a,b) ->  (get_variable_terms a) @ (get_variable_terms b)
+  | Eq (a,b) -> (get_variable_terms a) @ (get_variable_terms b)
+  | Neg (Eq(a,b)) -> (get_variable_terms a) @ (get_variable_terms b)
+  | PureOr(a,b) -> (infer_variables a) @ (infer_variables b)
+  | PureAnd(a,b) ->(infer_variables a) @ (infer_variables b)
+  | Neg a -> infer_variables a
+  | Predicate (s, termLi) -> flattenList (List.map ~f:get_variable_terms termLi)
+  in sort_uniq (fun a b -> if stricTcompareTerm a b then 0 else 1) x
+  (* | Pos a -> get_variable_terms a *)
+
+let rec infer_params (pure:pure) : param list = 
+  let get_variable_terms (x: terms) (y:basic_Type) =
+    match x with
+    Basic (BVAR x) -> [x,y]
+    | _ -> [] in
+  let x = match pure with 
+  TRUE -> []
+  | FALSE -> []
+  | Gt (a,b) -> (get_variable_terms a Number) @ (get_variable_terms b Number) 
+  | Lt (a,b) ->  (get_variable_terms a Number) @ (get_variable_terms b Number)
+  | GtEq (a,b) ->  (get_variable_terms a Number) @ (get_variable_terms b Number)
+  | LtEq (a,b) ->  (get_variable_terms a Number) @ (get_variable_terms b Number)
+  (* TODO *)
+  | Eq (a,b) -> (get_variable_terms a Number) @ (get_variable_terms b Number)
+  | Neg (Eq(a,b)) -> (get_variable_terms a Number) @ (get_variable_terms b Number)
+  | Neg a -> infer_params a
+  | PureOr(a,b) -> (infer_params a) @ (infer_params b)
+  | PureAnd(a,b) ->(infer_params a) @ (infer_params b)
+  | Predicate (s, termLi) -> flattenList (List.map ~f:(fun a -> get_variable_terms a  Number) termLi)
+  in sort_uniq param_compare x
+  (*| Pos a -> get_variable_terms a *)
+
+
+
+let rec translation (ctl:ctl) : string * datalog = 
+  let fname, (decs,rules) = (translation_inner ctl) in
+  let defaultDecs = [
+    ("entry",     [ ("x", Number)]);  
+    (* ("end",       [ ("x", Number)]); *)
+    ("valuation", [ ("x", Symbol); ("loc", Number); ("n", Number)]);
+    ("assign",    [ ("x", Symbol); ("loc", Number); ("n", Number)]);
+    (*("assignNonDetermine",    [ ("x", Symbol); ("loc", Number)]);*)
+    ("state",     [ ("x", Number)]);
+    ("flow",      [ ("x", Number); ("y", Number) ]);
+    ("transFlow", [ ("x", Number); ("y", Number) ]); 
+    ] in
+  let defaultRules = [ 
+    ("transFlow", [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos ("flow", [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
+    ("transFlow", [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos ("flow", [Basic (BVAR "x"); Basic (BVAR "y")]); Pos ("transFlow", [Basic (BVAR "y"); Basic (BVAR "z")]) ];
+    
+    ("valuation", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), [ Pos ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")]) ] ;
+    ("valuation", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), 
+      [ Pos ("valuation", [Basic (BVAR "x"); Basic (BVAR "locTemp"); Basic (BVAR "n")] );  
+        Pos ("flow", [Basic (BVAR "locTemp"); Basic (BVAR "loc")]); 
+        Neg ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic ANY]) ] ;
+    ] in
+
+    
+    (**********************************************************************
+    The following code is to add the top level rule to only show the 
+    reslts on the entry pointes. For example, if the query is: 
+    EF_terminating(loc); then it will be added with the following EF_terminatingFinal rule 
+    EF_terminatingFinal(loc) :- entry(loc), EF_terminating(loc).     
+    --- Yahui Song
+    **********************************************************************)
+    let decs, rules  = 
+    (match rules with 
+    | ((name, [Basic (BVAR "loc")]), _)::_ -> 
+      let nameFinal = name^"Final" in 
+      let finaDecl = (nameFinal,     [ ("loc", Number)]) in 
+      let finalRule = ((nameFinal, [Basic (BVAR "loc")]), [Pos("entry",  [Basic (BVAR "loc")]) ; Pos (name, [Basic (BVAR "loc")])]) in 
+      finaDecl::decs,  finalRule::rules
+    | _ -> decs, rules
+    ) in 
+
+    fname, (defaultDecs @ List.rev decs, defaultRules @ List.rev rules)
+
+  
+and get_params (declarations: decl list) =
+    match declarations with
+    [] -> []
+    | x :: xs -> snd x
+
+
+and get_args (rules: rule list) =
+    match rules with
+    | [] -> []
+    | x::xs -> snd (takefst x) 
+
+and process_args (args:terms list) =
+    sort_uniq 
+    (fun x y -> 
+      match (x,y) with
+      | (Basic (BVAR x), Basic (BVAR y)) -> String.compare x y
+      | _ -> raise (Failure "Arguments should only be variables")
+      )
+    (List.filter ~f:(fun x -> match x with  Basic (BVAR x) -> true | _ -> false ) args ) 
+
+
+and translation_inner (ctl:ctl) : string * datalog =
+
+    let processPair f1 f2 name (construct_rules: relation -> relation -> relation -> rule list) =
+      let x1,(f1Declarations,f1Rules) = translation_inner f1 in
+      let x2,(f2Declarations,f2Rules) = translation_inner f2 in
+      let f1Params = get_params f1Declarations in
+      let f2Params = get_params f2Declarations in
+      let f1Args = get_args f1Rules in
+      let f2Args = get_args f2Rules in
+      let decs = List.append f1Declarations f2Declarations in
+      let ruls = List.append f1Rules f2Rules in
+      let newParams = (sort_uniq param_compare (List.append f1Params f2Params)) in
+      let newArgs = process_args (List.append f1Args f2Args) in
+      let newName = name x1 x2 in 
+      newName, ( (newName,newParams) :: decs, ( (construct_rules (newName, newArgs) (x1,f1Args) (x2,f2Args))  @ ruls)) 
+    in
+
+    match ctl with 
+    | Atom (pName, pure) -> 
+      let vars = Basic (BVAR "loc") :: infer_variables pure in
+      let params =  ("loc" , Number) :: infer_params pure in
+      let valuationAtom var = Pos ("valuation", [Basic (BSTR var); Basic (BVAR "loc"); Basic(BVAR (var^"_v"))] ) in 
+      (match pure with 
+      | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
+        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+      | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
+        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (GtEq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+
+      | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
+        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Lt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+
+      | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
+        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+
+      | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
+        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])
+
+
+      (* *********************************************************************
+      The above the pattern matching is needed for checking variables' values, for example, 
+      "x" > 1 will be written as valuation("x", loc, x_v), x_v>1. 
+      --- Yahui Song
+      ********************************************************************* *)
+      | _ ->  pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; Pure pure]) ])
+      )
+    
+    | Neg f -> 
+      let fName,(declarations,rules) = translation_inner f in
+        let newName = "NOT_" ^ fName in
+        let fParams = get_params declarations in
+        let fArgs = get_args rules in
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
+
+    | Conj (f1 , f2) -> 
+        processPair f1 f2 
+        (fun x1 x2 ->  x1 ^ "_AND_" ^ x2) 
+        (fun (newName,newArgs) (x1,f1Args) (x2,f2Args) -> [( (newName, newArgs) , [Pos(x1,f1Args); Pos(x2,f2Args)] ) ])
+      
+    | Disj (f1,f2) ->
+        processPair f1 f2 
+        (fun x1 x2 ->  x1 ^ "_OR_" ^ x2) 
+        (fun (newName,newArgs) (x1,f1Args) (x2,f2Args) -> [ ( (newName, newArgs) , [Pos(x1,f1Args)] ) ; ( (newName, newArgs) , [Pos(x2,f2Args)] ) ]);
+      
+    | Imply (f1,f2) -> 
+        processPair f1 f2 
+        (fun x1 x2 ->  x1 ^ "_IMPLY_" ^ x2) 
+        (fun (newName,newArgs) (x1,f1Args) (x2,f2Args) -> 
+        [ ( (newName, newArgs) , [Pos(x2,f2Args)]);
+          ( (newName, newArgs) , [Pos("state", [Basic (BVAR "loc")]) ; Neg(x1,f1Args)] )
+        ])
+
+    (* Primary CTL Encoding *)
+    (* The idea behind this encoding is state encoding is to reuse the previous name when a transition is needed *)
+    | EX f ->   
+      (* TODO *)  
+      let fName,(declarations,rules) = translation_inner f in
+        let newName = "EX_" ^ fName in
+        let fParams = get_params declarations in
+        let fArgs = get_args rules in
+        let arg = Basic (BVAR "tempOne") in
+        let firstArg, fNewArgs = match fArgs with
+          [] -> raise (Failure "confused")
+          | x :: xs -> x, arg :: xs in
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [  Pos("flow", [firstArg;arg] );    Pos (fName,fNewArgs) ]):: rules)
+    | EF f ->     
+      let fName,(declarations,rules) = translation_inner f in
+      (* TODO *)
+        let newName = "EF_" ^ fName in
+        let fParams = get_params declarations in
+        let fArgs = get_args rules in
+        let arg = Basic (BVAR "tempOne") in
+        let firstArg, fNewArgs = match fArgs with
+          [] -> raise (Failure "confused") 
+          | x :: xs -> x, arg :: xs in
+        newName,(  (newName,fParams) :: declarations, 
+        [
+          ( (newName,fArgs), [Pos (fName,fArgs) ]);
+          ( (newName,fArgs), [Pos("flow",[firstArg;arg]); Pos(newName,fNewArgs)     ] )
+
+        ]@ rules) 
+    
+    | AF f ->     
+      (* Per Gottlob et al.
+
+      AF_P_T(x,z) :- AF_P_T(x,y), !P(y), flow(y,z);
+      AF_P_T(x,y) :- !P(x), flow(x,y);
+      AF_P_S(x) :- AF_P_T(x,x);
+      AF_P_S(x) :- !P(x), flow(x,y), S(y);
+      AF_P(x) :- state(x) !AF_P_S(x);
+
+      The approach here makes y and z first to allow for easier manipulation 
+
+      *)
+      let fName,(declarations,rules) = 
+        match f with 
+
+        | Atom (notPName, Lt(Basic (BSTR x), Basic (BINT n))) -> 
+
+          let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  GtEq(Basic (BSTR x), Basic (BINT n)))) in 
+          
+          let findallDecl = (notPName, [ ("loc", Number)]) in  
+          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos("valuation", [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
+
+
+          notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
+
+        | Atom (notPName, Eq(Basic (BSTR x), Basic (BINT n))) -> 
+
+          let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  Neg (Eq(Basic (BSTR x), Basic (BINT n))))) in 
+          
+          let findallDecl = (notPName, [ ("loc", Number)]) in  
+          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos("valuation", [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
+
+
+          notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
+
+
+      (* *********************************************************************
+      The above the pattern matching is needed for constructing the atomic P rules, 
+      when we are computing AF p. Usually the encoding needs simple "!P". 
+      But since the analysis may be overapproximating, we need to compute “for sure !P” 
+      For example, AF x<0, will be encoded as: 
+
+      1) not_xIsSmallerThan_0(loc) :- state(loc), valuation("x",loc,x_v), (x_v >= 0).
+      2) xIsSmallerThan_0(loc) :- state(loc), valuation("x",loc,_), !not_xIsSmallerThan_0(loc).
+
+      where 1) captures the negation of x<0, then 2) captures "for sure x<0", 
+      then subsequently, we can use !xIsSmallerThan_0 as usual. 
+
+      --- Yahui Song
+      ********************************************************************* *)
+
+        | _ -> translation_inner f in
+      let newName = "AF_" ^ fName in
+      let sName = newName ^ "_S" in
+      let tName = newName ^ "_T" in
+      let fParams = get_params declarations in
+      let fArgs = get_args rules in
+      let arg = Basic (BVAR "tempOne") in
+      let firstArg, fNewArgs, fArgsTail = 
+        match fArgs with
+        [] ->  raise (Failure "confused")
+        | x :: xs -> x, arg :: xs, xs in
+
+      let tArg = Basic (BVAR "interm_state") in
+      let tParam = "interm_state" , Number in
+      let tArgs = tArg :: fArgs in
+      let tNewArgs = arg :: fArgs in
+      let tParams = tParam :: fParams in
+
+      let newDeclarations = [
+        (newName,fParams);
+        (sName,fParams);
+        (tName, tParams);
+
+      ] in
+      let newRules = [
+        (newName,fArgs), [Pos("state", [firstArg]); Neg (sName, fArgs)];
+
+        (sName, fArgs), [Pos(tName, firstArg :: firstArg :: fArgsTail)];
+        (* for finite traces *)
+        (* (sName,fArgs), [ Neg(fName, fArgs); Pos("end", [firstArg])];  *)
+        (* for infinite traces *)
+        (sName,fArgs), [ Neg(fName, fArgs); Pos("flow", [firstArg; arg]); Pos(sName,fNewArgs)  ];
+
+        (tName, tArgs), [ Neg(fName,fArgs); Pos("flow", [firstArg; tArg] ) ];
+        (tName, tArgs), [ Pos(tName,tNewArgs) ;Neg(fName,fNewArgs); Pos("flow", [arg; tArg] ) ];
+        
+
+      ] in
+      newName,( newDeclarations @ declarations, newRules @ rules)
+ 
+    
+    | EU (f1,f2)->
+      processPair f1 f2 
+      (fun x1 x2 ->  x1 ^ "_EU_" ^ x2) 
+      (fun (newName,newArgs) (x1,f1Args) (x2,f2Args) -> 
+        let arg = Basic (BVAR "tempOne") in
+        let firstArg, fNewArgs = match newArgs with
+        [] -> raise (Failure "confused")
+        | x :: xs -> x, arg :: xs in
+        [ 
+        (newName,newArgs) , [ Pos(x2,f2Args) ];
+        (newName,newArgs) , [ Pos(x1,f1Args); Pos("flow",[arg;firstArg]); Pos(newName,fNewArgs) ];
+      ])
+
+    
+      
+    (* Derivative rules *)
+    | AX f ->
+      (* AX f = !EX !f *)     
+      let fName,(declarations,rules) = translation_inner  (EX (Neg f)) in
+      let prefixLen = (List.fold_right ~f:(+) (List.map ~f:String.length [ "EX_"; "NOT_"]) ~init:0) in
+      let newName = "AX_" ^  (String.sub fName prefixLen (String.length fName - prefixLen)) in
+      let fParams = get_params declarations in
+      let fArgs = get_args rules in
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [ Basic (BVAR "loc")]);Neg (fName,fArgs) ]):: rules)
+    
+    | AG f ->
+      (* AG f  = !EF !f *)     
+      let fName,(declarations,rules) = translation_inner (EF (Neg f)) in
+      let prefixLen = (List.fold_right ~f:(+) (List.map ~f:String.length [ "EF_"; "NOT_"]) ~init:0) in
+      let newName = "AG_" ^  (String.sub fName prefixLen (String.length fName - prefixLen)) in
+      let fParams = get_params declarations in
+      let fArgs = get_args rules in
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [ Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
+
+    | EG f ->
+      (* EG f = !AF !f *)     
+      let fName,(declarations,rules) = translation_inner (AF (Neg f)) in
+      let prefixLen = (List.fold_right ~f:(+) (List.map ~f:String.length [ "AF_"; "NOT_"]) ~init:0) in
+      let newName = "EG_" ^  (String.sub fName prefixLen (String.length fName - prefixLen)) in
+      let fParams = get_params declarations in
+      let fArgs = get_args rules in
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [ Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
+
+    | AU (f1,f2) ->
+      (* f1 AU f2 = not (!f2 EU (!f1 and !f2) ) and AF f2 *)
+      let x1,_ = translation_inner f1 in
+      let x2,_ = translation_inner f2 in
+      let eu = EU((Neg f2),(Conj((Neg f1),(Neg f2)))) in
+      let fName,(declarations,rules) = translation_inner (Conj((AF f2),(Neg eu))) in
+      let newName = x1 ^ "_AU_" ^ x2 in
+      let fParams = get_params declarations in
+      let fArgs = get_args rules in
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos (fName,fArgs) ]):: rules)
+
+    
+  (* core, EX, AF, AU, the rest needs to be translated *)

@@ -124,7 +124,7 @@ facts = factList RSPEC {(IfStmt (condition), facts)}
 
 
 ctl_formula:
-| p =pure {Atom(p)}
+| p =pure {Atom("propositionDefult", p)}
 | LPAR ctl = ctl_formula RPAR {ctl}
 | NOTSINGLE ctl = ctl_formula {(Neg ctl)}
 | AX LPAR ctl = ctl_formula RPAR {(AX ctl)}
@@ -141,7 +141,7 @@ ctl_formula:
 
 
 ctl: 
-| EOF {Atom(TRUE)}
+| EOF {Atom("propositionDefult", TRUE)}
 | LSPEC 
   ctl_formula  = ctl_formula
 
