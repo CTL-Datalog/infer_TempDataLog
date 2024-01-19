@@ -48,7 +48,6 @@ rule token = parse
 | id as str { VAR str }
 | '(' { LPAR }
 | ')' { RPAR }
-| '_' {UNDERLINE}
 | '-' { MINUS }
 | '+' { PLUS }
 | '!' {NOTSINGLE}
@@ -60,14 +59,8 @@ rule token = parse
 | '=' {EQ}
 | "/\\" {CONJ}
 | "\\/" {DISJ}
-| "<>" {FUTURE}  
-| "[]" {GLOBAL}
 | "=>" {IMPLY}
-| '!' {LTLNOT}
-| 'X' {NEXT}
-| 'U' {UNTIL}
-| "&&" {LILAND}
-| "||" {LILOR}
+
 | eof { EOF }
 
 (* part 5 *)

@@ -1215,8 +1215,15 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   in 
   ietrater re None None 
 
-
-
+let sortFacts factL : relation list  = 
+  let rec helper (left, right) liIn = 
+    match liIn with 
+    | [] ->  left@right
+    | (s, termL) :: xs -> 
+      if String.compare s flowKeyword == 0 
+      then helper (left@[(s, termL)], right) xs 
+      else helper (left, right@[(s, termL)]) xs 
+  in helper  ([], []) factL
 
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
@@ -1244,7 +1251,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       print_endline ("\n-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":");
       print_endline (string_of_regularExpr summary); 
       print_endline ("\n-------------\n"); 
-      print_endline (string_of_facts facts);
+      print_endline (string_of_facts (sortFacts facts));
       print_endline (string_of_rules rules);
 
       List.append accs [summary] )) 
