@@ -273,7 +273,7 @@ let compareBasic_type (bt1:basic_type) (bt2:basic_type) : bool =
   match (bt1, bt2) with 
   | (BSTR s1, BSTR s2)
   | ((BVAR s1), (BVAR s2)) -> String.compare s1 s2 == 0
-  | (BINT n1, BINT n2) -> n1 == n2 
+  | (BINT n1, BINT n2) -> if n1 - n2 == 0 then true else false  
   | (BNULL, BNULL)
   | (ANY, ANY)
   | (BRET, BRET) -> true 
@@ -291,6 +291,7 @@ let rec compareTermList tl1 tl2 : bool =
   | [], [] -> true 
   | (x:: xs, y:: ys) -> stricTcompareTerm x y && compareTermList xs ys 
   | _ -> false 
+
 
 let rec comparePure (pi1:pure) (pi2:pure):bool = 
   match (pi1 , pi2) with 
@@ -363,18 +364,21 @@ let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   | (CycleEv re1, CycleEv re2) -> compareRE re1 re2
   | _ -> false 
 
-let removeRedundantFst (fset:(fstElem list)) : (fstElem list) = 
-  let rec existAux (li:(fstElem list)) (ele:fstElem) = 
+
+let removeRedundant (fset:('a list)) (f:'a -> 'a -> bool) : ('a list) = 
+  let rec existAux (li:('a list)) (ele:'a) = 
     match li with 
     | [] ->  false 
-    | x :: xs -> if compareEvent x ele then true else existAux xs ele
+    | x :: xs -> if f x ele then true else existAux xs ele
   in 
-  let rec helper (li:(fstElem list)) = 
+  let rec helper (li:('a list)) = 
     match li with 
     | [] -> []
     | y:: ys -> if existAux ys y then helper ys else y :: (helper ys)
 
   in helper fset
+
+
 
 
 
@@ -845,6 +849,23 @@ type body = Pos of relation | Neg of relation | Pure of pure
 type rule = head * (body list) 
 type datalog = decl list * rule list
 
+let compareRelation r1 r2 : bool = 
+  let (s1, tL1) = r1 in 
+  let (s2, tL2) = r2 in 
+  if String.compare s1 s2 == 0 && compareTermList tL1 tL2 then true else false 
+
+let compareBody b1 b2 : bool = 
+  match (b1, b2) with 
+  | (Pos r1, Pos r2) 
+  | (Neg r1, Neg r2) -> compareRelation r1 r2 
+  | (Pure p1, Pure p2) -> comparePure p1 p2 
+  | _ -> false 
+
+let rec compareBodyList (bodyL1:body list) (bodyL2:body list) : bool = 
+  match bodyL1, bodyL2 with 
+  | [], [] -> true 
+  | (x:: xs, y:: ys) -> compareBody x y && compareBodyList xs ys 
+  | _ -> false 
 
 
 let rec expand_args (sep: string) (x:string list) = 
@@ -1067,7 +1088,7 @@ let rec translation (ctl:ctl) : string * datalog =
   let defaultDecs = [
     ("entry",     [ ("x", Number)]);  
     (* ("end",       [ ("x", Number)]); *)
-    ("valuation", [ ("x", Symbol); ("loc", Number); ("n", Number)]);
+    (valueKeyword, [ ("x", Symbol); ("loc", Number); ("n", Number)]);
     ("assign",    [ ("x", Symbol); ("loc", Number); ("n", Number)]);
     (*("assignNonDetermine",    [ ("x", Symbol); ("loc", Number)]);*)
     ("state",     [ ("x", Number)]);
@@ -1078,9 +1099,9 @@ let rec translation (ctl:ctl) : string * datalog =
     ("transFlow", [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
     ("transFlow", [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos ("transFlow", [Basic (BVAR "y"); Basic (BVAR "z")]) ];
     
-    ("valuation", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), [ Pos ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")]) ] ;
-    ("valuation", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), 
-      [ Pos ("valuation", [Basic (BVAR "x"); Basic (BVAR "locTemp"); Basic (BVAR "n")] );  
+    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), [ Pos ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")]) ] ;
+    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), 
+      [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "locTemp"); Basic (BVAR "n")] );  
         Pos (flowKeyword, [Basic (BVAR "locTemp"); Basic (BVAR "loc")]); 
         Neg ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic ANY]) ] ;
     ] in
@@ -1148,7 +1169,7 @@ and translation_inner (ctl:ctl) : string * datalog =
     | Atom (pName, pure) -> 
       let vars = Basic (BVAR "loc") :: infer_variables pure in
       let params =  ("loc" , Number) :: infer_params pure in
-      let valuationAtom var = Pos ("valuation", [Basic (BSTR var); Basic (BVAR "loc"); Basic(BVAR (var^"_v"))] ) in 
+      let valuationAtom var = Pos (valueKeyword, [Basic (BSTR var); Basic (BVAR "loc"); Basic(BVAR (var^"_v"))] ) in 
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
         pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
@@ -1248,7 +1269,7 @@ and translation_inner (ctl:ctl) : string * datalog =
           let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  GtEq(Basic (BSTR x), Basic (BINT n)))) in 
           
           let findallDecl = (notPName, [ ("loc", Number)]) in  
-          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos("valuation", [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
+          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
 
 
           notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
@@ -1258,7 +1279,7 @@ and translation_inner (ctl:ctl) : string * datalog =
           let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  Neg (Eq(Basic (BSTR x), Basic (BINT n))))) in 
           
           let findallDecl = (notPName, [ ("loc", Number)]) in  
-          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos("valuation", [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
+          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
 
 
           notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)

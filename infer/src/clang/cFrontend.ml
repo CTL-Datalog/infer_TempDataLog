@@ -589,29 +589,6 @@ let int_of_optionint intop =
   | Some i -> i ;;
 
 
-let removeRedundantFlows factList : facts = 
-  let getTuple4Flows = 
-    List.fold_left factList ~init:[] ~f:(fun acc (_, args) -> 
-      match args with 
-      | [BINT i1; BINT i2] -> acc @ [(i1, i2)]
-      | _ -> acc) 
-  in 
-  let rec existSameRecord recordList start endNum  : bool = 
-    match recordList with 
-    | [] -> false 
-    | (s',e'):: recordListxs -> if start ==s' && endNum==e' then true else existSameRecord recordListxs start endNum
-  in 
-
-  let rec helper tupleList = 
-    match tupleList with 
-    | [] -> []
-    | [x] -> [x]
-    | (i1, i2)::rest -> 
-      if existSameRecord rest i1 i2 then helper rest 
-      else (i1, i2)::helper rest 
-  in 
-  List.map (helper getTuple4Flows) ~f:(fun (i1, i2) -> (flowKeyword, [BINT i1; BINT i2]))
-
 
 let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl list * int * int * int) = 
     match ast_decl with
@@ -1049,7 +1026,7 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
 
 let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
   let (fstSet:(fstElem list)) = fst re in 
-  let fstSet' = removeRedundantFst fstSet in 
+  let fstSet' = removeRedundant fstSet compareEvent in 
 
   (*
   print_endline (" ============ \n" ^ string_of_regularExpr re ^ ":\n"); 
@@ -1231,11 +1208,14 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   ietrater re None None 
 
 let sortFacts factL : relation list  = 
-  let rec helper (left, right) liIn = 
+  let rec helper ((left, right):(relation list * relation list)) liIn = 
     match liIn with 
     | [] ->  
-      let left' = sort_uniq 
-        (fun (a, b) (c, d) -> if String.compare a c ==0 && compareTermList b d then 0 else -1) left in   
+      print_endline ("before sort_unique: " ^ string_of_facts left);
+      let left' = removeRedundant left 
+        (fun (_, b) (_, d) -> compareTermList b d) in 
+      print_endline ("after sort_unique: " ^ string_of_facts left');
+
       left'@right
     | (s, termL) :: xs -> 
       if String.compare s flowKeyword == 0 
@@ -1243,6 +1223,14 @@ let sortFacts factL : relation list  =
       else helper (left, right@[(s, termL)]) xs 
   in helper  ([], []) factL
 
+
+let sortRules (ruleL : rule list) : rule list  = 
+  sort_uniq (fun ((hd1, bodies1): rule) ((hd2, bodies2):rule) -> 
+    if compareRelation hd1 hd2 && compareBodyList bodies1 bodies2 
+    then 0 else -1 
+  ) ruleL
+
+  
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
   let tenv = Tenv.create () in
@@ -1270,7 +1258,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       print_endline (string_of_regularExpr summary); 
       print_endline ("\n-------------\n"); 
       print_endline (string_of_facts (sortFacts facts));
-      print_endline (string_of_rules rules);
+      print_endline (string_of_rules (sortRules rules));
 
       List.append accs [summary] )) 
   in
