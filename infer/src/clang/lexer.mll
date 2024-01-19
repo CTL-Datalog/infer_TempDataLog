@@ -30,7 +30,6 @@ let id = ['a'-'v' 'A'-'Z' 'x'-'z'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 rule token = parse
 | white    { token lexbuf }
 | newline  { next_line lexbuf; token lexbuf }
-| "𝝐" { EMPTY }
 | "/*@" {LSPEC}
 | "@*/" {RSPEC}
 | "AX" {AX}  
@@ -41,25 +40,17 @@ rule token = parse
 | "EG" {EG}
 | "AU" {AU}
 | "EU" {EU}
-| "Pre" {REQUIRE}
-| "Post" {ENSURE}
-| "IfStmt" {IfStmt}
 | "TRUE" { TRUE }
 | "FALSE" { FALSE }
 | "nil" {NULL}
 | "ret" {RETURN}
 | int      { INTE (int_of_string (Lexing.lexeme lexbuf)) }
 | id as str { VAR str }
-| "⏊" {BOTTOM}
-| '^' { POWER }
-| "·" { CONCAT }
 | '(' { LPAR }
 | ')' { RPAR }
-| ':' { COLON }
 | '_' {UNDERLINE}
 | '-' { MINUS }
 | '+' { PLUS }
-| '*' {KLEENE}
 | '!' {NOTSINGLE}
 | ',' {COMMA}
 | ">=" {GTEQ}

@@ -1,5 +1,7 @@
 open Z3
 
+let flowKeyword = "flow"
+
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
 type event = string * (basic_type list)
@@ -1063,17 +1065,17 @@ let rec translation (ctl:ctl) : string * datalog =
     ("assign",    [ ("x", Symbol); ("loc", Number); ("n", Number)]);
     (*("assignNonDetermine",    [ ("x", Symbol); ("loc", Number)]);*)
     ("state",     [ ("x", Number)]);
-    ("flow",      [ ("x", Number); ("y", Number) ]);
+    (flowKeyword,      [ ("x", Number); ("y", Number) ]);
     ("transFlow", [ ("x", Number); ("y", Number) ]); 
     ] in
   let defaultRules = [ 
-    ("transFlow", [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos ("flow", [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
-    ("transFlow", [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos ("flow", [Basic (BVAR "x"); Basic (BVAR "y")]); Pos ("transFlow", [Basic (BVAR "y"); Basic (BVAR "z")]) ];
+    ("transFlow", [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
+    ("transFlow", [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos ("transFlow", [Basic (BVAR "y"); Basic (BVAR "z")]) ];
     
     ("valuation", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), [ Pos ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")]) ] ;
     ("valuation", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), 
       [ Pos ("valuation", [Basic (BVAR "x"); Basic (BVAR "locTemp"); Basic (BVAR "n")] );  
-        Pos ("flow", [Basic (BVAR "locTemp"); Basic (BVAR "loc")]); 
+        Pos (flowKeyword, [Basic (BVAR "locTemp"); Basic (BVAR "loc")]); 
         Neg ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic ANY]) ] ;
     ] in
 
@@ -1202,7 +1204,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         let firstArg, fNewArgs = match fArgs with
           [] -> raise (Failure "confused")
           | x :: xs -> x, arg :: xs in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [  Pos("flow", [firstArg;arg] );    Pos (fName,fNewArgs) ]):: rules)
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [  Pos(flowKeyword, [firstArg;arg] );    Pos (fName,fNewArgs) ]):: rules)
     | EF f ->     
       let fName,(declarations,rules) = translation_inner f in
       (* TODO *)
@@ -1216,7 +1218,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         newName,(  (newName,fParams) :: declarations, 
         [
           ( (newName,fArgs), [Pos (fName,fArgs) ]);
-          ( (newName,fArgs), [Pos("flow",[firstArg;arg]); Pos(newName,fNewArgs)     ] )
+          ( (newName,fArgs), [Pos(flowKeyword,[firstArg;arg]); Pos(newName,fNewArgs)     ] )
 
         ]@ rules) 
     
@@ -1302,10 +1304,10 @@ and translation_inner (ctl:ctl) : string * datalog =
         (* for finite traces *)
         (* (sName,fArgs), [ Neg(fName, fArgs); Pos("end", [firstArg])];  *)
         (* for infinite traces *)
-        (sName,fArgs), [ Neg(fName, fArgs); Pos("flow", [firstArg; arg]); Pos(sName,fNewArgs)  ];
+        (sName,fArgs), [ Neg(fName, fArgs); Pos(flowKeyword, [firstArg; arg]); Pos(sName,fNewArgs)  ];
 
-        (tName, tArgs), [ Neg(fName,fArgs); Pos("flow", [firstArg; tArg] ) ];
-        (tName, tArgs), [ Pos(tName,tNewArgs) ;Neg(fName,fNewArgs); Pos("flow", [arg; tArg] ) ];
+        (tName, tArgs), [ Neg(fName,fArgs); Pos(flowKeyword, [firstArg; tArg] ) ];
+        (tName, tArgs), [ Pos(tName,tNewArgs) ;Neg(fName,fNewArgs); Pos(flowKeyword, [arg; tArg] ) ];
         
 
       ] in
@@ -1322,7 +1324,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         | x :: xs -> x, arg :: xs in
         [ 
         (newName,newArgs) , [ Pos(x2,f2Args) ];
-        (newName,newArgs) , [ Pos(x1,f1Args); Pos("flow",[arg;firstArg]); Pos(newName,fNewArgs) ];
+        (newName,newArgs) , [ Pos(x1,f1Args); Pos(flowKeyword,[arg;firstArg]); Pos(newName,fNewArgs) ];
       ])
 
     

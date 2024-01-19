@@ -478,7 +478,7 @@ let rec lastLocOfFact (facts: fact list) =
   match facts with 
   | [] -> [] 
   | (str, argLi) :: xs  -> 
-    if String.compare str "flow" == 0 then lastLocOfFact xs  
+    if String.compare str flowKeyword == 0 then lastLocOfFact xs  
     else 
     (match getLastEle argLi with 
     | Some (BINT i) -> i :: (lastLocOfFact xs)
@@ -610,7 +610,7 @@ let removeRedundantFlows factList : facts =
       if existSameRecord rest i1 i2 then helper rest 
       else (i1, i2)::helper rest 
   in 
-  List.map (helper getTuple4Flows) ~f:(fun (i1, i2) -> ("flow", [BINT i1; BINT i2]))
+  List.map (helper getTuple4Flows) ~f:(fun (i1, i2) -> (flowKeyword, [BINT i1; BINT i2]))
 
 
 let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl list * int * int * int) = 
@@ -1113,21 +1113,37 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
 
     List.map ~f:(fun a -> ("Eq", [Basic(BSTR var);Basic(BINT a);loc])) valueSet
     
+  | Eq (Basic(BVAR var), t2) -> [("Eq", [Basic(BSTR var);t2;loc])]
   | Eq (t1, t2) -> [("Eq", [t1;t2;loc])]
-  | TRUE -> [] 
+
+  | Neg (LtEq (Basic(BVAR var), t2))
+  | Gt (Basic(BVAR var), t2) -> [("Gt", [Basic(BSTR var);t2;loc])]
   | Neg (LtEq (t1, t2))
   | Gt (t1, t2) -> [("Gt", [t1;t2;loc])]
+
+  | Neg (GtEq (Basic(BVAR var), t2))
+  | Lt (Basic(BVAR var), t2) -> [("Lt", [Basic(BSTR var);t2;loc])]
   | Neg (GtEq (t1, t2))
   | Lt (t1, t2) -> [("Lt", [t1;t2;loc])]
+
+  | Neg (Lt (Basic(BVAR var), t2))
+  | GtEq (Basic(BVAR var), t2) -> [("GtEq", [Basic(BSTR var);t2;loc])]
   | Neg (Lt (t1, t2))
   | GtEq (t1, t2) -> [("GtEq", [t1;t2;loc])]
+
+  | Neg (Gt (Basic(BVAR var), t2))
+  | LtEq (Basic(BVAR var), t2) -> [("LtEq", [Basic(BSTR var);t2;loc])]
   | Neg (Gt (t1, t2))
   | LtEq (t1, t2) -> [("LtEq", [t1;t2;loc])]
-  | PureAnd (p1, p2) -> getFactFromPure p1 state re @ getFactFromPure p2 state re
+
+  | Neg (Eq (Basic(BVAR var), t2)) -> [("NotEq", [Basic(BSTR var);t2;loc])]
   | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
-  | Neg _  -> raise (Failure "getFactFromPure Neg")
-  | FALSE -> raise (Failure "getFactFromPure false")
-  | PureOr _ -> raise (Failure "getFactFromPure PureOr")
+
+
+  | PureAnd (p1, p2) -> getFactFromPure p1 state re @ getFactFromPure p2 state re
+  | Neg _  (*-> raise (Failure "getFactFromPure Neg") *)
+  | FALSE | TRUE (*-> raise (Failure "getFactFromPure false") *)
+  | PureOr _ -> [] (*raise (Failure "getFactFromPure PureOr") *)
   ;;
 
 
@@ -1149,10 +1165,10 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 
-              let fact = ("flow", [Basic (BINT previousState); Basic (BINT state)]) in 
+              let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
               (match pathConstrint with 
               | None -> [fact], []
-              | Some path -> [], [(fact, List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn))]
+              | Some path -> [], [(fact, [Pure path](*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
               )
             | None -> [], []) in 
           let valueFacts = getFactFromPure p state reIn in 
@@ -1165,10 +1181,27 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])
 
           
-        | GuardEv (p, state) ->  [],[]         
+        | GuardEv (guard, state) ->  
+          let (reAcc', ruAcc')  = 
+            (match previousState with 
+            | Some previousState -> 
+              let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              (match pathConstrint with 
+              | None -> [fact], []
+              | Some path -> [], [(fact, List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn))]
+              )
+            | None -> [], []) in 
+          let pathConstrint' = 
+            match pathConstrint with 
+            | None -> Some guard
+            | Some pathConstrint -> Some (PureAnd (pathConstrint, guard))
+          in 
+          let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
+          mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
+
           (*match previousState with 
           | Some previousState -> 
-            let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
+            let flows = [(flowKeyword, [Basic (BINT previousState); Basic (BINT state)])] in 
             let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
             (reAcc@ flows@reAcc', ruAcc@ruAcc')
           | None -> 
