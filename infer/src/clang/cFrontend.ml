@@ -1080,7 +1080,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
 
 let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 
   match t with 
-  | Basic (BINT n) -> [n+1 ; n-1]
+  | Basic (BINT n) -> [n+1 ; n; n-1]
   | Plus (t1, t2) 
   | Minus (t1, t2) -> findRelaventValueSetFromTerms t1 var @ findRelaventValueSetFromTerms t2 var 
   | _ -> []
@@ -1111,7 +1111,7 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Eq (Basic(BVAR var), Basic ANY) -> 
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
 
-    List.map ~f:(fun a -> ("Eq", [Basic(BVAR var);Basic(BINT a);loc])) valueSet
+    List.map ~f:(fun a -> ("Eq", [Basic(BSTR var);Basic(BINT a);loc])) valueSet
     
   | Eq (t1, t2) -> [("Eq", [t1;t2;loc])]
   | TRUE -> [] 
@@ -1133,6 +1133,11 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
+  let rec mergeResults li (acca, accb) = 
+    match li with 
+    | [] -> (acca, accb) 
+    | (a, b) :: xs -> mergeResults xs (acca@a, accb@b )
+  in     
   let rec ietrater reIn (previousState:int option) (pathConstrint: pure option) : (relation list * rule list) = 
     let fstSet = fst reIn in 
     match fstSet with 
@@ -1141,15 +1146,23 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
       List.fold_left li ~init:([], []) ~f:(fun (reAcc, ruAcc) f -> 
         match f with 
         | PureEv (p, state) -> 
-          let flowFacts = 
+          let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 
-              let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
-              flows
-            | None -> []) in 
+              let fact = ("flow", [Basic (BINT previousState); Basic (BINT state)]) in 
+              (match pathConstrint with 
+              | None -> [fact], []
+              | Some path -> [], [(fact, List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn))]
+              )
+            | None -> [], []) in 
           let valueFacts = getFactFromPure p state reIn in 
-          let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) None  in 
-          (reAcc@flowFacts@valueFacts@reAcc', ruAcc@ruAcc')
+          let pathConstrint' = 
+            match p with 
+            | Predicate (s, _) -> if String.compare s "Join" == 0 then None else pathConstrint
+            | _ -> pathConstrint
+          in 
+          let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
+          mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])
 
           
         | GuardEv (p, state) ->  [],[]         

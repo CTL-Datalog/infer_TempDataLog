@@ -161,26 +161,9 @@ let string_of_basic_t v =
   | BNULL -> "NULL"
   | BRET -> "ret"
   | ANY -> "*"
-  | BSTR s -> s 
-
-let string_of_basic_t_aux v = 
-  match v with 
-  | BVAR name -> "\""^name ^"\""
-  | BINT n -> string_of_int n
-  | BNULL -> "NULL"
-  | BRET -> "\"" ^"ret"^ "\""
-  | ANY -> "*"
-  | BSTR s -> s
+  | BSTR s -> "\"" ^ s ^ "\""
 
 
-let basic_type2_string v = 
-  match v with 
-  | BVAR name -> [name]
-  | BINT _ 
-  | BNULL 
-  | BRET -> []
-  | ANY -> ["_"]
-  | BSTR s -> [s]
 
 let string_of_loc n = "@" ^ string_of_int n
 
@@ -541,13 +524,6 @@ let rec varFromPure (p:pure): string list =
 
 
 
-let rec string_of_bt_list (li: basic_type list) : string = 
-    match li with 
-  | [] -> ""
-  | [x] -> string_of_basic_t_aux x 
-  | x::xs -> string_of_basic_t_aux x ^ ", " ^ string_of_bt_list xs
-
-
 
 
 let rec findRetFromBindings (bt:bindings) (str: string) : basic_type option =
@@ -846,8 +822,8 @@ let askZ3 pi =
 
 let string_of_binary_tree tree = printTree ~line_prefix:"* " ~get_name ~get_children tree;; 
 
-
 (***************************************)
+(************   Datalog   **************)
 (***************************************)
 
 
