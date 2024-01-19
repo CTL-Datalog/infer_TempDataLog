@@ -1078,10 +1078,62 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   secondPass
   ;;
 
+let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 
+  match t with 
+  | Basic (BINT n) -> [n+1 ; n-1]
+  | Plus (t1, t2) 
+  | Minus (t1, t2) -> findRelaventValueSetFromTerms t1 var @ findRelaventValueSetFromTerms t2 var 
+  | _ -> []
+
+let rec findRelaventValueSetFromPure (p:pure) (var:string) : int list = 
+  match p with 
+  | Gt (Basic (BVAR s), t2) | Lt (Basic (BVAR s), t2) | GtEq (Basic (BVAR s), t2) | LtEq (Basic (BVAR s), t2) | Eq (Basic (BVAR s), t2) -> 
+    if String.compare s var == 0 then findRelaventValueSetFromTerms t2 var
+    else [] 
+  | PureOr (p1, p2)
+  | PureAnd (p1, p2) -> findRelaventValueSetFromPure p1 var @ findRelaventValueSetFromPure p2 var 
+  | Neg pIn -> findRelaventValueSetFromPure pIn var 
+  | _ -> [] 
+
+let rec findRelaventValueSet (re:regularExpr) (var:string) : int list = 
+  match re with 
+  | Emp | Bot -> [] 
+  | Singleton (p, _) | Guard(p, _) -> findRelaventValueSetFromPure p var 
+  | Disjunction(r1, r2) 
+  | Concate (r1, r2) -> findRelaventValueSet r1 var @ findRelaventValueSet r2 var 
+  | Omega (reIn) | Kleene (reIn) -> findRelaventValueSet reIn var
+  ;;
+
+let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list= 
+  let loc = Basic(BINT state) in 
+  match p with 
+  | Predicate (s, terms) -> [(s, terms@[loc])]
+  | Eq (Basic(BVAR var), Basic ANY) -> 
+    let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
+
+    List.map ~f:(fun a -> ("Eq", [Basic(BVAR var);Basic(BINT a);loc])) valueSet
+    
+  | Eq (t1, t2) -> [("Eq", [t1;t2;loc])]
+  | TRUE -> [] 
+  | Neg (LtEq (t1, t2))
+  | Gt (t1, t2) -> [("Gt", [t1;t2;loc])]
+  | Neg (GtEq (t1, t2))
+  | Lt (t1, t2) -> [("Lt", [t1;t2;loc])]
+  | Neg (Lt (t1, t2))
+  | GtEq (t1, t2) -> [("GtEq", [t1;t2;loc])]
+  | Neg (Gt (t1, t2))
+  | LtEq (t1, t2) -> [("LtEq", [t1;t2;loc])]
+  | PureAnd (p1, p2) -> getFactFromPure p1 state re @ getFactFromPure p2 state re
+  | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
+  | Neg _  -> raise (Failure "getFactFromPure Neg")
+  | FALSE -> raise (Failure "getFactFromPure false")
+  | PureOr _ -> raise (Failure "getFactFromPure PureOr")
+  ;;
+
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
-  let rec ietrater reIn (previousState:int option) : (relation list * rule list) = 
+  let rec ietrater reIn (previousState:int option) (pathConstrint: pure option) : (relation list * rule list) = 
     let fstSet = fst reIn in 
     match fstSet with 
     | [] -> ([], [])
@@ -1089,7 +1141,19 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
       List.fold_left li ~init:([], []) ~f:(fun (reAcc, ruAcc) f -> 
         match f with 
         | PureEv (p, state) -> 
-          (match previousState with 
+          let flowFacts = 
+            (match previousState with 
+            | Some previousState -> 
+              let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
+              flows
+            | None -> []) in 
+          let valueFacts = getFactFromPure p state reIn in 
+          let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) None  in 
+          (reAcc@flowFacts@valueFacts@reAcc', ruAcc@ruAcc')
+
+          
+        | GuardEv (p, state) ->  [],[]         
+          (*match previousState with 
           | Some previousState -> 
             let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
             let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
@@ -1098,24 +1162,12 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
             (reAcc@reAcc', ruAcc@ruAcc')
           
-          )
-          
-        | GuardEv (p, state) ->           
-          (match previousState with 
-          | Some previousState -> 
-            let flows = [("flow", [Basic (BINT previousState); Basic (BINT state)])] in 
-            let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
-            (reAcc@ flows@reAcc', ruAcc@ruAcc')
-          | None -> 
-            let (reAcc', ruAcc') = ietrater (derivitives f reIn) (Some state) in 
-            (reAcc@reAcc', ruAcc@ruAcc')
-          
-          )
-        | CycleEv recycle -> 
-          ietrater recycle previousState
+          *)
+        | CycleEv recycle -> [],[]     
+          (* ietrater recycle previousState *)
       )
   in 
-  ietrater re None 
+  ietrater re None None 
 
 
 

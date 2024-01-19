@@ -468,7 +468,7 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
         Concate ( Disjunction(Concate(e11, e12), e21), Concate (Singleton e13,rest1))
       else (Disjunction (es1, es2))
     *)
-    | _ -> 
+    (*| _ -> 
       match (findTheFirstJoint es1, findTheFirstJoint es2) with 
       | (Some (jointState1, pre1, post1), Some (jointState2, pre2, post2)) -> 
         (*print_endline (string_of_int jointState1 ^ " : " ^ string_of_regularExpr pre1 ^" : "^ string_of_regularExpr post1);
@@ -478,6 +478,8 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
         then normalise_es (Concate (Disjunction(pre1, pre2), post1))
         else (Disjunction (es1, es2))
       | _ ->  (Disjunction (es1, es2))
+      *)
+      | _ -> (Disjunction (es1, es2))
     )
   | Concate (es1, es2) -> 
     let es1 = normalise_es es1 in 
