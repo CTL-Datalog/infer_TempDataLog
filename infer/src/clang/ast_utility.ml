@@ -1,6 +1,10 @@
 open Z3
 
 let flowKeyword = "flow"
+let valueKeyword = "valuation"
+
+let retKeyword = "Return"
+
 
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
@@ -202,12 +206,14 @@ let rec string_of_pure (p:pure):string =
   | FALSE -> "⊥"
   | Gt (t1, t2) -> (string_of_terms t1) ^ ">" ^ (string_of_terms t2)
   | Lt (t1, t2) -> (string_of_terms t1) ^ "<" ^ (string_of_terms t2)
-  | GtEq (t1, t2) -> (string_of_terms t1) ^ "≥" ^ (string_of_terms t2)
-  | LtEq (t1, t2) -> (string_of_terms t1) ^ "≤" ^ (string_of_terms t2)
+  | GtEq (t1, t2) -> (string_of_terms t1) ^ ">=" ^ (string_of_terms t2) (*"≥"*)
+  | LtEq (t1, t2) -> (string_of_terms t1) ^ "<=" ^ (string_of_terms t2) (*"≤"*)
   | Eq (t1, t2) -> (string_of_terms t1) ^ "=" ^ (string_of_terms t2)
   | PureOr (p1, p2) -> "("^string_of_pure p1 ^ "∨" ^ string_of_pure p2^")"
   | PureAnd (p1, p2) -> string_of_pure p1 ^ "∧" ^ string_of_pure p2
   | Neg (Eq (t1, t2)) -> "("^(string_of_terms t1) ^ "!=" ^ (string_of_terms t2)^")"
+  | Neg (Gt (t1, t2)) -> "("^(string_of_terms t1) ^ "<=" ^ (string_of_terms t2)^")"
+
   | Neg p -> "!(" ^ string_of_pure p^")"
   | Predicate (str, termLi) -> str ^ "(" ^ string_of_list_terms termLi ^ ")"
 
