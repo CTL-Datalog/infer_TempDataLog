@@ -2,9 +2,8 @@ open Z3
 
 let flowKeyword = "flow"
 let valueKeyword = "valuation"
-
 let retKeyword = "Return"
-
+let joinKeyword = "Join"
 
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
@@ -343,6 +342,27 @@ let rec fst (eff:regularExpr) : (fstElem list) =
   | Kleene effIn      -> [CycleEv effIn]
   | Omega _  -> raise (Failure "fst should not have omega")
 
+let rec reverse (eff:regularExpr) :regularExpr = 
+  match eff with 
+  | Bot  
+  | Emp  
+  | Singleton _ 
+  | Guard _ -> eff
+  | Concate (eff1, eff2) -> Concate (reverse eff2, reverse eff1)    
+  | Disjunction (eff1, eff2) -> Concate (reverse eff1, reverse eff2)    
+  | Kleene effIn      -> Kleene (reverse effIn)
+  | Omega effIn  -> Omega (reverse effIn)
+
+let rec getStatesFromFstEle (li:fstElem list): int list  = 
+  match li with 
+  | [] -> [] 
+  | x :: xs  -> 
+    (match x with 
+    | PureEv  (_, s) 
+    | GuardEv (_, s) -> [s] 
+    | _ -> []
+    ) @ getStatesFromFstEle xs 
+
 let rec compareRE re1 re2 : bool = 
   match (re1, re2) with 
   | (Bot, Bot) -> true 
@@ -422,7 +442,7 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
     | [f] -> 
       (match f with 
       | PureEv (Predicate (s, _), state) -> 
-        if String.compare "Join" s == 0 then 
+        if String.compare joinKeyword s == 0 then 
           let deriv = (derivitives f re) in 
           Some (state, Emp, deriv)
         else 

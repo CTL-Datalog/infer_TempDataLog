@@ -933,7 +933,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   match node_kind with
   | Start_node -> Singleton (Predicate ("Start", []), node_key), []
   | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
-  | Join_node ->  Singleton(Predicate ("Join", []), node_key) , []
+  | Join_node ->  Singleton(Predicate (joinKeyword, []), node_key) , []
   | Skip_node t ->  Singleton(TRUE, node_key) , []
   | Prune_node (f,_,_) ->  
     (match instrs with 
@@ -1084,7 +1084,7 @@ let rec findRelaventValueSet (re:regularExpr) (var:string) : int list =
 let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list= 
   let loc = Basic(BINT state) in 
   match p with 
-  | Predicate (s, terms) -> [(s, terms@[loc])]
+  | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
   | Eq (Basic(BVAR var), Basic ANY) -> 
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
 
@@ -1131,6 +1131,9 @@ let pureToBodies (p:pure) (state:int option) : body list =
     (match p with 
     | Eq(Basic(BVAR var), Basic(BINT n)) -> 
       [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+    | Eq(Basic(BVAR var1), Basic(BVAR var2)) -> 
+      [valuation var1; valuation var2; Pure (Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v"))))]
+
     | Neg (LtEq(Basic(BVAR var), Basic(BINT n)))
     | Gt(Basic(BVAR var), Basic(BINT n)) -> 
       [valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
@@ -1148,6 +1151,15 @@ let pureToBodies (p:pure) (state:int option) : body list =
 
     | _ -> [])
 
+
+let flowsForTheCycle (re:regularExpr) : relation list = 
+  let fstSet = fst re in 
+  let lastSet = fst (reverse re) in 
+  let startingStates = getStatesFromFstEle fstSet in 
+  let getLastStates = getStatesFromFstEle lastSet in 
+  flattenList (List.map getLastStates ~f:(fun l -> List.map ~f: (fun s -> 
+    (flowKeyword, [Basic (BINT l); Basic (BINT s)])
+  ) startingStates))
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
@@ -1176,7 +1188,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let valueFacts = getFactFromPure p state reIn in 
           let pathConstrint' = 
             match p with 
-            | Predicate (s, _) -> if String.compare s "Join" == 0 then None else pathConstrint
+            | Predicate (s, _) -> if String.compare s joinKeyword == 0 then None else pathConstrint
             | _ -> pathConstrint
           in 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
@@ -1201,7 +1213,13 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
 
-        | CycleEv recycle -> [],[]     
+        | CycleEv recycle -> 
+            
+          let (reAcc', ruAcc') = ietrater recycle previousState pathConstrint in 
+          let extraFlows = flowsForTheCycle recycle in 
+          mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (extraFlows, [])] ([], [])
+
+          
           (* ietrater recycle previousState *)
       )
   in 
@@ -1211,10 +1229,10 @@ let sortFacts factL : relation list  =
   let rec helper ((left, right):(relation list * relation list)) liIn = 
     match liIn with 
     | [] ->  
-      print_endline ("before sort_unique: " ^ string_of_facts left);
       let left' = removeRedundant left 
         (fun (_, b) (_, d) -> compareTermList b d) in 
-      print_endline ("after sort_unique: " ^ string_of_facts left');
+      (*print_endline ("before sort_unique: " ^ string_of_facts left);*)
+      (*print_endline ("after sort_unique: " ^ string_of_facts left');*)
 
       left'@right
     | (s, termL) :: xs -> 
