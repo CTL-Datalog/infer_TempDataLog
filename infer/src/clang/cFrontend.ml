@@ -556,8 +556,9 @@ let retriveSpecifications (source:string) : (ctl list * int * int * int) =
       let line_of_code = List.length lines in 
       let partitions = retriveComments line in (*in *)
       let line_of_spec = List.fold_left partitions ~init:0 ~f:(fun acc a -> acc + (List.length (Str.split (Str.regexp "\n") a)))  in 
-      (if List.length partitions == 0 then ()
+      (* (if List.length partitions == 0 then ()
       else print_endline ("Global specifictaions are: "));
+      *)
       let sepcifications = List.map partitions 
         ~f:(fun singlespec -> 
           (*print_endline (singlespec);*)
@@ -1281,7 +1282,17 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       List.append accs [summary] )) 
   in
 
+  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
   
+  let _ = List.map specifications 
+    ~f:(fun item -> 
+      let fname, program = (translation item) in 
+      print_endline (string_of_datalog program);
+      print_endline (".output "^ fname ^"Final(IO=stdout)\n")
+     ) in 
+     
+  let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
+
 
   let facts = (Cfg.fold_sorted cfg ~init:[] ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
   Out_channel.write_lines "fact_test.txt" facts;
