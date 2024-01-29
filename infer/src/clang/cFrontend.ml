@@ -1236,8 +1236,10 @@ let sortFacts factL : relation list  =
         (fun (_, b) (_, d) -> compareTermList b d) in 
       (*print_endline ("before sort_unique: " ^ string_of_facts left);*)
       (*print_endline ("after sort_unique: " ^ string_of_facts left');*)
+      let right' = removeRedundant right 
+        (fun (n1, b) (n2, d) -> String.compare n1 n2 == 0 && compareTermList b d) in 
 
-      left'@right
+      left'@right'
     | (s, termL) :: xs -> 
       if String.compare s flowKeyword == 0 
       then helper (left@[(s, termL)], right) xs 
