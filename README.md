@@ -2,23 +2,15 @@
 
 
 
-
+infer/bin/infer run -- clang -c benchmark/evaluation/1.8_potential_termination_1.c
 
 
 ./build-infer.sh java
 ./build-infer.sh clang
-infer run -- javac examples/Hello.java
-infer/bin/infer run -- clang -c examples/Hello.c  
-infer/bin/infer run -- clang -c /Users/yahuis/Desktop/git/LightFTP/Source/ftpserv.c
-infer/bin/infer run -- clang -c /Users/yahuis/Desktop/git/pure-ftpd/src/main.c
 
-
-
-infer/bin/infer run --pulse-only -- clang -c ../../repair-benchmark/my_benchmark/small_test1.c
 
 
 git show -s --format=%H
-
 git ls-files | xargs cat | wc -l
 git ls-files | xargs wc -l
 

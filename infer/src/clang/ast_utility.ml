@@ -4,6 +4,11 @@ let flowKeyword = "flow"
 let valueKeyword = "valuation"
 let retKeyword = "Return"
 let joinKeyword = "Join"
+let entryKeyWord = "Start"
+let assignKeyWord = "Assign"
+let stateKeyWord = "State"
+
+
 
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
@@ -165,7 +170,7 @@ let string_of_basic_t v =
   | BINT n -> string_of_int n
   | BNULL -> "NULL"
   | BRET -> "ret"
-  | ANY -> "*"
+  | ANY -> "_"
   | BSTR s -> "\"" ^ s ^ "\""
 
 
@@ -1106,24 +1111,23 @@ let rec infer_params (pure:pure) : param list =
 let rec translation (ctl:ctl) : string * datalog = 
   let fname, (decs,rules) = (translation_inner ctl) in
   let defaultDecs = [
-    ("entry",     [ ("x", Number)]);  
-    (* ("end",       [ ("x", Number)]); *)
-    (valueKeyword, [ ("x", Symbol); ("loc", Number); ("n", Number)]);
-    ("assign",    [ ("x", Symbol); ("loc", Number); ("n", Number)]);
-    (*("assignNonDetermine",    [ ("x", Symbol); ("loc", Number)]);*)
-    ("state",     [ ("x", Number)]);
+    (entryKeyWord,     [ ("x", Number)]);  
+    (valueKeyword,     [ ("x", Symbol); ("loc", Number); ("n", Number)]);
+    (assignKeyWord,    [ ("x", Symbol); ("loc", Number); ("n", Number)]);
+    (retKeyword,       [ ("n", Number); ("x", Number);]); (* currently only return integers *)
+    (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,      [ ("x", Number); ("y", Number) ]);
-    ("transFlow", [ ("x", Number); ("y", Number) ]); 
+    ("transFlow",      [ ("x", Number); ("y", Number) ]); 
     ] in
   let defaultRules = [ 
     ("transFlow", [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
     ("transFlow", [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos ("transFlow", [Basic (BVAR "y"); Basic (BVAR "z")]) ];
     
-    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), [ Pos ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")]) ] ;
+    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")]) ] ;
     (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic (BVAR "n")] ), 
       [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR "locTemp"); Basic (BVAR "n")] );  
         Pos (flowKeyword, [Basic (BVAR "locTemp"); Basic (BVAR "loc")]); 
-        Neg ("assign", [Basic (BVAR "x"); Basic (BVAR "loc"); Basic ANY]) ] ;
+        Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR "loc"); Basic ANY]) ] ;
     ] in
 
     
@@ -1139,7 +1143,7 @@ let rec translation (ctl:ctl) : string * datalog =
     | ((name, [Basic (BVAR "loc")]), _)::_ -> 
       let nameFinal = name^"Final" in 
       let finaDecl = (nameFinal,     [ ("loc", Number)]) in 
-      let finalRule = ((nameFinal, [Basic (BVAR "loc")]), [Pos("entry",  [Basic (BVAR "loc")]) ; Pos (name, [Basic (BVAR "loc")])]) in 
+      let finalRule = ((nameFinal, [Basic (BVAR "loc")]), [Pos(entryKeyWord,  [Basic (BVAR "loc")]) ; Pos (name, [Basic (BVAR "loc")])]) in 
       finaDecl::decs,  finalRule::rules
     | _ -> decs, rules
     ) in 
@@ -1192,18 +1196,18 @@ and translation_inner (ctl:ctl) : string * datalog =
       let valuationAtom var = Pos (valueKeyword, [Basic (BSTR var); Basic (BVAR "loc"); Basic(BVAR (var^"_v"))] ) in 
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (GtEq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; valuationAtom x; Pure (GtEq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Lt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Lt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])
 
 
       (* *********************************************************************
@@ -1211,7 +1215,7 @@ and translation_inner (ctl:ctl) : string * datalog =
       "x" > 1 will be written as valuation("x", loc, x_v), x_v>1. 
       --- Yahui Song
       ********************************************************************* *)
-      | _ ->  pName,([(pName,params)], [  ((pName, vars), [Pos("state", [Basic (BVAR "loc")]) ; Pure pure]) ])
+      | _ ->  pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; Pure pure]) ])
       )
     
     | Neg f -> 
@@ -1219,7 +1223,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         let newName = "NOT_" ^ fName in
         let fParams = get_params declarations in
         let fArgs = get_args rules in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos(stateKeyWord, [Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
 
     | Conj (f1 , f2) -> 
         processPair f1 f2 
@@ -1236,7 +1240,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         (fun x1 x2 ->  x1 ^ "_IMPLY_" ^ x2) 
         (fun (newName,newArgs) (x1,f1Args) (x2,f2Args) -> 
         [ ( (newName, newArgs) , [Pos(x2,f2Args)]);
-          ( (newName, newArgs) , [Pos("state", [Basic (BVAR "loc")]) ; Neg(x1,f1Args)] )
+          ( (newName, newArgs) , [Pos(stateKeyWord, [Basic (BVAR "loc")]) ; Neg(x1,f1Args)] )
         ])
 
     (* Primary CTL Encoding *)
@@ -1289,7 +1293,7 @@ and translation_inner (ctl:ctl) : string * datalog =
           let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  GtEq(Basic (BSTR x), Basic (BINT n)))) in 
           
           let findallDecl = (notPName, [ ("loc", Number)]) in  
-          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
+          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos (stateKeyWord, [Basic (BVAR "loc")]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
 
 
           notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
@@ -1299,7 +1303,7 @@ and translation_inner (ctl:ctl) : string * datalog =
           let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  Neg (Eq(Basic (BSTR x), Basic (BINT n))))) in 
           
           let findallDecl = (notPName, [ ("loc", Number)]) in  
-          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos ("state", [Basic (BVAR "loc")]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
+          let findallRules = (notPName, [Basic (BVAR "loc")] ), [ Pos (stateKeyWord, [Basic (BVAR "loc")]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR "loc"); Basic(ANY)]); Neg(negetionName, [Basic (BVAR "loc")]) ] in  
 
 
           notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
@@ -1345,7 +1349,7 @@ and translation_inner (ctl:ctl) : string * datalog =
 
       ] in
       let newRules = [
-        (newName,fArgs), [Pos("state", [firstArg]); Neg (sName, fArgs)];
+        (newName,fArgs), [Pos(stateKeyWord, [firstArg]); Neg (sName, fArgs)];
 
         (sName, fArgs), [Pos(tName, firstArg :: firstArg :: fArgsTail)];
         (* for finite traces *)
@@ -1384,7 +1388,7 @@ and translation_inner (ctl:ctl) : string * datalog =
       let newName = "AX_" ^  (String.sub fName prefixLen (String.length fName - prefixLen)) in
       let fParams = get_params declarations in
       let fArgs = get_args rules in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [ Basic (BVAR "loc")]);Neg (fName,fArgs) ]):: rules)
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos(stateKeyWord, [ Basic (BVAR "loc")]);Neg (fName,fArgs) ]):: rules)
     
     | AG f ->
       (* AG f  = !EF !f *)     
@@ -1393,7 +1397,7 @@ and translation_inner (ctl:ctl) : string * datalog =
       let newName = "AG_" ^  (String.sub fName prefixLen (String.length fName - prefixLen)) in
       let fParams = get_params declarations in
       let fArgs = get_args rules in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [ Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos(stateKeyWord, [ Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
 
     | EG f ->
       (* EG f = !AF !f *)     
@@ -1402,7 +1406,7 @@ and translation_inner (ctl:ctl) : string * datalog =
       let newName = "EG_" ^  (String.sub fName prefixLen (String.length fName - prefixLen)) in
       let fParams = get_params declarations in
       let fArgs = get_args rules in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos("state", [ Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos(stateKeyWord, [ Basic (BVAR "loc")]) ;Neg (fName,fArgs) ]):: rules)
 
     | AU (f1,f2) ->
       (* f1 AU f2 = not (!f2 EU (!f1 and !f2) ) and AF f2 *)

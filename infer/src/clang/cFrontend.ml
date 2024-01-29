@@ -565,7 +565,7 @@ let retriveSpecifications (source:string) : (ctl list * int * int * int) =
           Parser.ctl Lexer.token (Lexing.from_string singlespec)) in
       
       
-      let _ = List.map sepcifications ~f:(fun ctl -> print_endline (string_of_ctl ctl) ) in 
+      let _ = List.map sepcifications ~f:(fun ctl -> print_endline ("\n// " ^ string_of_ctl ctl) ) in 
       
 
       (sepcifications, line_of_code, line_of_spec, List.length partitions)
@@ -932,8 +932,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       | _ -> acc @ [a]) 
   in 
   match node_kind with
-  | Start_node -> Singleton (Predicate ("Start", []), node_key), []
-  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
+  | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
+  | Exit_node ->  Emp(* Singleton (Predicate ("Exit", []), node_key) *), []
   | Join_node ->  Singleton(Predicate (joinKeyword, []), node_key) , []
   | Skip_node t ->  Singleton(TRUE, node_key) , []
   | Prune_node (f,_,_) ->  
@@ -1089,10 +1089,10 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Eq (Basic(BVAR var), Basic ANY) -> 
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
 
-    List.map ~f:(fun a -> ("Eq", [Basic(BSTR var);Basic(BINT a);loc])) valueSet
+    List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);Basic(BINT a);loc])) valueSet
     
-  | Eq (Basic(BVAR var), t2) -> [("Eq", [Basic(BSTR var);t2;loc])]
-  | Eq (t1, t2) -> [("Eq", [t1;t2;loc])]
+  | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);t2;loc])]
+  | Eq (t1, t2) -> [(assignKeyWord, [t1;t2;loc])]
 
   | Neg (LtEq (Basic(BVAR var), t2))
   | Gt (Basic(BVAR var), t2) -> [("Gt", [Basic(BSTR var);t2;loc])]
@@ -1181,9 +1181,10 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             (match previousState with 
             | Some previousState -> 
               let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
-              | None -> [fact], []
-              | Some bodies -> [], [(fact, bodies(*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
+              | None -> [stateFact; fact], []
+              | Some bodies -> [stateFact], [(fact, bodies(*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
               )
             | None -> [], []) in 
           let valueFacts = getFactFromPure p state reIn in 
@@ -1201,9 +1202,10 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             (match previousState with 
             | Some previousState -> 
               let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
-              | None -> [], [(fact, (pureToBodies guard (Some previousState)))]
-              | Some bodies -> [], [(fact, bodies)]
+              | None -> [stateFact], [(fact, (pureToBodies guard (Some previousState)))]
+              | Some bodies -> [stateFact], [(fact, bodies)]
               )
             | None -> [], []) in 
           let pathConstrint' = 

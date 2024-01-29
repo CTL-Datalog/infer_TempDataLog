@@ -72,7 +72,13 @@ pure:
 
 
 ctl_formula:
-| p =pure {Atom("propositionDefult", p)}
+| p =pure {
+  let rec propositionName pi : (string * pure) = 
+    match pi with 
+    | Eq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int n, (Eq (Basic(BSTR str), Basic(BINT n)))
+    | _ -> "propositionDefult", pi
+  in  
+  Atom(propositionName p)}
 | LPAR ctl = ctl_formula RPAR {ctl}
 | NOTSINGLE ctl = ctl_formula {(Neg ctl)}
 | AX LPAR ctl = ctl_formula RPAR {(AX ctl)}
