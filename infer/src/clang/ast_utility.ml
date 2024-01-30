@@ -13,6 +13,8 @@ let transFlowKeyWord = "transFlow"
 
 let outputShellKeyWord = "_Final"
 
+let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
+
 
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
@@ -69,7 +71,11 @@ type regularExpr =
   | Omega of regularExpr 
   | Guard of (pure * state)
 
-type fstElem = PureEv of (pure * state) | GuardEv of (pure * state) | CycleEv of regularExpr
+type fstElem = 
+    PureEv of (pure * state) 
+  | GuardEv of (pure * state) 
+  | KleeneEv of regularExpr
+  | OmegaEv of regularExpr
 
 type reCFG  = (Procdesc.Node.t list * stack)
 
@@ -336,7 +342,8 @@ let string_of_fst_event (ele:fstElem) : string =
   match ele with 
   | PureEv (p, s) -> string_of_pure p ^ string_of_loc s 
   | GuardEv (p, s) -> "[" ^string_of_pure p ^ "]" ^ string_of_loc s 
-  | CycleEv re -> "(" ^ string_of_regularExpr re ^ ")^*"
+  | KleeneEv re -> "(" ^ string_of_regularExpr re ^ ")^*"
+  | OmegaEv re -> "(" ^ string_of_regularExpr re ^ ")^w"
 
 let rec fst (eff:regularExpr) : (fstElem list) = 
   match eff with 
@@ -348,8 +355,8 @@ let rec fst (eff:regularExpr) : (fstElem list) =
     if nullable eff1 then  (fst eff1) @  (fst eff2)
     else (fst eff1)
   | Disjunction (eff1, eff2) -> List.append (fst eff1) (fst eff2)
-  | Kleene effIn      -> [CycleEv effIn]
-  | Omega _  -> raise (Failure "fst should not have omega")
+  | Kleene effIn      -> [KleeneEv effIn]
+  | Omega effIn -> [OmegaEv effIn]
 
 let rec reverse (eff:regularExpr) :regularExpr = 
   match eff with 
@@ -390,7 +397,8 @@ let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   match (ev1, ev2) with 
   | (PureEv (p1, s1), PureEv(p2, s2))
   | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2 && s1 == s2 
-  | (CycleEv re1, CycleEv re2) -> compareRE re1 re2
+  | (OmegaEv re1, OmegaEv re2)
+  | (KleeneEv re1, KleeneEv re2) -> compareRE re1 re2
   | _ -> false 
 
 let rec existAux f (li:('a list)) (ele:'a) = 
@@ -427,19 +435,19 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
     else forsure
   | Disjunction (eff1, eff2) -> 
     Disjunction (derivitives f eff1, derivitives f eff2)
-  | Kleene effIn      -> 
+  | Omega effIn | Kleene effIn      -> 
     (match f with 
-    | CycleEv (effIn1) -> if compareRE effIn effIn1 then Emp else Bot
+    | KleeneEv (effIn1) -> if compareRE effIn effIn1 then Emp else Bot
     | _ -> Bot 
     )
-  | Omega _  -> raise (Failure "derivitives should not have omega")
 
 
 let eventToRe (ev:fstElem) : regularExpr = 
   match ev with 
   | PureEv s -> Singleton s 
   | GuardEv s -> Guard s 
-  | CycleEv re -> Kleene re
+  | KleeneEv re -> Kleene re
+  | OmegaEv re -> Omega re
 
 
 let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) option = 

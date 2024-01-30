@@ -875,8 +875,8 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
       let exp2 = s.e2 in 
       Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
-      (*print_endline (Exp.to_string e_fun) ;  *)
-      if String.compare (Exp.to_string e_fun) "_fun__nondet_int" == 0 then 
+      print_endline (Exp.to_string e_fun) ;  
+      if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall (Exp.to_string e_fun)  then 
         let exp1 = s.e1 in 
         Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
       else None 
@@ -1036,6 +1036,14 @@ let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr =
     ) in 
     disjunctRE disjunctions
   
+let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = 
+  match re with 
+  | Kleene (reIn) -> Omega reIn
+  | Disjunction(r1, r2) -> Disjunction(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
+  | Concate (r1, r2) -> Concate(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
+  | _ -> re
+  ;;
+
 
 let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
   (*
@@ -1045,7 +1053,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let startState = Procdesc.get_start_node procedure in 
   let firstPass = iterateProc ([], []) startState in 
   let secondPass = normalise_es (normaliseTheDisjunctions firstPass) in 
-  secondPass
+  let lastPass = convertAllTheKleeneToOmega secondPass in  (*this is the step for sumarrizing the loop*)
+  lastPass
   ;;
 
 let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 
@@ -1092,6 +1101,8 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
     (* In case there are no reasonable value for not, just sample among the program value *)
     let valueSet  = if List.length valueSet == 0 then getProgramValues re else valueSet in 
+    (* In case there are no program values, sample some a dummay set  *)
+    let valueSet = if List.length valueSet ==0  then [-1;0;1] else valueSet in 
     List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
     
   | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);loc;t2])]
@@ -1230,14 +1241,15 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
 
-        | CycleEv recycle -> 
+        | OmegaEv recycle -> 
             
           let (reAcc', ruAcc') = ietrater recycle previousState pathConstrint in 
           let extraFlows = flowsForTheCycle recycle in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (extraFlows, [])] ([], [])
 
+        (* ietrater recycle previousState *)
+        | KleeneEv _ -> raise (Failure "having a kleene after the loop summarisation")
           
-          (* ietrater recycle previousState *)
       )
   in 
   ietrater re None None 
