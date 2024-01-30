@@ -1157,10 +1157,14 @@ let flowsForTheCycle (re:regularExpr) : relation list =
   let fstSet = fst re in 
   let lastSet = fst (reverse re) in 
   let startingStates = getStatesFromFstEle fstSet in 
-  let getLastStates = getStatesFromFstEle lastSet in 
+  let (getLastStates: state list) = getStatesFromFstEle lastSet in 
   flattenList (List.map getLastStates ~f:(fun l -> List.map ~f: (fun s -> 
     (flowKeyword, [Basic (BINT l); Basic (BINT s)])
   ) startingStates))
+  (*@ (List.map startingStates ~f: (fun s -> 
+    print_endline ("flowsForTheCycle " ^ string_of_int s ^"\n");
+    (stateKeyWord, [Basic (BINT s)])))
+    *)
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
@@ -1172,7 +1176,14 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   let rec ietrater reIn (previousState:int option) (pathConstrint: (body list) option) : (relation list * rule list) = 
     let fstSet = fst reIn in 
     match fstSet with 
-    | [] -> ([], [])
+    | [] -> 
+      (match previousState with 
+      | Some previousState -> 
+        (*print_endline ("ietrater " ^ string_of_int previousState); *)
+        let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
+        ([stateFact], [])
+      | _ -> ([], [])
+      )
     | li -> 
       List.fold_left li ~init:([], []) ~f:(fun (reAcc, ruAcc) f -> 
         match f with 
