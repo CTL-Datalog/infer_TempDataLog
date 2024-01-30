@@ -752,9 +752,9 @@ let get_facts procedure =
     (* (List.fold (List.map succs ~f:create_edge) ~init:(List.append facts node_facts) ~f:List.append) *)
   in 
 
-  let header = (Printf.sprintf "\n//-- Facts for Procedure <%s> \n" (Procname.to_string (Procdesc.get_proc_name procedure))) in 
+  let header = (Printf.sprintf "//-- Facts for Procedure <%s> \n" (Procname.to_string (Procdesc.get_proc_name procedure))) in 
   let finalFlow, finialFacts = (Procdesc.fold_nodes procedure ~init:([], []) ~f:process) in 
-  header:: (List.rev finalFlow) @ ("\n") ::finialFacts
+  header:: (List.rev finalFlow) @ finialFacts
 
 let rec existStack stack t : Exp.t option = 
   match stack with 
@@ -939,7 +939,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   | Stmt_node stmt_kind ->         
     match stmt_kind with 
     | BinaryOperatorStmt (op) -> 
-      if String.compare op "EQ" == 0 || String.compare op "GT" == 0 then 
+      if existAux (fun a b-> String.compare a b ==0) ["EQ";"GT";"LT";"NE";"LE";"GE"] op then 
+        (*String.compare op "EQ" == 0 || String.compare op "GT" == 0 then  *)
         let stack = List.fold_left instrs ~init:[] ~f:(fun acc (ins:Sil.instr) -> 
           match ins with 
           | Load l -> (l.e, l.id) :: acc 
