@@ -20,7 +20,7 @@ int main() {
     }     
     while (x == y) {} // non-term : true 
     
-    int term = 0; 
+    int term = 1; 
     return 0;
 }
 

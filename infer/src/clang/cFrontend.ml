@@ -875,22 +875,13 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
       let exp2 = s.e2 in 
       Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
-      print_endline (Exp.to_string e_fun) ;  
+      (*print_endline (Exp.to_string e_fun) ;   *)
       if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall (Exp.to_string e_fun)  then 
         let exp1 = s.e1 in 
         Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
       else None 
     | _ -> None 
   else None
-  (*match instrs with 
-    | Load l -> [Printf.sprintf "ILoad(%s,%s)" (Exp.to_string l.e) (Ident.to_string l.id)]
-    | Store s -> [Printf.sprintf "IStore(%s,%s)" (Exp.to_string s.e1) (Exp.to_string s.e2)]
-    | Prune (e, loc, f, _) -> [(Printf.sprintf "Prune(%s, %b)" (Exp.to_string e) f)]
-    | Call ((ret_id, _), e_fun, arg_ts, _, _)  -> 
-      let args = (String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x) arg_ts)) in
-        [Printf.sprintf "ICall(%s,%s,%s)" (Exp.to_string e_fun) args (Ident.to_string ret_id) ]
-    | Metadata _ -> [] (* "IMetadata"  *)
-  *)
 
 let string_of_instruction (ins:Sil.instr) : string = 
   match ins with 

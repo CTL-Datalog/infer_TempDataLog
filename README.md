@@ -1,10 +1,17 @@
 <img src="website/static/img/feiyun.jpeg" alt="logo" width="15%" />
 
 
+- To compile: 
+```./compile  ```
 
+- The first example: 
+```
 infer/bin/infer run -- clang -c benchmark/evaluation/1.8_potential_termination_1.c
+```
 
 
+
+------
 ./build-infer.sh java
 ./build-infer.sh clang
 
