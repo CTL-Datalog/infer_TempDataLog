@@ -1089,10 +1089,10 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Eq (Basic(BVAR var), Basic ANY) -> 
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
 
-    List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);Basic(BINT a);loc])) valueSet
+    List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
     
-  | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);t2;loc])]
-  | Eq (t1, t2) -> [(assignKeyWord, [t1;t2;loc])]
+  | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);loc;t2])]
+  | Eq (t1, t2) -> [(assignKeyWord, [t1;loc;t2])]
 
   | Neg (LtEq (Basic(BVAR var), t2))
   | Gt (Basic(BVAR var), t2) -> [("Gt", [Basic(BSTR var);t2;loc])]

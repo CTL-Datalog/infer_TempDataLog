@@ -8,7 +8,7 @@ let entryKeyWord = "Start"
 let assignKeyWord = "Assign"
 let stateKeyWord = "State"
 let locKeyWord = "loc"
-let loc_inter_KeyWord = "locTemp"
+let loc_inter_KeyWord = "locI"
 let transFlowKeyWord = "transFlow"
 
 
