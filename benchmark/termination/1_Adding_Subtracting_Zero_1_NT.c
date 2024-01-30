@@ -5,6 +5,9 @@ Project Name: libvncserver
 License: GPL-2.0
 termination: FALSE
 */
+
+/*@ AF(term =1) @*/
+
 int main()
 {
 
@@ -18,6 +21,7 @@ int main()
             linesToRead = h;
         h -= linesToRead;
     }
+    int term = 1; 
     return 0;
 
 }

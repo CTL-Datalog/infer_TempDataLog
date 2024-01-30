@@ -11,6 +11,7 @@ let locKeyWord = "loc"
 let loc_inter_KeyWord = "locI"
 let transFlowKeyWord = "transFlow"
 
+let outputShellKeyWord = "_Final"
 
 
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
@@ -392,22 +393,18 @@ let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   | (CycleEv re1, CycleEv re2) -> compareRE re1 re2
   | _ -> false 
 
-
-let removeRedundant (fset:('a list)) (f:'a -> 'a -> bool) : ('a list) = 
-  let rec existAux (li:('a list)) (ele:'a) = 
+let rec existAux f (li:('a list)) (ele:'a) = 
     match li with 
     | [] ->  false 
-    | x :: xs -> if f x ele then true else existAux xs ele
-  in 
+    | x :: xs -> if f x ele then true else existAux f xs ele
+
+let removeRedundant (fset:('a list)) (f:'a -> 'a -> bool) : ('a list) = 
   let rec helper (li:('a list)) = 
     match li with 
     | [] -> []
-    | y:: ys -> if existAux ys y then helper ys else y :: (helper ys)
+    | y:: ys -> if existAux f ys y then helper ys else y :: (helper ys)
 
   in helper fset
-
-
-
 
 
 let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr = 
@@ -670,6 +667,15 @@ let rec getAllVarFromTerm (t:terms) (acc:string list):string list =
 | _ -> acc
 ;;
 
+let rec getAllNumFromTerm (t:terms):int list = 
+  match t with
+| Basic (BINT n) -> [n]
+| Minus (t1, t2) 
+| Plus (t1, t2) -> getAllNumFromTerm t1 @ getAllNumFromTerm t2
+| _ -> []
+;;
+
+
 
 
 let rec getAllVarFromPure (pi:pure) (acc:string list):string list = 
@@ -708,6 +714,32 @@ let rec getAllVarFromPure (pi:pure) (acc:string list):string list =
       List.append acc (List.append temp1 temp2) 
   | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllVarFromTerm t [])
 
+  ;;
+
+let rec getAllNumFromPure (pi:pure):int list = 
+  match pi with
+  | Eq (term1, term2)
+  | LtEq (term1, term2) 
+  | GtEq (term1, term2)
+  | Lt (term1, term2) 
+  | Gt (term1, term2) -> 
+    getAllNumFromTerm term1 @ getAllNumFromTerm term2
+  | PureOr (pi1,pi2) 
+  | PureAnd (pi1,pi2) -> 
+    getAllNumFromPure pi1 @ getAllNumFromPure pi2
+  | Neg piN -> getAllNumFromPure piN
+  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllNumFromTerm t)
+  | _ ->[]
+  ;;
+
+
+let rec getProgramValues (re:regularExpr) : int list = 
+  match re with 
+  | Emp | Bot -> [] 
+  | Singleton (p, _) | Guard(p, _) -> getAllNumFromPure p 
+  | Disjunction(r1, r2) 
+  | Concate (r1, r2) -> getProgramValues r1 @ getProgramValues r2
+  | Omega (reIn) | Kleene (reIn) -> getProgramValues reIn
   ;;
 
 
@@ -1144,7 +1176,7 @@ let rec translation (ctl:ctl) : string * datalog =
     let decs, rules  = 
     (match rules with 
     | ((name, [Basic (BVAR locKeyWord)]), _)::_ -> 
-      let nameFinal = name^"Final" in 
+      let nameFinal = name^outputShellKeyWord in 
       let finaDecl = (nameFinal,     [ (locKeyWord, Number)]) in 
       let finalRule = ((nameFinal, [Basic (BVAR locKeyWord)]), [Pos(entryKeyWord,  [Basic (BVAR locKeyWord)]) ; Pos (name, [Basic (BVAR locKeyWord)])]) in 
       finaDecl::decs,  finalRule::rules

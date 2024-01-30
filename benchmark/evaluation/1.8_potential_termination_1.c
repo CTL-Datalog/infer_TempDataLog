@@ -8,7 +8,6 @@
 int _nondet_int(void);
 
 int main() {
-    int term = 0; 
     int i;
     int x;
     int y;
@@ -21,14 +20,8 @@ int main() {
     }     
     while (x == y) {} // non-term : true 
     
-    term = 1; 
+    int term = 0; 
     return 0;
 }
-
-// (term=0 @10); (y=1@14); (i=*@15); (x=*@16); 
-//    ([i>10] ((emp@18); (x=1@19))
-// \/ [i<=10]((emp@18))); 
-// ([x=y] (x=y @ 21)^w) \/ [x=y](emp@21 ; term=1@23; return(0));)
-// (exit)^w 
 
 

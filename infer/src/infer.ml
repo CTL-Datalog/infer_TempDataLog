@@ -22,8 +22,6 @@ let run driver_mode =
   InferAnalyze.invalidate_changed_procedures changed_files ;
   (* print_string("===========capture===========\n"); *)
   capture driver_mode ~changed_files ;
-  print_endline ("\n=========================================================================");
-  print_endline ("===========  The output facts are in the \"fact_test.txt\" file ===========");
   print_endline ("=========================================================================\n");
   (*analyze_and_report driver_mode ~changed_files ;*)
   run_epilogue ()

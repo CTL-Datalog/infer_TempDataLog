@@ -562,11 +562,7 @@ let retriveSpecifications (source:string) : (ctl list * int * int * int) =
       let sepcifications = List.map partitions 
         ~f:(fun singlespec -> 
           (*print_endline (singlespec);*)
-          Parser.ctl Lexer.token (Lexing.from_string singlespec)) in
-      
-      
-      let _ = List.map sepcifications ~f:(fun ctl -> print_endline ("\n// " ^ string_of_ctl ctl) ) in 
-      
+          Parser.ctl Lexer.token (Lexing.from_string singlespec)) in      
 
       (sepcifications, line_of_code, line_of_spec, List.length partitions)
       (*
@@ -742,12 +738,7 @@ let get_facts procedure =
       in
 
         [
-        info;
-        (*(Printf.sprintf "Stmt(%s). " node_key );*)
-        (*
-        (Printf.sprintf "Instrs(%s,[%s]).  // %s" node_key (String.concat ~sep:"," instructions) node_loc);   
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc); *)
-        "\n"
+        info
         ]
     in
 
@@ -884,6 +875,7 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
       let exp2 = s.e2 in 
       Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
+      (*print_endline (Exp.to_string e_fun) ;  *)
       if String.compare (Exp.to_string e_fun) "_fun__nondet_int" == 0 then 
         let exp1 = s.e1 in 
         Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
@@ -1058,16 +1050,26 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
 
 let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 
   match t with 
-  | Basic (BINT n) -> [n+1 ; n; n-1]
+  | Basic (BINT n) -> [n](*[n+1 ; n; n-1]*)
   | Plus (t1, t2) 
   | Minus (t1, t2) -> findRelaventValueSetFromTerms t1 var @ findRelaventValueSetFromTerms t2 var 
   | _ -> []
 
 let rec findRelaventValueSetFromPure (p:pure) (var:string) : int list = 
   match p with 
-  | Gt (Basic (BVAR s), t2) | Lt (Basic (BVAR s), t2) | GtEq (Basic (BVAR s), t2) | LtEq (Basic (BVAR s), t2) | Eq (Basic (BVAR s), t2) -> 
-    if String.compare s var == 0 then findRelaventValueSetFromTerms t2 var
-    else [] 
+  | Eq (Basic (BVAR s), t2) 
+  | Gt (Basic (BVAR s), t2)  
+  | LtEq (Basic (BVAR s), t2) ->  
+    if String.compare s var == 0 then 
+      let seeds = findRelaventValueSetFromTerms t2 var in 
+      List.fold_left seeds ~init:[] ~f:(fun acc n -> acc @ [n; n+1])
+      else [] 
+  | GtEq (Basic (BVAR s), t2) 
+  | Lt (Basic (BVAR s), t2) ->
+    if String.compare s var == 0 then 
+      let seeds = findRelaventValueSetFromTerms t2 var in 
+      List.fold_left seeds ~init:[] ~f:(fun acc n -> acc @ [n; n-1])
+      else [] 
   | PureOr (p1, p2)
   | PureAnd (p1, p2) -> findRelaventValueSetFromPure p1 var @ findRelaventValueSetFromPure p2 var 
   | Neg pIn -> findRelaventValueSetFromPure pIn var 
@@ -1088,7 +1090,8 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
   | Eq (Basic(BVAR var), Basic ANY) -> 
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
-
+    (* In case there are no reasonable value for not, just sample among the program value *)
+    let valueSet  = if List.length valueSet == 0 then getProgramValues re else valueSet in 
     List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
     
   | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);loc;t2])]
@@ -1287,31 +1290,41 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       let summary = computeSummaryFromCGF procedure in 
-      let (facts, rules) = convertRE2Datalog summary in 
-      print_endline ("\n-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":");
-      print_endline (string_of_regularExpr summary); 
-      print_endline ("\n-------------\n"); 
-      print_endline (string_of_facts (sortFacts facts));
-      print_endline (string_of_rules (sortRules rules));
-
       List.append accs [summary] )) 
   in
+  let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
+      let (facts, rules) = convertRE2Datalog summary in 
+      (*"\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" )
+      ::*)
+      ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
+      string_of_facts (sortFacts facts) :: 
+      string_of_rules (sortRules rules) :: []
+  )) in 
 
   let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
   
-  let _ = List.map specifications 
+  let (specPrinting:string list) = List.map specifications ~f:(fun ctl -> "//" ^ string_of_ctl ctl) in 
+
+  let (datalogProgPrinting:string list) = 
+    flattenList (List.map specifications 
     ~f:(fun item -> 
       let fname, program = (translation item) in 
-      print_endline (string_of_datalog program);
-      print_endline (".output "^ fname ^"Final(IO=stdout)\n")
-     ) in 
+      (*print_endline (string_of_datalog program);
+      print_endline (".output "^ fname ^"Final(IO=stdout)\n") *)
+      [string_of_datalog program] @ [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
+     )) in 
      
   let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
 
 
-  let facts = (Cfg.fold_sorted cfg ~init:[] ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
-  Out_channel.write_lines "fact_test.txt" facts;
-    (*List.iter facts ~f:(fun l -> L.(debug Capture Verbose) "%s %a\n" l SourceFile.pp source_file) ;*) 
+  let facts = (Cfg.fold_sorted cfg ~init:[] 
+    ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
+  Out_channel.write_lines (source_Address ^ ".dl") 
+  (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"]);
+
+
+  print_endline ("\n========================================================================="); 
+  print_endline ("<== Run$ souffle -F. -D. " ^ source_Address ^ ".dl" ^ " ==>");
 
   L.(debug Capture Verbose) "@\n End buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
