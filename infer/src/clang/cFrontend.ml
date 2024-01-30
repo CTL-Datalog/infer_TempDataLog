@@ -863,6 +863,11 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     print_endline ("expressionToPure 3 None : " ^ Exp.to_string exp); 
     None 
   
+let getPureFromFunctionCall (e_fun:Exp.t) ((Store s):IR.Sil.instr) stack =
+  if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall (Exp.to_string e_fun)  then 
+    let exp1 = s.e1 in 
+    Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
+  else None 
 
 let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
   (*print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
@@ -876,10 +881,8 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
       Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
       (*print_endline (Exp.to_string e_fun) ;   *)
-      if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall (Exp.to_string e_fun)  then 
-        let exp1 = s.e1 in 
-        Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
-      else None 
+      getPureFromFunctionCall e_fun (Store s) stack
+    
     | _ -> None 
   else None
 
@@ -903,6 +906,10 @@ let getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option 
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
     Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
+  | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
+    (*print_endline (Exp.to_string e_fun) ;   *)
+    getPureFromFunctionCall e_fun (Store s) stack
+    
   | _ -> None
 
 let regularExpr_of_Node node stack : (regularExpr * stack )= 

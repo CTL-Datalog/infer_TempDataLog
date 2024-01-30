@@ -11,8 +11,7 @@ termination: FALSE
 int main()
 {
 
-    int linesToRead;
-    linesToRead = __VERIFIER_nondet_int();
+    int linesToRead = __VERIFIER_nondet_int();
     if( linesToRead < 0 )
         return 0;
     int h = __VERIFIER_nondet_int();
