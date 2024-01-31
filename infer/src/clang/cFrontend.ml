@@ -597,7 +597,7 @@ let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl 
  
     | _ -> assert false
 
-let get_key node : int  = 
+let getNodeID node : int  = 
   (* Here is to get the ID, which is unique *)
   let key = (string_of_int (Procdesc.Node.get_id node)) in
   (* Simplification of the identifiers *)
@@ -620,7 +620,7 @@ let get_facts procedure =
         let loc = (Procdesc.Node.get_loc node) in
         Printf.sprintf "@%s" (Location.to_string loc)
     in
-    let node_key =  Int.to_string (get_key node) in
+    let node_key =  Int.to_string (getNodeID node) in
     let node_kind = Procdesc.Node.get_kind node in
     let instructions = 
       (Instrs.fold (Procdesc.Node.get_instrs node) ~init:[] 
@@ -720,7 +720,7 @@ let get_facts procedure =
 
 
     let create_edge succ = 
-      let succ_key = Int.to_string (get_key succ) in
+      let succ_key = Int.to_string (getNodeID succ) in
       let succ_loc = (Location.to_string (Procdesc.Node.get_loc succ)) in 
       (Printf.sprintf "Flow(%s,%s). //%s-%s" node_key succ_key node_loc succ_loc);
     in
@@ -890,7 +890,7 @@ let getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option 
 
 let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
-  let node_key =  get_key node in
+  let node_key =  getNodeID node in
   let instrs_raw =  (Procdesc.Node.get_instrs node) in  
   let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc (a:Sil.instr) -> 
       match a with 
@@ -948,7 +948,7 @@ let rec existRecord (li: Procdesc.Node.t list) n : ((Procdesc.Node.t list) * (Pr
   match li with 
   | [] ->  None 
   | x :: xs  -> 
-    let keyX = (get_key x) in
+    let keyX = (getNodeID x) in
     if keyX == n 
     then 
       (
@@ -978,7 +978,7 @@ let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * sta
 (* the old version of producing the regular expressions *)
 let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr = 
   let (history, stack) = env in 
-  let node_key =  get_key currentState in
+  let node_key = getNodeID currentState in
   match existRecord history node_key with 
   | Some (prefix, cycle) -> 
     let prefix', stack' = recordToRegularExpr prefix stack in 
@@ -998,7 +998,7 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
       eventTail   
 
 let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:Procdesc.Node.t): int list = 
-  let node_key = get_key currentState in
+  let node_key = getNodeID currentState in
   match existRecord history node_key with 
   | Some (_, _) -> [node_key]
   | None -> 
@@ -1011,38 +1011,52 @@ let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:P
       let reoccurrences = List.map succLi ~f:(fun next -> findReoccurrenceJoinNodes history' next) in 
       List.fold_left reoccurrences ~init:[] ~f:(fun acc a -> acc @ a)
 
-let node_key n = get_key n 
-
-let rec findNextJoin (currentState:Procdesc.Node.t) : Procdesc.Node.t option = 
-  let node_kind = Procdesc.Node.get_kind currentState in
-  (match node_kind with 
-  | Join_node -> Some currentState
-  | _ -> 
+(*
+let rec findNextJoin (loopJoins:int list) (currentState:Procdesc.Node.t) : Procdesc.Node.t option = 
+  let helper () = 
     let nextStates = Procdesc.Node.get_succs currentState in 
     match nextStates with 
     | [] -> None 
-    | succLi -> 
-      let nextJoins = List.map succLi ~f:(fun a -> findNextJoin a) in 
-      List.fold_left nextJoins ~init:None ~f:(fun acc cur ->
-        match acc, cur with 
-        | None , _ -> cur
-        | Some _, None -> acc 
-        | Some n1, Some n2 -> 
-          print_endline (string_of_int (node_key n1 )^ " and " ^ string_of_int  (node_key n2 ) ^"\n");
-          acc
+    | succLi ->
+      let nextJoins = List.map succLi ~f:(fun a -> findNextJoin loopJoins a) in 
+      List.fold_left nextJoins ~init:None 
+      ~f:(fun acc cur ->
+      match acc, cur with 
+      | None , _ -> cur
+      | Some _, None -> acc 
+      | Some n1, Some n2 -> 
+        let id1 = getNodeID n1 in 
+        let id2 = getNodeID n2 in 
+        if id1 != id2
+        then 
+          let info = string_of_int id1 ^ "==" ^ string_of_int id2 in 
+          let loops = (String.concat ~sep:"," (List.map  loopJoins ~f:(fun a-> string_of_int a))) in 
+
+          raise (Failure ("two rechable join nodes are not the same\n" ^ info ^"\n"^ loops) )
+        else acc
       )
+  in 
+  let node_kind = Procdesc.Node.get_kind currentState in
+  (match node_kind with 
+  | Join_node -> 
+    if existAux (==) loopJoins (getNodeID currentState) 
+    then None
+    else Some currentState
+  | _ -> 
+     helper ()
   )
 
-let rec recursiveFindNextJoin (record:int list) (currentState:Procdesc.Node.t) : int list =  
-  match findNextJoin currentState with 
+let rec recursiveFindNextJoin (loopJoins:int list) (record:int list) (currentState:Procdesc.Node.t) : int list =  
+  match findNextJoin loopJoins currentState with 
   | None  -> record
   | Some node -> 
-    if existAux (==) record (node_key node) then record
+    if existAux (==) record (getNodeID node) then record
     else 
-    recursiveFindNextJoin (record@[(node_key node)]) node
+      let nextStates = Procdesc.Node.get_succs node in 
+      List.fold_left nextStates ~init:[] 
+      ~f:(fun acc a -> acc @ recursiveFindNextJoin loopJoins (record@[(getNodeID node)]) a)
 
-
-
+*)
 
 (* 
 
@@ -1057,7 +1071,7 @@ let rec tillNextJoin (currentState:Procdesc.Node.t) : (regularExpr * Procdesc.No
   (currentState:Procdesc.Node.t): (regularExpr * Procdesc.Node.t option * stack) = 
   (* return the regularExpr befor the next Join node *)
   let (record, stack) = env in 
-  let node_key = get_key currentState in
+  let node_key = ge t currentState in
 
 
   match existRecord record node_key with 
@@ -1143,8 +1157,9 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let startState = Procdesc.get_start_node procedure in 
   let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
-  let allTheJoins = recursiveFindNextJoin [] startState in 
+  (*let allTheJoins = recursiveFindNextJoin reoccurs [] startState in 
   let _ = List.map allTheJoins ~f:(fun a -> print_endline ("joins" ^ string_of_int a)) in 
+  *)
   let (res) = iterateProc ([], []) startState in 
   res
 
