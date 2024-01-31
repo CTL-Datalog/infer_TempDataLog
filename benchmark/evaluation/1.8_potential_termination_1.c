@@ -16,12 +16,17 @@ int main() {
     x = _nondet_int();
 
     if (i > 10) {
-        x = 1;
-    }     
-    if (i > 15) {
+           while (x == y) {} // non-term : true 
+
+    } 
+    else if (i > 15) {
         x = 12;
-    }   
-    while (x == y) {} // non-term : true 
+    }  
+    else if (i > 25) {
+        x = 22;
+    }    
+    else {x = 100;}
+
     
     int term = 1; 
     return 0;
