@@ -948,11 +948,8 @@ let rec existRecord (li: Procdesc.Node.t list) n : ((Procdesc.Node.t list) * (Pr
   match li with 
   | [] ->  None 
   | x :: xs  -> 
-    let keyX = (getNodeID x) in
-    if keyX == n 
-    then 
-      (
-      Some ([], li)) 
+    if (getNodeID x) == n 
+    then Some ([], li)
     else 
       match existRecord xs n with 
       | None -> None 
@@ -1005,7 +1002,6 @@ let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:P
     let nextStates = Procdesc.Node.get_succs currentState in 
     match nextStates with 
     | [] -> []
-
     | succLi -> 
       let history' = ((history@[currentState])) in 
       let reoccurrences = List.map succLi ~f:(fun next -> findReoccurrenceJoinNodes history' next) in 
@@ -1036,13 +1032,13 @@ let findTheNextJoinCycle (currentState:Procdesc.Node.t) : Procdesc.Node.t =
   
 ;;
 
-let rec findTheNextJoin (loopJoins:int list) (currentState:Procdesc.Node.t) (disjunStack:int list) : Procdesc.Node.t = 
+let rec findTheNextJoin (loopJoins:int list) (currentState:Procdesc.Node.t) (disjunStack:int list) : Procdesc.Node.t option = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
   let helper disjunStackIn = 
     let nextStates = Procdesc.Node.get_succs currentState in 
     match nextStates with 
-    | [] -> currentState
+    | [] -> None
     | [succ] -> findTheNextJoin loopJoins succ disjunStackIn 
     | succ::_ ->  findTheNextJoin loopJoins succ (currentID:: disjunStackIn)
 
@@ -1050,12 +1046,12 @@ let rec findTheNextJoin (loopJoins:int list) (currentState:Procdesc.Node.t) (dis
   match node_kind with 
   | Join_node -> 
     if existAux (==) loopJoins currentID then 
-      findTheNextJoinCycle currentState 
+      Some (findTheNextJoinCycle currentState)
 
     else 
       (match disjunStack with 
       | [] -> raise (Failure "not possible, there is a join node without any disjunction in front")
-      | [hd] -> currentState
+      | [hd] -> Some currentState
       | _::tail -> helper tail
 
       )
@@ -1079,17 +1075,41 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
     | [] -> (history' , stack'')
     | [succ] -> getRegularExprFromCFG_helper loopJoins history' stack'' succ 
     | [succ1;succ2] -> (* if else branch *)
-      let (join1:Procdesc.Node.t) = findTheNextJoin loopJoins succ1 [currentID] in 
-      let (join2:Procdesc.Node.t) = findTheNextJoin loopJoins succ2 [currentID] in 
-      let joinID1 = (getNodeID join1) in
-      let joinID2 = (getNodeID join2) in
-      if joinID1 == joinID2 then 
-        let reDisjunction = Emp in 
-        getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
-      else 
-        let info = string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
-        let loops = (String.concat ~sep:"," (List.map  loopJoins ~f:(fun a-> string_of_int a))) in 
-        raise (Failure ("two rechable join nodes are not the same\n" ^ info ^"\n"^ loops) )
+      let joinID11 = (getNodeID succ1) in
+      let joinID22 = (getNodeID succ2) in
+
+      let (join1:Procdesc.Node.t option) = findTheNextJoin loopJoins succ1 [currentID] in 
+      let (join2:Procdesc.Node.t option) = findTheNextJoin loopJoins succ2 [currentID] in 
+      (match join1, join2 with 
+      | Some join1, Some join2 -> 
+        let joinID1 = (getNodeID join1) in
+        let joinID2 = (getNodeID join2) in
+        if joinID1 == joinID2 then 
+          let reDisjunction = Emp in 
+          getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
+        else 
+          let info = 
+           string_of_int currentID ^ " <==> " 
+           ^ string_of_int joinID11 ^ "<-->" ^ string_of_int joinID22 ^ " " 
+           ^ string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
+          let _ = List.map loopJoins ~f:(fun a -> print_endline ("reoccurrance getRegularExprFromCFG_helper" ^ string_of_int a)) in 
+          print_endline (info);
+
+          let reDisjunction = Emp in 
+          let re1, _ = getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1 in 
+          let re2, stack''' = getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join2 in 
+          Disjunction (re1, re2), stack''' 
+        (*
+          raise (Failure ("two rechable join nodes are not the same\n" ) )
+          *)
+
+      | Some joinNext, None 
+      | None, Some joinNext -> 
+          let reDisjunction = Emp in 
+          getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' joinNext
+      | None, None -> history', stack''
+
+      )
 
     | _ -> raise (Failure "more successors")
      
@@ -1100,7 +1120,7 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let startState = Procdesc.get_start_node procedure in 
   let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
-  (*let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in *)
+  let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in 
   let (res) = iterateProc ([], []) startState in 
   res
 
@@ -1387,21 +1407,23 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   L.(debug Capture Verbose) "@\n Start buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
+  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
+  print_endline ("<== Anlaysing " ^ source_Address  ^ " ==>");
+
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
+      print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
       let summary = computeSummaryFromCGF procedure in 
       List.append accs [summary] )) 
   in
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       let (facts, rules) = convertRE2Datalog summary in 
-      (*"\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" )
-      ::*)
+      
       ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
       string_of_facts (sortFacts facts) :: 
       string_of_rules (sortRules rules) :: []
   )) in 
 
-  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
   
   let (specPrinting:string list) = List.map specifications ~f:(fun ctl -> "//" ^ string_of_ctl ctl) in 
 
