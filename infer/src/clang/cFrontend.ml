@@ -303,6 +303,7 @@ let rec findReturnValue (pi:pure) : terms option =
   match pi with
   | Eq (Basic (BRET), t2) 
   | Eq (t2, Basic (BRET)) -> Some t2 
+  | Predicate _
   | TRUE 
   | FALSE 
   | Gt _ 
@@ -617,7 +618,6 @@ let get_facts procedure =
     let node_loc = 
         let loc = (Procdesc.Node.get_loc node) in
         Printf.sprintf "@%s" (Location.to_string loc)
-        (*Printf.sprintf "%s:%s" (SourceFile.to_string loc.file) (Location.to_string loc)*)
     in
     let node_key =  Int.to_string (get_key node) in
     let node_kind = Procdesc.Node.get_kind node in
@@ -636,69 +636,48 @@ let get_facts procedure =
         
               
       ))  in
+    let instrs =  (String.concat ~sep:"," instructions) in  
     let succs = (Procdesc.Node.get_succs node) in
     let node_facts =
     match node_kind with
       | Start_node -> [
         (Printf.sprintf "Start(%s). // %s" node_key node_loc);
-        (*Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        *)
         ]
       | Exit_node ->  [
         (Printf.sprintf "Exit(%s).  // %s" node_key node_loc);
-        (*(Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));
-        (Printf.sprintf "End(%s)." node_key);
-        "\n"
-        *)
         ]
       | Join_node ->  [
-        (Printf.sprintf "Join(%s,[%s]).  // %s" node_key (String.concat ~sep:"," instructions) node_loc);
-        (*
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));   
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        *)
+        (Printf.sprintf "Join(%s,[%s]).  // %s" node_key instrs node_loc);
         ] 
       | Skip_node t ->  [
-        (Printf.sprintf "Skip(%s,%s,[%s]).  // %s" node_key t (String.concat ~sep:"," instructions) node_loc);
-        (*
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));   
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        *)
+        (Printf.sprintf "Skip(%s,%s,[%s]).  // %s" node_key t instrs node_loc);
         ] 
       | Prune_node (f,_,_) ->  [
-        (Printf.sprintf "PruneNode(%s,%b,[%s]). // %s" node_key f (String.concat ~sep:"," instructions) node_loc);
-        (*
-        (Printf.sprintf "Instrs(%s,[%s])." node_key (String.concat ~sep:"," instructions));   
-        (Printf.sprintf "Node(%s,%s)." node_key node_loc);
-        "\n"
-        *)
+        (Printf.sprintf "PruneNode(%s,%b,[%s]). // %s" node_key f instrs node_loc);
         ]
       | Stmt_node stmt_kind -> 
-        let instrs =  (String.concat ~sep:"," instructions) in  
+        
         let info = match stmt_kind with 
-        | AssertionFailure ->  (Printf.sprintf "Stmt_AssertionFailure(%s,[%s])." node_key instrs)
-        | AtomicCompareExchangeBranch -> (Printf.sprintf "Stmt_AtomicCompareExchangeBranch(%s,[%s])." node_key instrs)
-        | AtomicExpr -> (Printf.sprintf "Stmt_AtomicExpr(%s,[%s])." node_key instrs)
-        | BetweenJoinAndExit -> (Printf.sprintf "Stmt_BetweenJoinAndExit(%s,[%s])." node_key instrs)
-        | BinaryConditionalStmtInit -> (Printf.sprintf "Stmt_BinaryConditionalStmtInit(%s,[%s])." node_key instrs)
-        | BinaryOperatorStmt (x)  -> (Printf.sprintf "Stmt_BinaryOperatorStmt(%s,%s,[%s])." node_key x instrs)
-        | CallObjCNew -> (Printf.sprintf "Stmt_CallObjCNew(%s,[%s])." node_key instrs)
-        | CaseStmt -> (Printf.sprintf "Stmt_CaseStmt(%s,[%s])." node_key instrs)
-        | ClassCastException -> (Printf.sprintf "Stmt_ClassCastException(%s,[%s])." node_key instrs)
-        | CompoundStmt -> (Printf.sprintf "Stmt_CompoundStmt(%s,[%s])." node_key instrs)
-        | ConditionalStmtBranch -> (Printf.sprintf "Stmt_ConditionalStmtBranch(%s,[%s])." node_key instrs)
-        | ConstructorInit -> (Printf.sprintf "Stmt_ConstructorInit(%s,[%s])." node_key instrs) 
-        | CXXDynamicCast -> (Printf.sprintf "Stmt_CXXDynamicCast(%s,[%s])." node_key instrs)
-        | CXXNewExpr -> (Printf.sprintf "Stmt_CXXNewExpr(%s,[%s])." node_key instrs)
-        | CXXStdInitializerListExpr -> (Printf.sprintf "Stmt_CXXStdInitializerListExpr(%s,[%s])." node_key instrs)
-        | MessageCall (x) -> (Printf.sprintf "Stmt_MessageCall(%s,%s,[%s])" node_key x instrs) 
-        | Call(x) -> (Printf.sprintf "Stmt_Call(%s,%s,[%s])." node_key x instrs) 
-        | ReturnStmt -> (Printf.sprintf "Stmt_Return(%s,[%s])." node_key instrs) 
-        | DeclStmt -> (Printf.sprintf "Stmt_Decl(%s,[%s])." node_key instrs) 
+        | AssertionFailure ->  (Printf.sprintf "Stmt_AssertionFailure(%s,[%s]). // %s" node_key instrs node_loc)
+        | AtomicCompareExchangeBranch -> (Printf.sprintf "Stmt_AtomicCompareExchangeBranch(%s,[%s]). // %s" node_key instrs node_loc)
+        | AtomicExpr -> (Printf.sprintf "Stmt_AtomicExpr(%s,[%s]). // %s" node_key instrs node_loc)
+        | BetweenJoinAndExit -> (Printf.sprintf "Stmt_BetweenJoinAndExit(%s,[%s]). // %s" node_key instrs node_loc)
+        | BinaryConditionalStmtInit -> (Printf.sprintf "Stmt_BinaryConditionalStmtInit(%s,[%s]). // %s" node_key instrs node_loc)
+        | BinaryOperatorStmt (x)  -> (Printf.sprintf "Stmt_BinaryOperatorStmt(%s,%s,[%s]). // %s" node_key x instrs node_loc)
+        | CallObjCNew -> (Printf.sprintf "Stmt_CallObjCNew(%s,[%s]). // %s" node_key instrs node_loc)
+        | CaseStmt -> (Printf.sprintf "Stmt_CaseStmt(%s,[%s]). // %s" node_key instrs node_loc)
+        | ClassCastException -> (Printf.sprintf "Stmt_ClassCastException(%s,[%s]). // %s" node_key instrs node_loc)
+        | CompoundStmt -> (Printf.sprintf "Stmt_CompoundStmt(%s,[%s]). // %s" node_key instrs node_loc)
+        | ConditionalStmtBranch -> (Printf.sprintf "Stmt_ConditionalStmtBranch(%s,[%s]). // %s" node_key instrs node_loc)
+        | ConstructorInit -> (Printf.sprintf "Stmt_ConstructorInit(%s,[%s]). // %s" node_key instrs node_loc) 
+        | CXXDynamicCast -> (Printf.sprintf "Stmt_CXXDynamicCast(%s,[%s]). // %s" node_key instrs node_loc)
+        | CXXNewExpr -> (Printf.sprintf "Stmt_CXXNewExpr(%s,[%s]). // %s" node_key instrs node_loc)
+        | CXXStdInitializerListExpr -> (Printf.sprintf "Stmt_CXXStdInitializerListExpr(%s,[%s]). // %s" node_key instrs node_loc)
+        | MessageCall (x) -> (Printf.sprintf "Stmt_MessageCall(%s,%s,[%s]). // %s" node_key x instrs node_loc) 
+        | Call(x) -> (Printf.sprintf "Stmt_Call(%s,%s,[%s]). // %s" node_key x instrs node_loc) 
+        | ReturnStmt -> (Printf.sprintf "Stmt_Return(%s,[%s]). // %s" node_key instrs node_loc) 
+        | DeclStmt -> (Printf.sprintf "Stmt_Decl(%s,[%s]). // %s" node_key instrs node_loc) 
+        | UnaryOperator -> (Printf.sprintf "Stmt_UnaryOperator(%s,[%s]). // %s" node_key instrs node_loc) 
         | CXXTemporaryMarkerSet
         | CXXTry
         | CXXTypeidExpr
@@ -730,16 +709,12 @@ let get_facts procedure =
         | SwitchStmt
         | ThisNotNull
         | Throw
-        | ThrowNPE
-        | UnaryOperator 
-         -> 
-         
-         (Printf.sprintf "Stmt_Other(%s)." node_key)
+        | ThrowNPE -> 
+          (*Procdesc.Node.pp_stmt fmt stmt_kind ; *)
+          (Printf.sprintf "Stmt_Other(%s). //%s" node_key node_loc)
       in
 
-        [
-        info
-        ]
+        [info]
     in
 
 
@@ -995,6 +970,7 @@ let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * sta
     Concate(eventHd, eventTail), (stack@stack'@stack'')
 
 
+(* the old version of producing the regular expressions *)
 let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr = 
   let (history, stack) = env in 
   let node_key =  get_key currentState in
@@ -1014,7 +990,56 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
       let env' = ((history@[currentState], stack)) in 
       let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
       let eventTail = disjunctRE residues in 
-      eventTail
+      eventTail   
+
+(*
+let rec getRegularExprFromCFG_helper 
+  (env:reCFG) 
+  (currentState:Procdesc.Node.t): (regularExpr * Procdesc.Node.t option) = 
+  (* return the regularExpr befor the next Join node *)
+  let (history, stack) = env in 
+  let node_key = get_key currentState in
+  match existRecord history node_key with 
+  | Some (prefix, cycle) -> 
+    let prefix', stack' = recordToRegularExpr prefix stack in 
+    let cycle', _ = recordToRegularExpr cycle stack' in 
+    Concate (prefix', Kleene(cycle')), None
+  | None -> 
+    let node_kind = Procdesc.Node.get_kind currentState in
+    (match node_kind with 
+    | Join_node ->  Emp, Some currentState 
+    | _ -> 
+      let nextStates = Procdesc.Node.get_succs currentState in 
+      match nextStates with 
+      | [] -> 
+        let final, _ = recordToRegularExpr (history@[currentState]) stack in 
+        final, None 
+
+      | succLi -> 
+        let env' = ((history@[currentState], stack)) in 
+        let (residues:(regularExpr * Procdesc.Node.t option) list) = 
+          List.map succLi ~f:(fun next -> getRegularExprFromCFG_helper env' next) in 
+
+        let ((finiteTraces, cycles):((regularExpr * Procdesc.Node.t option) list *  regularExpr list)) = List.fold_left residues ~init:([], []) ~f: 
+          (fun (f_acc, c_acc) (re, nextJoin) -> 
+            if cycleTrace re then (f_acc, c_acc@[re])
+            else (f_acc@[(re, nextJoin)], c_acc)
+          )
+        in 
+
+        let segmentDisj = disjunctRE cycles in 
+        let rest, n = getRegularExprFromCFG_helper ([], stack) nextJoin in 
+        Concate(segmentDisj, rest), n
+
+    
+    )
+*)
+
+let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr = 
+  let startState = Procdesc.get_start_node procedure in 
+  let (res) = iterateProc (*getRegularExprFromCFG_helper*) ([], []) startState in 
+  res
+
 
 let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
   let (fstSet:(fstElem list)) = fst re in 
@@ -1044,13 +1069,13 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr =
   ;;
 
 
+
 let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
   (*
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
-  let startState = Procdesc.get_start_node procedure in 
-  let firstPass = iterateProc ([], []) startState in 
+  let firstPass = getRegularExprFromCFG procedure in 
   let secondPass = normalise_es (normaliseTheDisjunctions firstPass) in 
   let lastPass = convertAllTheKleeneToOmega secondPass in  (*this is the step for sumarrizing the loop*)
   lastPass

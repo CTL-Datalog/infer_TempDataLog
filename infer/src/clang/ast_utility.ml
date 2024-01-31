@@ -358,6 +358,15 @@ let rec fst (eff:regularExpr) : (fstElem list) =
   | Kleene effIn      -> [KleeneEv effIn]
   | Omega effIn -> [OmegaEv effIn]
 
+let rec cycleTrace (eff:regularExpr) : bool = 
+  match eff with 
+  | Concate (eff1, eff2) -> cycleTrace eff2
+  | Disjunction (eff1, eff2) -> raise(Failure "cycleTrace has a dijunction")
+  | Kleene effIn      
+  | Omega effIn -> true
+  | _ -> false 
+
+
 let rec reverse (eff:regularExpr) :regularExpr = 
   match eff with 
   | Bot  

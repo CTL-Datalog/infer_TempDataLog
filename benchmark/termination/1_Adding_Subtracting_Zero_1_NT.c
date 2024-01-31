@@ -12,15 +12,15 @@ int main()
 {
 
     int linesToRead = __VERIFIER_nondet_int();
-    if( linesToRead <= 0 )
+    if( linesToRead <= 0 ) //join
         return 0;
     int h = __VERIFIER_nondet_int();
-    while( h > 0 )
+    while( h > 0 ) // join 
     {
-        if( linesToRead > h )
+        if( linesToRead > h ) // join
             linesToRead = h;
         h -= linesToRead;
-    }
+    } 
     int term = 1; 
     return 0;
 
