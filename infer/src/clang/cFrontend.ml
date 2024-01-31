@@ -947,12 +947,16 @@ let rec existRecord (li: Procdesc.Node.t list) n : ((Procdesc.Node.t list) * (Pr
   match li with 
   | [] ->  None 
   | x :: xs  -> 
-    if (get_key x) == n 
-    then Some ([], li) 
+    let keyX = (get_key x) in
+    if keyX == n 
+    then 
+      (
+      Some ([], li)) 
     else 
       match existRecord xs n with 
       | None -> None 
-      | Some (prefix, cycle) -> Some (x::prefix, cycle)
+      | Some (prefix, cycle) -> 
+        Some (x::prefix, cycle)
 
 let rec disjunctRE (li:regularExpr list): regularExpr = 
   match li with 
@@ -992,22 +996,120 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
       let eventTail = disjunctRE residues in 
       eventTail   
 
-(*
-let rec getRegularExprFromCFG_helper 
-  (env:reCFG) 
-  (currentState:Procdesc.Node.t): (regularExpr * Procdesc.Node.t option) = 
-  (* return the regularExpr befor the next Join node *)
-  let (history, stack) = env in 
+let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:Procdesc.Node.t): int list = 
   let node_key = get_key currentState in
   match existRecord history node_key with 
+  | Some (_, _) -> [node_key]
+  | None -> 
+    let nextStates = Procdesc.Node.get_succs currentState in 
+    match nextStates with 
+    | [] -> []
+
+    | succLi -> 
+      let history' = ((history@[currentState])) in 
+      let reoccurrences = List.map succLi ~f:(fun next -> findReoccurrenceJoinNodes history' next) in 
+      List.fold_left reoccurrences ~init:[] ~f:(fun acc a -> acc @ a)
+
+let node_key n = get_key n 
+
+let rec findNextJoin (currentState:Procdesc.Node.t) : Procdesc.Node.t option = 
+  let node_kind = Procdesc.Node.get_kind currentState in
+  (match node_kind with 
+  | Join_node -> Some currentState
+  | _ -> 
+    let nextStates = Procdesc.Node.get_succs currentState in 
+    match nextStates with 
+    | [] -> None 
+    | succLi -> 
+      let nextJoins = List.map succLi ~f:(fun a -> findNextJoin a) in 
+      List.fold_left nextJoins ~init:None ~f:(fun acc cur ->
+        match acc, cur with 
+        | None , _ -> cur
+        | Some _, None -> acc 
+        | Some n1, Some n2 -> 
+          print_endline (string_of_int (node_key n1 )^ " and " ^ string_of_int  (node_key n2 ) ^"\n");
+          acc
+      )
+  )
+
+let rec recursiveFindNextJoin (record:int list) (currentState:Procdesc.Node.t) : int list =  
+  match findNextJoin currentState with 
+  | None  -> record
+  | Some node -> 
+    if existAux (==) record (node_key node) then record
+    else 
+    recursiveFindNextJoin (record@[(node_key node)]) node
+
+
+
+
+(* 
+
+
+let rec tillNextJoin (currentState:Procdesc.Node.t) : (regularExpr * Procdesc.Node.t option * stack) = 
+  
+;;let getRegularExprFromCFG_helper 
+
+
+  (history:regularExpr) 
+  (env:reCFG) 
+  (currentState:Procdesc.Node.t): (regularExpr * Procdesc.Node.t option * stack) = 
+  (* return the regularExpr befor the next Join node *)
+  let (record, stack) = env in 
+  let node_key = get_key currentState in
+
+
+  match existRecord record node_key with 
   | Some (prefix, cycle) -> 
     let prefix', stack' = recordToRegularExpr prefix stack in 
-    let cycle', _ = recordToRegularExpr cycle stack' in 
-    Concate (prefix', Kleene(cycle')), None
+    let cycle', stack'' = recordToRegularExpr cycle stack' in 
+    Concate (prefix', Kleene(cycle')), None, stack''
   | None -> 
-    let node_kind = Procdesc.Node.get_kind currentState in
+
+  
+      | [] -> (* reached the last state (probably the exit node) *)
+        let recordRegular, stack' = recordToRegularExpr (record) stack in 
+        let lastLooping, stack'' = recordToRegularExpr [currentState] stack' in 
+        Concate (recordRegular, Omega(lastLooping)), None, stack''
+      | [succ] ->  (* have only one successor, so just continue to go *)
+        let env' = ((record@[currentState], stack)) in 
+        getRegularExprFromCFG_helper history env' succ 
+      | succLi -> 
+        let recordRegular, stack' = recordToRegularExpr (record) stack in 
+        let history' =  Concate (history, recordRegular) in 
+        let (disjunctions:(regularExpr * Procdesc.Node.t option * stack) list ) = List.map succLi ~f:(fun succ -> 
+          getRegularExprFromCFG_helper history' ([], stack') succ
+        ) in 
+        let ((reExtension, nextJoinNode, stack''): regularExpr list * Procdesc.Node.t option * stack) = 
+          List.fold_left disjunctions ~init:([], None, stack') 
+            ~f:(fun (reAcc, nextJoinAcc, stackAcc) (reTemp, nextJoinTemp, stackTemp) -> 
+              let nextJoinAcc'= 
+                match nextJoinAcc, nextJoinTemp with 
+                | None, _ -> nextJoinTemp
+                | Some _, None -> nextJoinAcc
+                | Some _, Some _ -> nextJoinTemp
+              in ( (reAcc@ [reTemp]), nextJoinAcc', stackAcc@stackTemp)
+            ) 
+        in 
+        let history' = Concate (history, disjunctRE reExtension) in 
+        match nextJoinNode with 
+        | None -> history' , None, stack''
+        | Some nextJoin -> 
+          getRegularExprFromCFG_helper history' ([], stack'') nextJoin
+            
+          
+
+
+
+
+
+    (*
+              let node_kind = Procdesc.Node.get_kind currentState in
     (match node_kind with 
-    | Join_node ->  Emp, Some currentState 
+    | Join_node ->  (* starting a new cycle *)
+      Emp, Some currentState 
+
+    )
     | _ -> 
       let nextStates = Procdesc.Node.get_succs currentState in 
       match nextStates with 
@@ -1034,10 +1136,15 @@ let rec getRegularExprFromCFG_helper
     
     )
 *)
+*)
 
 let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr = 
   let startState = Procdesc.get_start_node procedure in 
-  let (res) = iterateProc (*getRegularExprFromCFG_helper*) ([], []) startState in 
+  let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
+  let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
+  let allTheJoins = recursiveFindNextJoin [] startState in 
+  let _ = List.map allTheJoins ~f:(fun a -> print_endline ("joins" ^ string_of_int a)) in 
+  let (res) = iterateProc ([], []) startState in 
   res
 
 
@@ -1060,12 +1167,13 @@ let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr =
     ) in 
     disjunctRE disjunctions
   
-let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = 
-  match re with 
+let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = re
+(*  match re with 
   | Kleene (reIn) -> Omega reIn
   | Disjunction(r1, r2) -> Disjunction(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | Concate (r1, r2) -> Concate(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | _ -> re
+*)
   ;;
 
 
@@ -1265,15 +1373,14 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
 
+        (* ietrater recycle previousState *)
+        | KleeneEv recycle  (*raise (Failure "having a kleene after the loop summarisation")*)
         | OmegaEv recycle -> 
             
           let (reAcc', ruAcc') = ietrater recycle previousState pathConstrint in 
           let extraFlows = flowsForTheCycle recycle in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (extraFlows, [])] ([], [])
 
-        (* ietrater recycle previousState *)
-        | KleeneEv _ -> raise (Failure "having a kleene after the loop summarisation")
-          
       )
   in 
   ietrater re None None 
