@@ -18,6 +18,9 @@ int main() {
     if (i > 10) {
         x = 1;
     }     
+    if (i > 15) {
+        x = 12;
+    }   
     while (x == y) {} // non-term : true 
     
     int term = 1; 

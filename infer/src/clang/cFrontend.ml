@@ -598,7 +598,8 @@ let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl 
     | _ -> assert false
 
 let get_key node : int  = 
-  let key = (Procdesc.NodeKey.to_string (Procdesc.Node.compute_key node)) in
+  (* Here is to get the ID, which is unique *)
+  let key = (string_of_int (Procdesc.Node.get_id node)) in
   (* Simplification of the identifiers *)
   match IDM.find !node_map key with
   | Some(x) -> x
