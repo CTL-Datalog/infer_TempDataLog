@@ -1009,8 +1009,9 @@ let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:P
 
 
 
-let findTheNextJoinCycle (currentState:Procdesc.Node.t) : Procdesc.Node.t = 
-  let rec helper state = 
+
+let findTheNextJoinCycle stack (currentState:Procdesc.Node.t) : stack * regularExpr * Procdesc.Node.t = 
+  let rec helper state : Procdesc.Node.t = 
     match Procdesc.Node.get_succs state with 
     | [succ1;succ2] -> 
       (match (Procdesc.Node.get_kind succ1, Procdesc.Node.get_kind succ2) with 
@@ -1028,45 +1029,65 @@ let findTheNextJoinCycle (currentState:Procdesc.Node.t) : Procdesc.Node.t =
       )
     | [hd] -> helper hd
     | _ -> raise (Failure "findTheNextJoinCycle4") 
-  in helper currentState
+  in 
+  let nextJoin = helper currentState in 
+  let re = iterateProc ([], stack) currentState in 
+  stack, Kleene(re), nextJoin 
   
 ;;
 
-let rec findTheNextJoin (loopJoins:int list) (currentState:Procdesc.Node.t) (disjunStack:int list) : Procdesc.Node.t option = 
+let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdesc.Node.t) (disjunStack:int list) : stack * regularExpr * Procdesc.Node.t option = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
-  let helper disjunStackIn = 
+  let helper disjunStackIn : stack * regularExpr * Procdesc.Node.t option = 
     let nextStates = Procdesc.Node.get_succs currentState in 
+    let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
     match nextStates with 
-    | [] -> None
-    | [succ] -> findTheNextJoin loopJoins succ disjunStackIn 
-    | succ::_ ->  findTheNextJoin loopJoins succ (currentID:: disjunStackIn)
+    | [] -> 
+      stack'@stack, reExtension , None
+    | [succ] -> 
+      let stack'', re, nextJoin = findTheNextJoin (stack'@stack) loopJoins succ disjunStackIn  in 
+      stack'', Concate(reExtension,re), nextJoin
+    | succ::_ ->
+      let stack'', re, nextJoin = findTheNextJoin (stack'@stack) loopJoins succ (currentID:: disjunStackIn) in 
+      stack'', Concate(reExtension,re), nextJoin
+      
 
   in 
+  
   match node_kind with 
   | Join_node -> 
     if existAux (==) loopJoins currentID then 
-      Some (findTheNextJoinCycle currentState)
-
+      let stack', re, nextJoin = findTheNextJoinCycle stack currentState in 
+      stack', re, Some (nextJoin)
     else 
       (match disjunStack with 
       | [] -> raise (Failure "not possible, there is a join node without any disjunction in front")
-      | [hd] -> Some currentState
+      | [_] -> 
+        let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
+        stack'@stack, reExtension, Some currentState
       | _::tail -> helper tail
 
       )
   | _ -> helper disjunStack 
+  
 ;;
 
 let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) stack (currentState:Procdesc.Node.t): (regularExpr * stack) = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
   (match node_kind with 
-  | Join_node -> (Omega(Emp), stack)
+
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-    (Omega(reExtension), stack')
+    (Omega(reExtension), (stack@stack'))
+
   | _ -> 
+    if existAux (==) loopJoins currentID then 
+      (let stack', re, nextJoin = findTheNextJoinCycle stack currentState in 
+      let history' = Concate (history, Kleene (re)) in 
+      getRegularExprFromCFG_helper loopJoins history' (stack@stack') nextJoin )
+    else 
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
     let history' = Concate (history, reExtension) in
     let stack'' = (stack@stack') in 
@@ -1075,39 +1096,27 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
     | [] -> (history' , stack'')
     | [succ] -> getRegularExprFromCFG_helper loopJoins history' stack'' succ 
     | [succ1;succ2] -> (* if else branch *)
-      let joinID11 = (getNodeID succ1) in
-      let joinID22 = (getNodeID succ2) in
 
-      let (join1:Procdesc.Node.t option) = findTheNextJoin loopJoins succ1 [currentID] in 
-      let (join2:Procdesc.Node.t option) = findTheNextJoin loopJoins succ2 [currentID] in 
+      let s1, re1,(join1:Procdesc.Node.t option) = findTheNextJoin stack'' loopJoins succ1 [currentID] in 
+      let s2, re2, (join2:Procdesc.Node.t option) = findTheNextJoin stack'' loopJoins succ2 [currentID] in 
+      let reDisjunction = Disjunction(re1, re2) in 
+      let stack3 = stack''@s1@s2 in 
       (match join1, join2 with 
       | Some join1, Some join2 -> 
         let joinID1 = (getNodeID join1) in
         let joinID2 = (getNodeID join2) in
         if joinID1 == joinID2 then 
-          let reDisjunction = Emp in 
           getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
         else 
-          let info = 
-           string_of_int currentID ^ " <==> " 
-           ^ string_of_int joinID11 ^ "<-->" ^ string_of_int joinID22 ^ " " 
-           ^ string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
-          let _ = List.map loopJoins ~f:(fun a -> print_endline ("reoccurrance getRegularExprFromCFG_helper" ^ string_of_int a)) in 
+          let info = string_of_int currentID ^ " <==> " ^ string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
           print_endline (info);
-
-          let reDisjunction = Emp in 
-          let re1, _ = getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1 in 
-          let re2, stack''' = getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join2 in 
+          let re1, _ = getRegularExprFromCFG_helper loopJoins (Concate(history', re1)) stack'' join1 in 
+          let re2, stack''' = getRegularExprFromCFG_helper loopJoins (Concate(history', re2)) stack'' join2 in 
           Disjunction (re1, re2), stack''' 
-        (*
-          raise (Failure ("two rechable join nodes are not the same\n" ) )
-          *)
 
-      | Some joinNext, None 
-      | None, Some joinNext -> 
-          let reDisjunction = Emp in 
-          getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' joinNext
-      | None, None -> history', stack''
+      | None, None -> Concate(history', reDisjunction), stack3
+      | None, Some joinNext
+      | Some joinNext, None -> getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack3 joinNext 
 
       )
 
