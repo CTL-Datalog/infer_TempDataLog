@@ -784,6 +784,18 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     | Le -> Some (LtEq (t1, t2))
     | Ge -> Some (GtEq (t1, t2))
     | Ne -> Some (Neg (Eq (t1, t2)))
+    | LAnd | BAnd -> 
+      (match expressionToPure e1 stack, expressionToPure e2 stack with 
+      | Some p1, Some p2 -> Some (PureAnd (p1, p2))
+      | Some p, None | None, Some p -> Some p 
+      | _ -> None 
+      )
+    | LOr | BOr | BXor -> 
+      (match expressionToPure e1 stack, expressionToPure e2 stack with 
+      | Some p1, Some p2 -> Some (PureOr (p1, p2))
+      | Some p, None | None, Some p -> Some p 
+      | _ -> None 
+      )
     | _ -> 
       print_endline ("expressionToPure None : " ^ Exp.to_string exp); 
       None
@@ -813,6 +825,11 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     | Some p -> Some (Neg p)
     | None -> None 
     )
+  | Const _ -> 
+    if String.compare (Exp.to_string exp) "1" == 0 then Some TRUE
+    else 
+      (print_endline ("expressionToPure Const : " ^ Exp.to_string exp ); 
+      None )
   (*| Var _ -> 
     print_endline ("expressionToPure Var None : " ^ Exp.to_string exp); 
     None 
@@ -822,9 +839,7 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
   | Closure _ -> 
     print_endline ("expressionToPure Closure None : " ^ Exp.to_string exp); 
     None 
-  | Const _ -> 
-    print_endline ("expressionToPure Const None : " ^ Exp.to_string exp); 
-    None 
+
   | Cast _ -> 
     print_endline ("expressionToPure Cast None : " ^ Exp.to_string exp); 
     None 
@@ -843,7 +858,7 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     None 
     *)
   | _ -> 
-    print_endline ("expressionToPure 3 None : " ^ Exp.to_string exp); 
+    print_endline ("expressionToPure 3 None : " ^ Exp.to_string exp ); 
     None 
   
 let getPureFromFunctionCall (e_fun:Exp.t) ((Store s):IR.Sil.instr) stack =
@@ -926,7 +941,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
     | Prune (e, loc, f, _):: _ ->  
       (match expressionToPure e stack with 
       | Some p -> Guard(p, node_key)
-      | None -> Singleton(TRUE, node_key) ), []
+      | None -> Guard(TRUE, node_key) ), []
     | _ -> Singleton(TRUE, node_key) , []
     )
   
@@ -1193,11 +1208,10 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
      
   )
 
-
 let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr = 
   let startState = Procdesc.get_start_node procedure in 
   let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
-  let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
+  (*let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in  *)
   let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in 
   r
 
@@ -1221,12 +1235,29 @@ let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr =
         Concate (eventToRe f, normaliseTheDisjunctions deriv)
     ) in 
     disjunctRE disjunctions
+
+let getLoopSummary (re:regularExpr) : regularExpr =  
+  print_endline ("getLoopSummary " ^ string_of_regularExpr re);
+  let (fstSet:(fstElem list)) = fst re in 
+  let fstSet' = removeRedundant fstSet compareEvent in 
+  (match fstSet' with 
+  | [GuardEv (pi, loc)] ->  
+    let f = GuardEv (pi, loc) in 
+    let deriv = (derivitives f re) in 
+    print_endline ("loop guard " ^ string_of_pure pi )
+
+  | [hd] -> raise (Failure ("getLoopSummary: loops has a PureEv head, this is cause by the expressionToPure function not coplete" ^ string_of_fst_event hd))
+  | _-> raise (Failure "loop starting with more than one fst")
+
+  );
+  re
   
 let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = 
   match re with 
   | Kleene (reIn) -> 
     let normalForm = normaliseTheDisjunctions reIn in 
-    Kleene (normalForm)
+    let loopsummary = getLoopSummary normalForm in 
+    Kleene (loopsummary)
   | Disjunction(r1, r2) -> Disjunction(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | Concate (r1, r2) -> Concate(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | _ -> re
@@ -1242,10 +1273,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   *)
   let pass1 = getRegularExprFromCFG procedure in 
   let pass2 = normalise_es (pass1) in 
-  (*print_endline ("\n"^string_of_regularExpr (pass2)^ "\n------------"); *)
-  let pass3 = convertAllTheKleeneToOmega pass2 in  (*this is the step for sumarrizing the loop*)
-  (*print_endline ("\n"^string_of_regularExpr (pass3)^ "\n------------"); *)
-  let pass4 = normalise_es (deleteAllTheJoinNodes pass3) in 
+  let pass3 = normalise_es (deleteAllTheJoinNodes pass2) in 
+  let pass4 = convertAllTheKleeneToOmega pass3 in  (*this is the step for sumarrizing the loop*)
   print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
 
   pass4
