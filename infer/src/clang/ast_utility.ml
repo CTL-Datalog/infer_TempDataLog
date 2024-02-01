@@ -12,6 +12,7 @@ let loc_inter_KeyWord = "locI"
 let transFlowKeyWord = "transFlow"
 let outputShellKeyWord = "_Final"
 let joinNodeKeyWord ="Join"
+let leqKeyWord = "LtEq"
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
 
@@ -1194,6 +1195,7 @@ let rec translation (ctl:ctl) : string * datalog =
     (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,      [ ("x", Number); ("y", Number) ]);
     (transFlowKeyWord,      [ ("x", Number); ("y", Number) ]); 
+    (leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
     ] in
   let defaultRules = [ 
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;

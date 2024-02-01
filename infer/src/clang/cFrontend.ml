@@ -1341,7 +1341,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
     | None -> TRUE 
     | Some pre -> pre 
 
-let getLoopSummary (re:regularExpr) : regularExpr =  
+let getLoopSummary (re:regularExpr) (path:pure): regularExpr =  
   print_endline ("getLoopSummary " ^ string_of_regularExpr re);
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
@@ -1355,11 +1355,10 @@ let getLoopSummary (re:regularExpr) : regularExpr =
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let stateWhenNonTerminate = Singleton(pi, !allTheUniqueIDs) in 
+    let stateWhenNonTerminate = Guard(pi, !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let non_termination_guard weakestPre = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), !allTheUniqueIDs)) in 
-
-    (match wp4Termination deriv pi rankingFun with 
+    (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
     | FALSE -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
     | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
     | weakestPre -> 
@@ -1376,15 +1375,22 @@ let getLoopSummary (re:regularExpr) : regularExpr =
 
 
   
-let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = 
+let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * pure = 
   match re with 
   | Kleene (reIn) -> 
     let normalForm = normaliseTheDisjunctions reIn in 
-    let loopsummary = getLoopSummary normalForm in 
-    loopsummary
-  | Disjunction(r1, r2) -> Disjunction(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
-  | Concate (r1, r2) -> Concate(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
-  | _ -> re
+    let loopsummary = getLoopSummary normalForm path in 
+    loopsummary, path
+  | Disjunction(r1, r2) -> 
+    let re1, path1 = convertAllTheKleeneToOmega r1 path in 
+    let re2, path2 = convertAllTheKleeneToOmega r2 path in 
+    Disjunction(re1, re2), PureOr(path1, path2)
+  | Concate (r1, r2) -> 
+    let re', path' = convertAllTheKleeneToOmega r1 path in 
+    let re2', path'' = convertAllTheKleeneToOmega r2 path' in 
+    Concate(re',  re2'), path''
+  | Guard (pi', _) -> re, PureAnd(pi', path)
+  | _ -> re, path
 
   ;;
 
@@ -1407,7 +1413,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let pass1 = getRegularExprFromCFG procedure in 
   let pass3 = normalise_es (deleteAllTheJoinNodes pass1) in 
   recordTheMaxValue4RE pass3;
-  let pass4 = normalise_es (convertAllTheKleeneToOmega pass3 ) in  (*this is the step for sumarrizing the loop*)
+  let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
+  let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
   print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
 
   pass4
@@ -1480,9 +1487,9 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | GtEq (t1, t2) -> [("GtEq", [t1;t2;loc])]
 
   | Neg (Gt (Basic(BVAR var), t2))
-  | LtEq (Basic(BVAR var), t2) -> [("LtEq", [Basic(BSTR var);t2;loc])]
+  | LtEq (Basic(BVAR var), t2) -> [(leqKeyWord, [Basic(BSTR var);t2;loc])]
   | Neg (Gt (t1, t2))
-  | LtEq (t1, t2) -> [("LtEq", [t1;t2;loc])]
+  | LtEq (t1, t2) -> [(leqKeyWord, [t1;t2;loc])]
 
   | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);Basic(BSTR var2);loc])]
   | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
