@@ -935,7 +935,10 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           | Load l -> (l.e, l.id) :: acc 
           | _ -> acc
         ) in 
-        Singleton(TRUE, node_key), stack
+        Emp , stack
+        (*Singleton(TRUE, node_key), stack *)
+        (* This is to avoid th extra (T)@loc before the guard, we only need to 
+           record the stack, but no need any event *)
 
       else 
         (match getPureFromBinaryOperatorStmtInstructions op instrs stack with 
@@ -969,12 +972,46 @@ let rec existRecord (li: Procdesc.Node.t list) n : ((Procdesc.Node.t list) * (Pr
       | Some (prefix, cycle) -> 
         Some (x::prefix, cycle)
 
+
+
 let rec disjunctRE (li:regularExpr list): regularExpr = 
   match li with 
   | [] -> Bot 
   | [x] -> x 
-  | x :: xs -> Disjunction (x, disjunctRE xs)
+  | x :: xs -> 
+    let x = normalise_es x in 
+    let rest = normalise_es (disjunctRE xs) in 
+    (*
+    print_endline (string_of_regularExpr x);
+    print_endline (string_of_regularExpr rest);
+    print_endline ("========");   
+    *)
 
+
+    (match x, rest with 
+    | Kleene(re1), Kleene(re2) -> 
+        (*
+        print_endline (string_of_regularExpr re1);
+        print_endline (string_of_regularExpr re2);
+        print_endline ("~~~~~");
+        *)
+
+
+      (match fst re1, fst re2 with 
+      | [f1], [f2] -> 
+        (*
+        print_endline (string_of_fst_event f1);
+        print_endline (string_of_fst_event f2);
+        print_endline ("~~~~~");   
+        *)
+
+        if compareEvent f1 f2 then Kleene(normalise_es(Disjunction(re1, re2)))
+        else Disjunction (x, disjunctRE xs)
+      | _ -> Disjunction (x, disjunctRE xs)
+      )
+    | _ -> Disjunction (x, disjunctRE xs)
+    )
+    
 let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * stack) = 
   match li with 
   | [] -> Emp, []
@@ -1005,7 +1042,7 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
       let env' = ((history@[currentState], stack)) in 
       let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
       let eventTail = disjunctRE residues in 
-      eventTail   
+      eventTail 
 
 let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:Procdesc.Node.t): int list = 
   let node_key = getNodeID currentState in
@@ -1056,6 +1093,8 @@ let findTheNextJoinCycle stack (currentState:Procdesc.Node.t) : stack * regularE
   stack, re, nextJoin 
   
 ;;
+
+
 
 let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdesc.Node.t) (disjunStack:int list) : stack * regularExpr * Procdesc.Node.t option = 
   let node_kind = Procdesc.Node.get_kind currentState in
@@ -1155,8 +1194,8 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
   let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in 
   print_endline ("\n"^string_of_regularExpr (normalise_es r)); 
-  let (res) = iterateProc ([], []) startState in 
-  res
+  (*let (res) = iterateProc ([], []) startState in  *)
+  r
 
 
 let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
