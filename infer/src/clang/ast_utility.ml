@@ -107,10 +107,10 @@ let (varSet: (string list) ref) = ref []
 let (handlerVar: string option ref) = ref None 
 
 (* Experimental Summary *)
+let allTheUniqueIDs = ref (-1)
 let totol_execution_time  = ref 0.0
 let totol_Lines_of_Code  = ref 0
 let totol_Lines_of_Spec  = ref 0
-
 let currentFunctionLineNumber = ref (0, 0) 
 
 
@@ -515,19 +515,18 @@ let normalise_terms (t:terms) : terms =
 
 let rec normalise_pure (pi:pure) : pure = 
   match pi with 
-|  TRUE 
-| FALSE -> pi
-| Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
-| Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
-| GtEq (t1, t2) ->  GtEq (normalise_terms t1, normalise_terms t2)
-| LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
-| Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
-| PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
-| Neg piN -> Neg (normalise_pure piN)
-| PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
-| Predicate (str, termLi) -> 
-  Predicate (str, List.map termLi ~f:(normalise_terms))
-
+  | TRUE 
+  | FALSE -> pi
+  | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
+  | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
+  | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
+  | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
+  | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
+  | PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | Neg piN -> Neg (normalise_pure piN)
+  | PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | Predicate (str, termLi) -> 
+    Predicate (str, List.map termLi ~f:(normalise_terms))
 
 
 let rec normalise_es (eff:regularExpr) : regularExpr = 

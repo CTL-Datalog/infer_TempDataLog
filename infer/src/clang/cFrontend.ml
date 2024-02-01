@@ -1352,15 +1352,19 @@ let getLoopSummary (re:regularExpr) : regularExpr =
     let deriv = normalise_es (derivitives f re) in 
     print_endline ("loop guard " ^ string_of_pure pi );
     let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
-    let stateAfterTerminate = Singleton(Neg (pi), loc+1000) in 
-    let stateWhenNonTerminate = Singleton(pi, loc+2000) in 
-    let non_termination_guard weakestPre = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), loc+2001)) in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let stateWhenNonTerminate = Singleton(pi, !allTheUniqueIDs) in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let non_termination_guard weakestPre = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), !allTheUniqueIDs)) in 
 
     (match wp4Termination deriv pi rankingFun with 
     | FALSE -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
     | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
     | weakestPre -> 
-      let terminating = eventToRe (GuardEv (PureAnd(pi, weakestPre), loc+1001))  in 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let terminating = eventToRe (GuardEv (PureAnd(pi, weakestPre), !allTheUniqueIDs))  in 
       let non_terminating = Omega (Concate(non_termination_guard weakestPre, stateWhenNonTerminate )) in 
       disjunctRE [
         Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
@@ -1384,6 +1388,14 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr =
 
   ;;
 
+let rec recordTheMaxValue4RE (re:regularExpr): unit = 
+  match  re with 
+  | Guard (_, loc)
+  | Singleton (_, loc) -> if loc > !allTheUniqueIDs then allTheUniqueIDs:=loc else ()
+  | Concate (re1, re2) 
+  | Disjunction (re1, re2) -> recordTheMaxValue4RE re1; recordTheMaxValue4RE re2
+  | Omega reIn | Kleene reIn -> recordTheMaxValue4RE reIn 
+  | Bot | Emp -> ()
 
 
 let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
@@ -1391,9 +1403,11 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
+  let () = allTheUniqueIDs := (-1) in 
   let pass1 = getRegularExprFromCFG procedure in 
   let pass3 = normalise_es (deleteAllTheJoinNodes pass1) in 
-  let pass4 = normalise_es (convertAllTheKleeneToOmega pass3) in  (*this is the step for sumarrizing the loop*)
+  recordTheMaxValue4RE pass3;
+  let pass4 = normalise_es (convertAllTheKleeneToOmega pass3 ) in  (*this is the step for sumarrizing the loop*)
   print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
 
   pass4
