@@ -516,7 +516,7 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | (Bot, _) -> Bot
     | (_, Bot) -> Bot
     | (Omega _, _) -> es1
-    (*| (Disjunction (es11, es12), es3) -> Disjunction(Concate (es11,es3),  Concate (es12, es3)) *)
+    | (Disjunction (es11, es12), es3) -> Disjunction(normalise_es (Concate (es11,es3)),  normalise_es (Concate (es12, es3))) 
     | (Concate (es11, es12), es3) -> (Concate (es11, normalise_es (Concate (es12, es3))))
     | _ -> (Concate (es1, es2))
     )

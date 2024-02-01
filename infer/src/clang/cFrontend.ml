@@ -1254,8 +1254,9 @@ let rec makeAGuess (pi:pure) : terms option =
 let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
   match rankingFun with 
   | None ->  FALSE
-  | Some rankingTerm -> Eq (rankingTerm, rankingTerm)
-
+  | Some rankingTerm -> 
+    print_endline ("current ranking function is " ^ string_of_terms rankingTerm); 
+    Eq (rankingTerm, rankingTerm)
 
 let getLoopSummary (re:regularExpr) : regularExpr =  
   print_endline ("getLoopSummary " ^ string_of_regularExpr re);
@@ -1265,12 +1266,21 @@ let getLoopSummary (re:regularExpr) : regularExpr =
   | [GuardEv (pi, loc)] ->  
     let f = GuardEv (pi, loc) in 
     let (rankingFun:terms option) = makeAGuess pi in 
-    let deriv = (derivitives f re) in 
+    let deriv = normalise_es (derivitives f re) in 
     print_endline ("loop guard " ^ string_of_pure pi );
+    let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
+    let stateAfterTerminate = Singleton(Neg (pi), loc+1000) in 
+    let stateWhenNonTerminate = Singleton(pi, loc+2000) in 
+    let non_termination_guard weakestPre = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), loc+2001)) in 
+
     (match wp4Termination deriv pi rankingFun with 
-    | TRUE -> eventToRe (PureEv (Neg (pi), loc))
-    | FALSE -> Disjunction (Omega (re), eventToRe (GuardEv (Neg (pi), loc)))
-    | weakestPre -> re
+    | FALSE -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
+    | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
+    | weakestPre -> 
+      let terminating = eventToRe (GuardEv (PureAnd(pi, weakestPre), loc+1001))  in 
+      let non_terminating = Omega (Concate(non_termination_guard weakestPre, stateWhenNonTerminate )) in 
+      disjunctRE [
+        Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
     )
 
 
