@@ -506,6 +506,30 @@ let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr =
 
   ;;
 
+let normalise_terms (t:terms) : terms = 
+  match t with 
+  | Minus (t1, Minus (t2, t3)) -> 
+    if stricTcompareTerm t1 t2 then t3 
+    else t 
+  | _ -> t 
+
+let rec normalise_pure (pi:pure) : pure = 
+  match pi with 
+|  TRUE 
+| FALSE -> pi
+| Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
+| Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
+| GtEq (t1, t2) ->  GtEq (normalise_terms t1, normalise_terms t2)
+| LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
+| Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
+| PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+| Neg piN -> Neg (normalise_pure piN)
+| PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+| Predicate (str, termLi) -> 
+  Predicate (str, List.map termLi ~f:(normalise_terms))
+
+
+
 let rec normalise_es (eff:regularExpr) : regularExpr = 
   match eff with 
   | Disjunction(es1, es2) -> 
