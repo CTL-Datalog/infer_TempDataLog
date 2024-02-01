@@ -979,7 +979,7 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
   match existRecord history node_key with 
   | Some (prefix, cycle) -> 
     let prefix', stack' = recordToRegularExpr prefix stack in 
-    let cycle', _ = recordToRegularExpr cycle stack' in 
+    let cycle', _ = recordToRegularExpr cycle (stack@stack') in 
     Concate (prefix', Kleene(cycle'))
   | None -> 
     let nextStates = Procdesc.Node.get_succs currentState in 
@@ -1008,21 +1008,24 @@ let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:P
       List.fold_left reoccurrences ~init:[] ~f:(fun acc a -> acc @ a)
 
 
-
-
 let findTheNextJoinCycle stack (currentState:Procdesc.Node.t) : stack * regularExpr * Procdesc.Node.t = 
-  let rec helper state : Procdesc.Node.t = 
+  let rec helper state : (Procdesc.Node.t * Procdesc.Node.t * stack) = 
     match Procdesc.Node.get_succs state with 
     | [succ1;succ2] -> 
+      let _, stack' = recordToRegularExpr ([state]) stack in 
+      (*
+      print_endline ("helper node" ^ string_of_int (getNodeID state) );
+      print_endline ((String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x ^ "->" ^ Ident.to_string y) stack')));
+      *)
       (match (Procdesc.Node.get_kind succ1, Procdesc.Node.get_kind succ2) with 
       | (Prune_node(false, _, _), Prune_node(true, _, _)) -> 
         (match (Procdesc.Node.get_succs succ1) with 
-        | hd::_ -> hd
+        | hd::_ -> hd, succ2, stack'
         | _ -> raise (Failure "findTheNextJoinCycle1")  
         )
       | (Prune_node(true, _, _), Prune_node(false, _, _)) -> 
         (match (Procdesc.Node.get_succs succ2) with 
-        | hd::_ -> hd
+        | hd::_ -> hd, succ1, stack'
         | _ -> raise (Failure "findTheNextJoinCycle2")  
         )
       | _ -> raise (Failure "findTheNextJoinCycle3") 
@@ -1030,9 +1033,14 @@ let findTheNextJoinCycle stack (currentState:Procdesc.Node.t) : stack * regularE
     | [hd] -> helper hd
     | _ -> raise (Failure "findTheNextJoinCycle4") 
   in 
-  let nextJoin = helper currentState in 
-  let re = iterateProc ([], stack) currentState in 
-  stack, Kleene(re), nextJoin 
+  let nextJoin, positiveStarting, stack' = helper currentState in 
+  (*print_endline ("negetive node:" ^ string_of_int (getNodeID nextJoin) ^ ", and the postive point:" 
+  ^ string_of_int (getNodeID positiveStarting)); 
+  print_endline ("current node" ^ string_of_int (getNodeID currentState) );
+  print_endline ((String.concat ~sep:"," (List.map ~f:(fun (x,y) -> Exp.to_string x ^ "->" ^ Ident.to_string y) (stack@stack'))));
+    *)
+  let re = iterateProc ([(currentState)], stack@stack') positiveStarting in 
+  stack, re, nextJoin 
   
 ;;
 
@@ -1064,8 +1072,7 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
       (match disjunStack with 
       | [] -> raise (Failure "not possible, there is a join node without any disjunction in front")
       | [_] -> 
-        let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-        stack'@stack, reExtension, Some currentState
+        stack, Emp, Some currentState
       | _::tail -> helper tail
 
       )
@@ -1080,12 +1087,12 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
 
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-    (Omega(reExtension), (stack@stack'))
+    (Concate (history, Omega(reExtension)), (stack@stack'))
 
   | _ -> 
     if existAux (==) loopJoins currentID then 
       (let stack', re, nextJoin = findTheNextJoinCycle stack currentState in 
-      let history' = Concate (history, Kleene (re)) in 
+      let history' = Concate (history, (re)) in 
       getRegularExprFromCFG_helper loopJoins history' (stack@stack') nextJoin )
     else 
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
@@ -1130,6 +1137,7 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
   let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in 
+  print_endline ("\n"^string_of_regularExpr (normalise_es r)); 
   let (res) = iterateProc ([], []) startState in 
   res
 
