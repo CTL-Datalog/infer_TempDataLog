@@ -1250,13 +1250,96 @@ let rec makeAGuess (pi:pure) : terms option =
     | _, _-> None 
     )
   | _ -> None 
+  
+let rec findStateRecord (t:terms) (s:((terms * terms)list)) = 
+    match s with 
+    | [] -> None 
+    | (t1, t2) :: xs -> 
+      if stricTcompareTerm t t1 
+      then Some (t2, xs)
+      else 
+        (match findStateRecord t xs  with 
+        | None  -> None 
+        | Some (t', xs) -> Some (t', (t1, t2)::xs) 
+        )   
+;;
+  
+
+let updateStateBasedOnCurrentValues (state:((terms * terms)list)) (target:terms) (newValue:terms) : ((terms * terms)list) = 
+  let rec subsititude (t:terms) : terms = 
+    match findStateRecord t state with 
+    | Some (t', _) -> t' 
+    | None  -> 
+      (match t with 
+      | Basic _ -> t 
+      | Plus (t1, t2) -> Plus (subsititude t1, subsititude t2)
+      | Minus (t1, t2) -> Minus (subsititude t1, subsititude t2)
+
+      )
+  in 
+  let newValue' = subsititude newValue in 
+  match findStateRecord target state with 
+  | Some (_, rest) -> (target, newValue') :: rest 
+  | None -> (target, newValue') :: state
+  ;;
+
+let transitionSummary (re:regularExpr) : transitionSummary = 
+  let updateTransitionPath acc pi = List.map acc ~f:(fun (pAcc, state) -> (PureAnd(pAcc, pi), state)) in 
+  let updateTransitionStates acc pi = 
+    match pi with 
+    | Eq (t1, t2) -> 
+      List.map acc ~f:(
+      fun (pAcc, state) -> 
+        let state' = updateStateBasedOnCurrentValues state t1 t2 in 
+        (pAcc, state')) 
+    | _ -> acc 
+  in 
+  let rec helper acc reIn : transitionSummary = 
+    match reIn with 
+    | Emp | Bot -> acc 
+    | Singleton (pi, _) -> updateTransitionStates acc pi 
+    | Guard(pi, _) -> updateTransitionPath acc pi  
+    | Disjunction (re1, re2) ->
+      helper acc re1 @ helper acc re2
+    | Concate (re1, re2) -> 
+      let acc' = helper acc re1 in 
+      helper acc' re2
+    | Omega _ | Kleene _ -> raise (Failure "there is a cycly inside a cycle")
+   
+  in 
+  helper [(TRUE, [])] re
+
+  ;;
 
 let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
   match rankingFun with 
-  | None ->  FALSE
+  | None -> FALSE
   | Some rankingTerm -> 
+    let (transitionSummary:transitionSummary) = transitionSummary re in 
     print_endline ("current ranking function is " ^ string_of_terms rankingTerm); 
-    Eq (rankingTerm, rankingTerm)
+    let (precondition: pure option) = List.fold_left transitionSummary ~init:None 
+      ~f:(fun acc (path, stateLi) -> 
+      print_endline (string_of_transitionSummary [(path, stateLi)]);
+      let (pureIter:pure option) = 
+        match findStateRecord rankingTerm stateLi with 
+        | None -> Some (Ast_utility.FALSE) (*print_endline("the rancking function did not decreace at all")*)
+        | Some (rankingTerm', _) -> 
+          let left_hand_side = PureAnd (guard, path) in 
+          let right_hand_side = Gt(Minus(rankingTerm, rankingTerm'), Basic(BINT 0))in 
+          let res = entailConstrains left_hand_side right_hand_side in 
+          if res then None 
+          else Some right_hand_side
+      in 
+      match acc, pureIter with 
+      | Some a, None 
+      | None, Some a -> Some a 
+      | None , None -> None 
+      | Some a, Some b -> Some (PureAnd(a, b))
+    ) 
+    in 
+    match precondition with 
+    | None -> TRUE 
+    | Some pre -> pre 
 
 let getLoopSummary (re:regularExpr) : regularExpr =  
   print_endline ("getLoopSummary " ^ string_of_regularExpr re);

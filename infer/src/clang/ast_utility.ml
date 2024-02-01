@@ -46,6 +46,9 @@ type fact = (string *  (basic_type list))
 type facts = fact list
 type reachableState = int list 
 
+type transitionSummary = (pure * ((terms * terms)list)) list
+
+
 (* facts is the abstract interpretation, 
 the first int is the exit code, and the reachableState is the most recent pre-states *)
 type programState = (facts * int * reachableState)
@@ -230,6 +233,14 @@ let rec string_of_pure (p:pure):string =
 
   | Neg p -> "!(" ^ string_of_pure p^")"
   | Predicate (str, termLi) -> str ^ "(" ^ string_of_list_terms termLi ^ ")"
+
+
+
+let rec string_of_transitionSummary (su:transitionSummary) : string = 
+  (String.concat ~sep:";\n" (List.map ~f:(fun (x,y) -> 
+    string_of_pure x ^ " /\\ " ^  
+    (String.concat ~sep:" , " ((List.map ~f:(fun (t1, t2) -> string_of_terms t1 ^"->"^ string_of_terms t2 ) y)))
+  ) su))
 
 
 let rec string_of_ctl (ctl:ctl) = 
