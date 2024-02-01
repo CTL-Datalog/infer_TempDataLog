@@ -1325,7 +1325,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
         | None -> Some (Ast_utility.FALSE) (*print_endline("the rancking function did not decreace at all")*)
         | Some (rankingTerm', _) -> 
           let left_hand_side = PureAnd (guard, path) in 
-          let right_hand_side = Gt(Minus(rankingTerm, rankingTerm'), Basic(BINT 0))in 
+          let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in 
           let res = entailConstrains left_hand_side right_hand_side in 
           if res then None 
           else Some right_hand_side
