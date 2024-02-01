@@ -1236,28 +1236,55 @@ let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr =
     ) in 
     disjunctRE disjunctions
 
+let rec makeAGuess (pi:pure) : terms option = 
+  match pi with 
+  | LtEq (t, Basic (BINT 0)) 
+  | Lt (t, Basic (BINT 0)) -> Some (Minus(Basic (BINT 0), t))
+  | GtEq (t, Basic (BINT 0)) 
+  | Gt (t, Basic (BINT 0)) -> Some t 
+  | PureAnd (p1, p2) 
+  | PureOr (p1, p2) -> 
+    (match makeAGuess p1, makeAGuess p2 with 
+    | Some t1, _ 
+    | _, Some t1 -> Some t1
+    | _, _-> None 
+    )
+  | _ -> None 
+
+let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
+  match rankingFun with 
+  | None ->  FALSE
+  | Some rankingTerm -> Eq (rankingTerm, rankingTerm)
+
+
 let getLoopSummary (re:regularExpr) : regularExpr =  
   print_endline ("getLoopSummary " ^ string_of_regularExpr re);
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
-  (match fstSet' with 
+  match fstSet' with 
   | [GuardEv (pi, loc)] ->  
     let f = GuardEv (pi, loc) in 
+    let (rankingFun:terms option) = makeAGuess pi in 
     let deriv = (derivitives f re) in 
-    print_endline ("loop guard " ^ string_of_pure pi )
+    print_endline ("loop guard " ^ string_of_pure pi );
+    (match wp4Termination deriv pi rankingFun with 
+    | TRUE -> eventToRe (PureEv (Neg (pi), loc))
+    | FALSE -> Disjunction (Omega (re), eventToRe (GuardEv (Neg (pi), loc)))
+    | weakestPre -> re
+    )
+
 
   | [hd] -> raise (Failure ("getLoopSummary: loops has a PureEv head, this is cause by the expressionToPure function not coplete" ^ string_of_fst_event hd))
   | _-> raise (Failure "loop starting with more than one fst")
 
-  );
-  re
+
   
 let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = 
   match re with 
   | Kleene (reIn) -> 
     let normalForm = normaliseTheDisjunctions reIn in 
     let loopsummary = getLoopSummary normalForm in 
-    Kleene (loopsummary)
+    loopsummary
   | Disjunction(r1, r2) -> Disjunction(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | Concate (r1, r2) -> Concate(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | _ -> re
@@ -1272,9 +1299,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
   let pass1 = getRegularExprFromCFG procedure in 
-  let pass2 = normalise_es (pass1) in 
-  let pass3 = normalise_es (deleteAllTheJoinNodes pass2) in 
-  let pass4 = convertAllTheKleeneToOmega pass3 in  (*this is the step for sumarrizing the loop*)
+  let pass3 = normalise_es (deleteAllTheJoinNodes pass1) in 
+  let pass4 = normalise_es (convertAllTheKleeneToOmega pass3) in  (*this is the step for sumarrizing the loop*)
   print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
 
   pass4
@@ -1351,7 +1377,7 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Neg (Gt (t1, t2))
   | LtEq (t1, t2) -> [("LtEq", [t1;t2;loc])]
 
-  | Neg (Eq (Basic(BVAR var), t2)) -> [("NotEq", [Basic(BSTR var);t2;loc])]
+  | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);Basic(BSTR var2);loc])]
   | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
 
 
@@ -1465,7 +1491,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
 
         (* ietrater recycle previousState *)
-        | KleeneEv recycle  (*raise (Failure "having a kleene after the loop summarisation")*)
+        | KleeneEv _ ->  raise (Failure "having a kleene after the loop summarisation")
         | OmegaEv recycle -> 
             
           let (reAcc', ruAcc') = ietrater recycle previousState pathConstrint in 
@@ -1531,7 +1557,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       List.append accs [summary] )) 
   in
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
-      let (facts, rules) = convertRE2Datalog summary in 
+      let (facts, rules) = convertRE2Datalog (summary) in 
       
       ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
       string_of_facts (sortFacts facts) :: 

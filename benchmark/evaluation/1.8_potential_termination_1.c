@@ -3,7 +3,7 @@
  *
  * -ctl "EF{exit: true}"
  */
-/*@ AF(term =1) @*/
+/*@ EF(term =1) @*/
 
 int _nondet_int(void);
 
