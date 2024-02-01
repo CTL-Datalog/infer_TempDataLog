@@ -648,7 +648,7 @@ let get_facts procedure =
         (Printf.sprintf "Exit(%s).  // %s" node_key node_loc);
         ]
       | Join_node ->  [
-        (Printf.sprintf "Join(%s,[%s]).  // %s" node_key instrs node_loc);
+        (Printf.sprintf "%s(%s,[%s]).  // %s" joinNodeKeyWord node_key instrs node_loc);
         ] 
       | Skip_node t ->  [
         (Printf.sprintf "Skip(%s,%s,[%s]).  // %s" node_key t instrs node_loc);
@@ -862,6 +862,9 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       let exp1 = s.e1 in 
       let exp2 = s.e2 in 
       Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
+    | Load l :: tail ->
+      let stack' = (l.e, l.id):: stack in 
+      getPureFromBinaryOperatorStmtInstructions "Assign" tail stack'
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
       (*print_endline (Exp.to_string e_fun) ;   *)
       getPureFromFunctionCall e_fun (Store s) stack
@@ -869,9 +872,12 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
     | _ -> None 
   else if String.compare op "SubAssign" == 0 then  
     match instrs with 
-    | [Load l1; Load l2; store] -> 
-      let stack' = (l1.e, l1.id) :: (l2.e, l2.id)  :: stack in 
-      getPureFromBinaryOperatorStmtInstructions "Assign" [(store)] (stack'@stack)
+    | Store s :: _ ->  
+      getPureFromBinaryOperatorStmtInstructions "Assign" instrs stack
+    | Load l :: tail ->
+      let stack' = (l.e, l.id):: stack in 
+      getPureFromBinaryOperatorStmtInstructions "SubAssign" tail stack'
+
     | _ -> None 
   else None
 
@@ -1193,37 +1199,38 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in 
   let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in 
-  print_endline ("\n"^string_of_regularExpr (normalise_es r)); 
-  (*let (res) = iterateProc ([], []) startState in  *)
   r
 
 
 let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
-
   (*
   print_endline (" ============ \n" ^ string_of_regularExpr re ^ ":\n"); 
   print_endline (List.fold_left fstSet ~init:"" ~f:(fun acc a -> acc ^ ", " ^  (string_of_fst_event a)) ^ "\n");
   print_endline (List.fold_left fstSet' ~init:"" ~f:(fun acc a -> acc ^ ", " ^ (string_of_fst_event a)));
   *)
-
   match fstSet' with 
   | [] -> normalise_es re     
   | _ -> 
     let disjunctions = List.map fstSet' ~f:(fun f -> 
       let deriv = normalise_es (derivitives f re) in 
-      Concate (eventToRe f, normaliseTheDisjunctions deriv)
+      match deriv with 
+      | Emp -> eventToRe f
+      | _ ->
+        Concate (eventToRe f, normaliseTheDisjunctions deriv)
     ) in 
     disjunctRE disjunctions
   
-let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = re
-(*  match re with 
-  | Kleene (reIn) -> Omega reIn
+let rec convertAllTheKleeneToOmega (re:regularExpr) : regularExpr = 
+  match re with 
+  | Kleene (reIn) -> 
+    let normalForm = normaliseTheDisjunctions reIn in 
+    Kleene (normalForm)
   | Disjunction(r1, r2) -> Disjunction(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | Concate (r1, r2) -> Concate(convertAllTheKleeneToOmega r1, convertAllTheKleeneToOmega r2)
   | _ -> re
-*)
+
   ;;
 
 
@@ -1233,10 +1240,15 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
-  let firstPass = getRegularExprFromCFG procedure in 
-  let secondPass = normalise_es (normaliseTheDisjunctions firstPass) in 
-  let lastPass = convertAllTheKleeneToOmega secondPass in  (*this is the step for sumarrizing the loop*)
-  lastPass
+  let pass1 = getRegularExprFromCFG procedure in 
+  let pass2 = normalise_es (pass1) in 
+  (*print_endline ("\n"^string_of_regularExpr (pass2)^ "\n------------"); *)
+  let pass3 = convertAllTheKleeneToOmega pass2 in  (*this is the step for sumarrizing the loop*)
+  (*print_endline ("\n"^string_of_regularExpr (pass3)^ "\n------------"); *)
+  let pass4 = normalise_es (deleteAllTheJoinNodes pass3) in 
+  print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
+
+  pass4
   ;;
 
 let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 

@@ -10,8 +10,8 @@ let stateKeyWord = "State"
 let locKeyWord = "loc"
 let loc_inter_KeyWord = "locI"
 let transFlowKeyWord = "transFlow"
-
 let outputShellKeyWord = "_Final"
+let joinNodeKeyWord ="Join"
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
 
@@ -484,6 +484,16 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
       )
     | _ -> None )
 
+let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr = 
+  match re with 
+  | Singleton (Predicate (s, _), state) -> 
+    if String.compare s joinNodeKeyWord == 0 then Emp else re 
+  | Kleene (reIn) -> Kleene (deleteAllTheJoinNodes reIn)
+  | Disjunction(r1, r2) -> Disjunction(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
+  | Concate (r1, r2) -> Concate(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
+  | _ -> re
+
+  ;;
 
 let rec normalise_es (eff:regularExpr) : regularExpr = 
   match eff with 
