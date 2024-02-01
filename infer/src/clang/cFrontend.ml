@@ -740,7 +740,7 @@ let rec existStack stack t : Exp.t option =
     then Some exp
     else  existStack xs t
 
-let expressionToTerm (exp:Exp.t) stack : terms  = 
+let rec expressionToTerm (exp:Exp.t) stack : terms  = 
   match exp with 
   | Var t -> 
     (match existStack stack t with 
@@ -757,6 +757,13 @@ let expressionToTerm (exp:Exp.t) stack : terms  =
     )
 
   | UnOp _ -> Basic (BVAR ("UnOp"))
+  | BinOp (MinusA _, e1, e2)
+  | BinOp (MinusPI, e1, e2)
+  | BinOp (MinusPP, e1, e2) -> 
+    let t1 = expressionToTerm e1 stack in 
+    let t2 = expressionToTerm e2 stack in 
+    Minus (t1, t2)
+
   | BinOp _ -> Basic (BVAR ("BinOp"))
   | Exn _ -> Basic (BVAR ("Exn"))
   | Closure _ -> Basic (BVAR ("Closure"))
@@ -845,7 +852,7 @@ let getPureFromFunctionCall (e_fun:Exp.t) ((Store s):IR.Sil.instr) stack =
     Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
   else None 
 
-let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
+let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
   (*print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
   *)
   if String.compare op "Assign" == 0 then 
@@ -859,6 +866,12 @@ let getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr lis
       (*print_endline (Exp.to_string e_fun) ;   *)
       getPureFromFunctionCall e_fun (Store s) stack
     
+    | _ -> None 
+  else if String.compare op "SubAssign" == 0 then  
+    match instrs with 
+    | [Load l1; Load l2; store] -> 
+      let stack' = (l1.e, l1.id) :: (l2.e, l2.id)  :: stack in 
+      getPureFromBinaryOperatorStmtInstructions "Assign" [(store)] (stack'@stack)
     | _ -> None 
   else None
 
@@ -1064,6 +1077,10 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
   in 
   
   match node_kind with 
+  | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
+    let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
+    (stack@stack'), Omega(reExtension), None 
+
   | Join_node -> 
     if existAux (==) loopJoins currentID then 
       let stack', re, nextJoin = findTheNextJoinCycle stack currentState in 
