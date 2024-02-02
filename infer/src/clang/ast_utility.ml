@@ -386,7 +386,7 @@ let rec reverse (eff:regularExpr) :regularExpr =
   | Singleton _ 
   | Guard _ -> eff
   | Concate (eff1, eff2) -> Concate (reverse eff2, reverse eff1)    
-  | Disjunction (eff1, eff2) -> Concate (reverse eff1, reverse eff2)    
+  | Disjunction (eff1, eff2) -> Disjunction (reverse eff1, reverse eff2)    
   | Kleene effIn      -> Kleene (reverse effIn)
   | Omega effIn  -> Omega (reverse effIn)
 

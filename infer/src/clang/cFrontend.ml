@@ -1591,9 +1591,10 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | Some previousState -> 
               let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
+              let currentGuardBody = (pureToBodies guard (Some previousState)) in 
               (match pathConstrint with 
-              | None -> [stateFact], [(fact, (pureToBodies guard (Some previousState)))]
-              | Some bodies -> [stateFact], [(fact, bodies)]
+              | None -> [stateFact], [(fact, currentGuardBody)]
+              | Some bodies -> [stateFact], [(fact, bodies @ currentGuardBody)]
               )
             | None -> [], []) in 
           let pathConstrint' = 
