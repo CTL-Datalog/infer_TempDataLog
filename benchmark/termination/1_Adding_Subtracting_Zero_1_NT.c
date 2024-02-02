@@ -6,15 +6,13 @@ License: GPL-2.0
 termination: FALSE
 */
 
-/*@ AF(term =1) @*/
+/*@ AF(EXIT()) @*/
 
 int main()
 {
-    int term = 0; 
     int linesToRead = __VERIFIER_nondet_int();
-    if( linesToRead < 0 ) //join
-        {   term = 1; 
-            return 0;}
+    if( linesToRead <= 0 ) //join
+        return 0;
     int h = __VERIFIER_nondet_int();
     while( h > 0 ) // join 
     {
@@ -22,7 +20,5 @@ int main()
             linesToRead = h;
         h -= linesToRead;
     } 
-    term =1;
     return 0;
-
 }

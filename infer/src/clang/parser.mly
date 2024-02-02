@@ -38,20 +38,7 @@ term:
 | LPAR a = term PLUS b = term RPAR {Plus (a, b)}
 
 
-(*
 
-pure_helper:
-| GT b = term {(">", b)}
-| LT b = term {("<", b)}
-| GTEQ b = term {(">=", b)}
-| LTEQ b = term {("<=", b)}
-| EQ b = term {("=", b)}
-
-pure_aux:
-| CONJ b = pure {("conj", b)}
-| DISJ b = pure {("disj", b)}
-
-*)
 
 pure:
 | TRUE {TRUE}
@@ -65,7 +52,7 @@ pure:
 | a = term EQ b = term {Eq (a, b)}
 | a = pure CONJ b = pure {PureAnd (a, b)}
 | a = pure DISJ b = pure {PureOr (a, b)}
-
+| str= VAR LPAR tLi=separated_list(COMMA, term) RPAR {Predicate (str, tLi)}
 
 
 
@@ -76,9 +63,11 @@ ctl_formula:
   let rec propositionName pi : (string * pure) = 
     match pi with 
     | Eq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int n, (Eq (Basic(BSTR str), Basic(BINT n)))
+    | Predicate (str, termLi) -> str, (Predicate (str, termLi))
     | _ -> "propositionDefult", pi
   in  
   Atom(propositionName p)}
+
 | LPAR ctl = ctl_formula RPAR {ctl}
 | NOTSINGLE ctl = ctl_formula {(Neg ctl)}
 | AX LPAR ctl = ctl_formula RPAR {(AX ctl)}

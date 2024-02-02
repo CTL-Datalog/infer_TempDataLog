@@ -1193,9 +1193,9 @@ let rec translation (ctl:ctl) : string * datalog =
     (valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
     (assignKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
     (retKeyword,       [ ("n", Number); ("x", Number);]); (* currently only return integers *)
-    (stateKeyWord,          [ ("x", Number)]);
+    (stateKeyWord,     [ ("x", Number)]);
     (flowKeyword,      [ ("x", Number); ("y", Number) ]);
-    (transFlowKeyWord,      [ ("x", Number); ("y", Number) ]); 
+    (transFlowKeyWord, [ ("x", Number); ("y", Number) ]); 
     ]@
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  leqKeyWord 
      then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
@@ -1293,13 +1293,17 @@ and translation_inner (ctl:ctl) : string * datalog =
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])
 
-
+      | Predicate (str, _) -> 
+        if String.compare str "EXIT" == 0 then 
+          pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])])
+        else 
+          pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       (* *********************************************************************
       The above the pattern matching is needed for checking variables' values, for example, 
       "x" > 1 will be written as valuation("x", loc, x_v), x_v>1. 
       --- Yahui Song
       ********************************************************************* *)
-      | _ ->  pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
+      | _ ->  pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       )
     
     | Neg f -> 
