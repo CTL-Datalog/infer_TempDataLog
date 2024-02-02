@@ -109,6 +109,7 @@ let (handlerVar: string option ref) = ref None
 
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
+let ruleDeclearation = ref []
 let totol_execution_time  = ref 0.0
 let totol_Lines_of_Code  = ref 0
 let totol_Lines_of_Spec  = ref 0
@@ -1195,8 +1196,13 @@ let rec translation (ctl:ctl) : string * datalog =
     (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,      [ ("x", Number); ("y", Number) ]);
     (transFlowKeyWord,      [ ("x", Number); ("y", Number) ]); 
-    (leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
-    ] in
+    ]@
+    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  leqKeyWord 
+     then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     else []
+    )
+    
+  in
   let defaultRules = [ 
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];

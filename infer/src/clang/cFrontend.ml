@@ -1409,7 +1409,6 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
-  let () = allTheUniqueIDs := (-1) in 
   let pass1 = getRegularExprFromCFG procedure in 
   let pass3 = normalise_es (deleteAllTheJoinNodes pass1) in 
   recordTheMaxValue4RE pass3;
@@ -1487,9 +1486,13 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | GtEq (t1, t2) -> [("GtEq", [t1;t2;loc])]
 
   | Neg (Gt (Basic(BVAR var), t2))
-  | LtEq (Basic(BVAR var), t2) -> [(leqKeyWord, [Basic(BSTR var);t2;loc])]
+  | LtEq (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+    [(leqKeyWord, [Basic(BSTR var);t2;loc])]
   | Neg (Gt (t1, t2))
-  | LtEq (t1, t2) -> [(leqKeyWord, [t1;t2;loc])]
+  | LtEq (t1, t2) -> 
+    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+    [(leqKeyWord, [t1;t2;loc])]
 
   | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);Basic(BSTR var2);loc])]
   | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
@@ -1664,6 +1667,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
   print_endline ("<== Anlaysing " ^ source_Address  ^ " ==>");
+
+  let () = allTheUniqueIDs := (-1) in 
+  let () = ruleDeclearation := [] in 
 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
