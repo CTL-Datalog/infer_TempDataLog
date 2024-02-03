@@ -1556,8 +1556,12 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
     then relationList @ concreteSample 
     else relationList
     
-  | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);loc;t2])]
-  | Eq (t1, t2) -> [(assignKeyWord, [t1;loc;t2])]
+  | Eq (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
+    [(assignKeyWord, [Basic(BSTR var);loc;t2])]
+  | Eq (t1, t2) -> 
+    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
+    [(assignKeyWord, [t1;loc;t2])]
 
   | Neg (LtEq (Basic(BVAR var), t2))
   | Gt (Basic(BVAR var), t2) -> 
@@ -1569,14 +1573,22 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
     [(gtKeyWord, [t1;loc;t2])]
 
   | Neg (GtEq (Basic(BVAR var), t2))
-  | Lt (Basic(BVAR var), t2) -> [("Lt", [Basic(BSTR var);loc;t2])]
+  | Lt (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+    [(ltKeyWord, [Basic(BSTR var);loc;t2])]
   | Neg (GtEq (t1, t2))
-  | Lt (t1, t2) -> [("Lt", [t1;loc;t2])]
+  | Lt (t1, t2) -> 
+    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+    [(ltKeyWord, [t1;loc;t2])]
 
   | Neg (Lt (Basic(BVAR var), t2))
-  | GtEq (Basic(BVAR var), t2) -> [("GtEq", [Basic(BSTR var);loc;t2])]
+  | GtEq (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+    [(geqKeyWord, [Basic(BSTR var);loc;t2])]
   | Neg (Lt (t1, t2))
-  | GtEq (t1, t2) -> [("GtEq", [t1;loc;t2])]
+  | GtEq (t1, t2) -> 
+    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+    [(geqKeyWord, [t1;loc;t2])]
 
   | Neg (Gt (Basic(BVAR var), t2))
   | LtEq (Basic(BVAR var), t2) -> 
@@ -1609,16 +1621,29 @@ let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body lis
       [valuation var1; valuation var2; Pure (Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v"))))]
     | Neg (LtEq(Basic(BVAR var), Basic(BINT n)))
     | Gt(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+
+      [Pos(gtKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
+      (*[valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
     | Neg (GtEq(Basic(BVAR var), Basic(BINT n)))
     | Lt(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+      [Pos(ltKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
+
+      (*[valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
     | Neg (Lt(Basic(BVAR var), Basic(BINT n)))
     | GtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+      [Pos(geqKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
+
+      (*[valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
     | Neg (Gt(Basic(BVAR var), Basic(BINT n)))
     | LtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+
+      [Pos(leqKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
+
+      (*[valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
     | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
       [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
 
