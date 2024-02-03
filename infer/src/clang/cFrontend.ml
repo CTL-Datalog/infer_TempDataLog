@@ -1455,17 +1455,97 @@ let rec findRelaventValueSet (re:regularExpr) (var:string) : int list =
   | Omega (reIn) | Kleene (reIn) -> findRelaventValueSet reIn var
   ;;
 
+let rec getAllPathConditions (re:regularExpr): pure list = 
+  match re with 
+  | Emp | Bot | Singleton _ -> [TRUE]
+  | Guard (p, _) -> [p]
+  | Concate(re1, re2) ->
+    let pc1 = getAllPathConditions re1 in 
+    let pc2 = getAllPathConditions re2 in 
+    let mix = cartesian_product pc1 pc2 in 
+    List.map mix ~f:(fun (a, b) -> PureAnd(a, b))
+    
+  | Disjunction (re1, re2) -> 
+    let pc1 = getAllPathConditions re1 in 
+    let pc2 = getAllPathConditions re2 in 
+    pc1 @ pc2
+  | Omega re -> getAllPathConditions re 
+  | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
+
+
+let rec getRelaventPure (p:pure) (str:string) : pure option = 
+  match p with 
+  | TRUE | FALSE | Predicate _ -> None   
+  | Gt (t1, t2) 
+  | Lt (t1, t2) 
+  | GtEq (t1, t2) 
+  | LtEq (t1, t2) 
+  | Eq (t1, t2) -> 
+    let getVarT1 = getAllVarFromTerm t1 [] in 
+    let getVarT2 = getAllVarFromTerm t2 [] in 
+    if existAux (fun a b -> String.compare a b == 0) getVarT1 str 
+    then Some p else None  
+  | PureOr (p1, p2) ->
+    (match (getRelaventPure p1 str, getRelaventPure p2 str) with 
+    | None, None -> None 
+    | Some p1', Some p2' -> Some (PureOr(p1', p2')) 
+    | Some p1', None -> Some p1' 
+    | None , Some p2' -> Some p2' 
+    )
+  | PureAnd (p1, p2) ->
+    (match (getRelaventPure p1 str, getRelaventPure p2 str) with 
+    | None, None -> None 
+    | Some p1', Some p2' -> Some (PureAnd(p1', p2')) 
+    | Some p1', None -> Some p1' 
+    | None , Some p2' -> Some p2' 
+    )
+  | Neg pIn -> 
+    (match getRelaventPure pIn str with 
+    | None -> None 
+    | Some _ -> Some p 
+    )
+
+
+
+
+
+let rec pathConditionRelatedToVar str (pathConditions:pure list): pure list = 
+  List.fold_left pathConditions ~init:[] ~f:(fun acc p -> 
+    match getRelaventPure p str with 
+    | None  -> acc 
+    | Some p' -> acc @ [p'] 
+  )
+
+
 let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list= 
+  
+
   let loc = Basic(BINT state) in 
   match p with 
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
   | Eq (Basic(BVAR var), Basic ANY) -> 
-    let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
+    print_endline ("\n======\nvar "^ var ^" is unknown");
+    print_endline ("regular expression:" ^ string_of_regularExpr re);
+    let (pathConditions: pure list) = getAllPathConditions re in 
+    print_endline ("pathConditions" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); 
+    let (pathConditionRelatedToVar:pure list) = pathConditionRelatedToVar var pathConditions in 
+    print_endline ("pathConditionRelatedToVar" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); 
+
+    let relationList = flattenList (List.map pathConditionRelatedToVar ~f:(fun pIn -> getFactFromPure pIn state Emp)) in 
+    if List.length relationList != 0 
+    then relationList 
+    else 
+      let valueSet = [-1;0;1] in 
+      List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
+
+    (* old code for sampling the non-detreministic values *)
+    (*let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
     (* In case there are no reasonable value for not, just sample among the program value *)
     let valueSet  = if List.length valueSet == 0 then getProgramValues re else valueSet in 
     (* In case there are no program values, sample some a dummay set  *)
     let valueSet = if List.length valueSet ==0  then [-1;0;1] else valueSet in 
     List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
+    *)
     
   | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);loc;t2])]
   | Eq (t1, t2) -> [(assignKeyWord, [t1;loc;t2])]
@@ -1497,11 +1577,11 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);Basic(BSTR var2);loc])]
   | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
 
-
+  | PureOr (p1, p2) 
   | PureAnd (p1, p2) -> getFactFromPure p1 state re @ getFactFromPure p2 state re
   | Neg _  (*-> raise (Failure "getFactFromPure Neg") *)
   | FALSE | TRUE (*-> raise (Failure "getFactFromPure false") *)
-  | PureOr _ -> [] (*raise (Failure "getFactFromPure PureOr") *)
+  -> [] (*raise (Failure "getFactFromPure PureOr") *)
   ;;
 
 let rec pureToBodies (p:pure) (s:int option) : body list = 
@@ -1509,6 +1589,7 @@ let rec pureToBodies (p:pure) (s:int option) : body list =
   | None  -> [] 
   | Some state -> 
     let valuation var = Pos (valueKeyword, [Basic(BSTR var); Basic(BINT state); Basic(BVAR (var^"_v"))]) in 
+    let concreteConstrint = 
     (match p with 
     | Eq(Basic(BVAR var), Basic(BINT n)) -> 
       [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
@@ -1533,6 +1614,10 @@ let rec pureToBodies (p:pure) (s:int option) : body list =
     | PureAnd (p1, p2) -> pureToBodies p1 (s) @ (pureToBodies p2 s)
 
     | _ -> [])
+    in 
+    let symbolicConstrint = List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) in 
+    concreteConstrint @ symbolicConstrint
+
 
 
 let flowsForTheCycle (re:regularExpr) : relation list = 

@@ -1510,3 +1510,9 @@ let rec string_of_ctl (ctl:ctl) =
   | AU (c1, c2) -> "AU(" ^ string_of_ctl c1 ^","^ string_of_ctl c2 ^")"
   | EU (c1, c2) -> "EU(" ^ string_of_ctl c1 ^","^ string_of_ctl c2 ^")"
  
+
+
+let cartesian_product li1 li2 = 
+    flattenList (List.map li1 ~f:(fun l1 -> 
+      List.map li2 ~f:(fun l2 -> (l1, l2))))
+
