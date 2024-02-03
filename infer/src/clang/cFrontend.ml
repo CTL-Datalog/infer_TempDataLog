@@ -1356,15 +1356,15 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
     let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let stateWhenNonTerminate = Guard(pi, !allTheUniqueIDs) in 
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let non_termination_guard weakestPre = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), !allTheUniqueIDs)) in 
     (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
     | FALSE -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
     | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
     | weakestPre -> 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let terminating = eventToRe (GuardEv (PureAnd(pi, weakestPre), !allTheUniqueIDs))  in 
-      let non_terminating = Omega (Concate(non_termination_guard weakestPre, stateWhenNonTerminate )) in 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), !allTheUniqueIDs)) in 
+      let non_terminating = Omega (Concate(non_termination_guard, stateWhenNonTerminate )) in 
       disjunctRE [
         Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
     )
@@ -1504,8 +1504,8 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | PureOr _ -> [] (*raise (Failure "getFactFromPure PureOr") *)
   ;;
 
-let pureToBodies (p:pure) (state:int option) : body list = 
-  match state with 
+let rec pureToBodies (p:pure) (s:int option) : body list = 
+  match s with 
   | None  -> [] 
   | Some state -> 
     let valuation var = Pos (valueKeyword, [Basic(BSTR var); Basic(BINT state); Basic(BVAR (var^"_v"))]) in 
@@ -1529,6 +1529,8 @@ let pureToBodies (p:pure) (state:int option) : body list =
       [valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
       [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
+
+    | PureAnd (p1, p2) -> pureToBodies p1 (s) @ (pureToBodies p2 s)
 
     | _ -> [])
 

@@ -11,7 +11,7 @@ termination: FALSE
 int main()
 {
     int linesToRead = __VERIFIER_nondet_int();
-    if( linesToRead <= 0 ) //join
+    if( linesToRead < 0 ) //join
         return 0;
     int h = __VERIFIER_nondet_int();
     while( h > 0 ) // join 
