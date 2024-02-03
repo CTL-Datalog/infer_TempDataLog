@@ -5,7 +5,7 @@ let valueKeyword = "valuation"
 let retKeyword = "Return"
 let joinKeyword = "Join"
 let entryKeyWord = "Start"
-let assignKeyWord = "Assign"
+let assignKeyWord = "Eq"
 let stateKeyWord = "State"
 let locKeyWord = "loc"
 let loc_inter_KeyWord = "locI"
@@ -13,6 +13,8 @@ let transFlowKeyWord = "transFlow"
 let outputShellKeyWord = "_Final"
 let joinNodeKeyWord ="Join"
 let leqKeyWord = "LtEq"
+let gtKeyWord = "Gt"
+
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
 
@@ -1175,6 +1177,9 @@ let rec translation (ctl:ctl) : string * datalog =
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
     (valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (gtKeyWord^"D",     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (leqKeyWord^"D",     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+
     (assignKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
     (retKeyword,       [ ("n", Number); ("x", Number);]); (* currently only return integers *)
     (stateKeyWord,     [ ("x", Number)]);
@@ -1183,6 +1188,10 @@ let rec translation (ctl:ctl) : string * datalog =
     ]@
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  leqKeyWord 
      then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     else []
+    )@
+    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  gtKeyWord 
+     then [(gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
     
@@ -1196,6 +1205,18 @@ let rec translation (ctl:ctl) : string * datalog =
       [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (flowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
+
+    (gtKeyWord^"D", [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+    (gtKeyWord^"D", [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+      [ Pos (gtKeyWord, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
+        Pos (flowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
+        Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
+
+    (leqKeyWord^"D", [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+    (leqKeyWord^"D", [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+          [ Pos (leqKeyWord, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
+            Pos (flowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
+            Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
     ] in
 
     

@@ -1535,58 +1535,60 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   match p with 
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
   | Eq (Basic(BVAR var), Basic ANY) -> 
-    print_endline ("\n======\nvar "^ var ^" is unknown");
-    print_endline ("regular expression:" ^ string_of_regularExpr re);
+    (*print_endline ("\n======\nvar "^ var ^" is unknown");
+    print_endline ("regular expression:" ^ string_of_regularExpr re);*)
     let (pathConditions: pure list) = getAllPathConditions re in 
-    print_endline ("pathConditions" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); 
+    (*print_endline ("pathConditions" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); *)
     let (pathConditionRelatedToVar:pure list) = pathConditionRelatedToVar var pathConditions in 
-    print_endline ("pathConditionRelatedToVar" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); 
+    (*print_endline ("pathConditionRelatedToVar" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); *)
 
     let relationList = flattenList (List.map pathConditionRelatedToVar ~f:(fun pIn -> getFactFromPure pIn state Emp)) in 
-    if List.length relationList != 0 
-    then relationList 
-    else 
-      let valueSet = [-1;0;1] in 
-      List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
 
     (* old code for sampling the non-detreministic values *)
-    (*let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
+    let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
     (* In case there are no reasonable value for not, just sample among the program value *)
     let valueSet  = if List.length valueSet == 0 then getProgramValues re else valueSet in 
     (* In case there are no program values, sample some a dummay set  *)
     let valueSet = if List.length valueSet ==0  then [-1;0;1] else valueSet in 
-    List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet
-    *)
+    let concreteSample = List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet in 
+    
+    if List.length relationList == 0 
+    then relationList @ concreteSample 
+    else relationList
     
   | Eq (Basic(BVAR var), t2) -> [(assignKeyWord, [Basic(BSTR var);loc;t2])]
   | Eq (t1, t2) -> [(assignKeyWord, [t1;loc;t2])]
 
   | Neg (LtEq (Basic(BVAR var), t2))
-  | Gt (Basic(BVAR var), t2) -> [("Gt", [Basic(BSTR var);t2;loc])]
+  | Gt (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+    [(gtKeyWord, [Basic(BSTR var);loc;t2])]
   | Neg (LtEq (t1, t2))
-  | Gt (t1, t2) -> [("Gt", [t1;t2;loc])]
+  | Gt (t1, t2) -> 
+    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+    [(gtKeyWord, [t1;loc;t2])]
 
   | Neg (GtEq (Basic(BVAR var), t2))
-  | Lt (Basic(BVAR var), t2) -> [("Lt", [Basic(BSTR var);t2;loc])]
+  | Lt (Basic(BVAR var), t2) -> [("Lt", [Basic(BSTR var);loc;t2])]
   | Neg (GtEq (t1, t2))
-  | Lt (t1, t2) -> [("Lt", [t1;t2;loc])]
+  | Lt (t1, t2) -> [("Lt", [t1;loc;t2])]
 
   | Neg (Lt (Basic(BVAR var), t2))
-  | GtEq (Basic(BVAR var), t2) -> [("GtEq", [Basic(BSTR var);t2;loc])]
+  | GtEq (Basic(BVAR var), t2) -> [("GtEq", [Basic(BSTR var);loc;t2])]
   | Neg (Lt (t1, t2))
-  | GtEq (t1, t2) -> [("GtEq", [t1;t2;loc])]
+  | GtEq (t1, t2) -> [("GtEq", [t1;loc;t2])]
 
   | Neg (Gt (Basic(BVAR var), t2))
   | LtEq (Basic(BVAR var), t2) -> 
     ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
-    [(leqKeyWord, [Basic(BSTR var);t2;loc])]
+    [(leqKeyWord, [Basic(BSTR var);loc;t2])]
   | Neg (Gt (t1, t2))
   | LtEq (t1, t2) -> 
     ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
-    [(leqKeyWord, [t1;t2;loc])]
+    [(leqKeyWord, [t1;loc;t2])]
 
-  | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);Basic(BSTR var2);loc])]
-  | Neg (Eq (t1, t2)) -> [("NotEq", [t1;t2;loc])]
+  | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (Eq (t1, t2)) -> [("NotEq", [t1;loc;t2])]
 
   | PureOr (p1, p2) 
   | PureAnd (p1, p2) -> getFactFromPure p1 state re @ getFactFromPure p2 state re
@@ -1602,31 +1604,21 @@ let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body lis
     let valuation var = Pos (valueKeyword, [Basic(BSTR var); Basic(BINT state); Basic(BVAR (var^"_v"))]) in 
     (match p with 
     | Eq(Basic(BVAR var), Basic(BINT n)) -> 
-      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
-      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
-      else [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Eq(Basic(BVAR var1), Basic(BVAR var2)) -> 
       [valuation var1; valuation var2; Pure (Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v"))))]
     | Neg (LtEq(Basic(BVAR var), Basic(BINT n)))
     | Gt(Basic(BVAR var), Basic(BINT n)) -> 
-      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
-      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
-      else [valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      [valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (GtEq(Basic(BVAR var), Basic(BINT n)))
     | Lt(Basic(BVAR var), Basic(BINT n)) -> 
-      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
-      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
-      else [valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      [valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Lt(Basic(BVAR var), Basic(BINT n)))
     | GtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
-      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
-      else [valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      [valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Gt(Basic(BVAR var), Basic(BINT n)))
     | LtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
-      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
-      else [valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      [valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
       [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
 
