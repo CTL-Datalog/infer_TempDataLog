@@ -1472,19 +1472,29 @@ let rec getAllPathConditions (re:regularExpr): pure list =
   | Omega re -> getAllPathConditions re 
   | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
 
+let rec getUnknownVars (re:regularExpr): string list = 
+  match re with 
+  | Singleton (Eq (Basic(BVAR var), Basic ANY), _)  -> [var]
+  | Concate(re1, re2) 
+  | Disjunction (re1, re2) -> getUnknownVars re1 @ getUnknownVars re2
+  | Omega re -> getUnknownVars re 
+  | Kleene _ -> raise (Failure "not possible getUnknownVars kleene")
+  | Emp | Bot | Guard _  | _ -> []
+
+
 
 let rec getRelaventPure (p:pure) (str:string) : pure option = 
   match p with 
   | TRUE | FALSE | Predicate _ -> None   
-  | Gt (t1, t2) 
-  | Lt (t1, t2) 
-  | GtEq (t1, t2) 
-  | LtEq (t1, t2) 
-  | Eq (t1, t2) -> 
+  | Gt (t1, Basic(BINT _)) 
+  | Lt (t1, Basic(BINT _)) 
+  | GtEq (t1, Basic(BINT _)) 
+  | LtEq (t1, Basic(BINT _)) 
+  | Eq (t1, Basic(BINT _)) -> 
     let getVarT1 = getAllVarFromTerm t1 [] in 
-    let getVarT2 = getAllVarFromTerm t2 [] in 
     if existAux (fun a b -> String.compare a b == 0) getVarT1 str 
     then Some p else None  
+  
   | PureOr (p1, p2) ->
     (match (getRelaventPure p1 str, getRelaventPure p2 str) with 
     | None, None -> None 
@@ -1504,6 +1514,7 @@ let rec getRelaventPure (p:pure) (str:string) : pure option =
     | None -> None 
     | Some _ -> Some p 
     )
+  | _ -> None 
 
 
 
@@ -1584,39 +1595,44 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   -> [] (*raise (Failure "getFactFromPure PureOr") *)
   ;;
 
-let rec pureToBodies (p:pure) (s:int option) : body list = 
+let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body list = 
   match s with 
   | None  -> [] 
   | Some state -> 
     let valuation var = Pos (valueKeyword, [Basic(BSTR var); Basic(BINT state); Basic(BVAR (var^"_v"))]) in 
-    let concreteConstrint = 
     (match p with 
     | Eq(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
+      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
+      else [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Eq(Basic(BVAR var1), Basic(BVAR var2)) -> 
       [valuation var1; valuation var2; Pure (Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v"))))]
-
     | Neg (LtEq(Basic(BVAR var), Basic(BINT n)))
     | Gt(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
+      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
+      else [valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (GtEq(Basic(BVAR var), Basic(BINT n)))
     | Lt(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
+      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
+      else [valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Lt(Basic(BVAR var), Basic(BINT n)))
     | GtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
+      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
+      else [valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Gt(Basic(BVAR var), Basic(BINT n)))
     | LtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      if existAux (fun a b -> String.compare a  b ==0) unknownVars var then 
+      List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) 
+      else [valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
     | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
       [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
 
-    | PureAnd (p1, p2) -> pureToBodies p1 (s) @ (pureToBodies p2 s)
+    | PureAnd (p1, p2) -> pureToBodies p1 (s) unknownVars @ (pureToBodies p2 s unknownVars)
 
     | _ -> [])
-    in 
-    let symbolicConstrint = List.map (getFactFromPure p state Emp) ~f:(fun a -> Pos a) in 
-    concreteConstrint @ symbolicConstrint
 
 
 
@@ -1634,7 +1650,10 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     *)
 
 
+
+
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
+  let (unknownVars:string list) = getUnknownVars re in 
   let rec mergeResults li (acca, accb) = 
     match li with 
     | [] -> (acca, accb) 
@@ -1681,7 +1700,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | Some previousState -> 
               let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
-              let currentGuardBody = (pureToBodies guard (Some previousState)) in 
+              let currentGuardBody = (pureToBodies guard (Some previousState) unknownVars) in 
               (match pathConstrint with 
               | None -> [stateFact], [(fact, currentGuardBody)]
               | Some bodies -> [stateFact], [(fact, bodies @ currentGuardBody)]
@@ -1689,8 +1708,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | None -> [], []) in 
           let pathConstrint' = 
             match pathConstrint with 
-            | None -> Some (pureToBodies guard previousState)
-            | Some bodies -> Some (bodies @ pureToBodies guard previousState)
+            | None -> Some (pureToBodies guard previousState unknownVars)
+            | Some bodies -> Some (bodies @ pureToBodies guard previousState unknownVars)
           in 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
