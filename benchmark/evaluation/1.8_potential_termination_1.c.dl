@@ -1,0 +1,128 @@
+/*(⊤)@0*/
+
+State(0).
+
+/*(Start())@1 · (y=1)@2 · (i=_)@3 · (x=_)@4 · (([i>10]@6 · (x=1)@7 · ((([x=y]@18)^w) \/ ([(x!=y)]@11 · (term=1)@13 · ((Return(0))@14)^w))) \/ ([(i<=10)]@16 · ((([x=y]@20)^w) \/ ([(x!=y)]@11 · (term=1)@13 · ((Return(0))@14)^w))))*/
+
+flow(1,2).
+flow(2,3).
+flow(3,4).
+flow(18,18).
+flow(20,20).
+flow(14,14).
+Start(1).
+State(1).
+Eq("y",2,1).
+State(2).
+Gt("i",3,10). // Repair is to delete 2 facts, this one and the next one  
+LtEq("i",3,10).
+State(3).
+Eq("x",4,1). // Repair is to delete this fact
+Eq("x",4,2).
+State(6).
+Eq("x",7,1).
+State(18).
+State(7).
+State(4).
+State(20).
+State(16).
+State(11).
+Eq("term",13,1).
+State(13).
+Return(0,14).
+State(14).
+flow(4,6) :- GtD("i",4,10).
+flow(6,7) :- GtD("i",4,10).
+flow(7,18) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v), x_v=y_v.
+flow(7,11) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v), (x_v!=y_v).
+flow(11,13) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v), (x_v!=y_v).
+flow(13,14) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v), (x_v!=y_v).
+flow(4,16) :- LtEqD("i",4,10).
+flow(16,20) :- LtEqD("i",4,10), valuation("x",16,x_v), valuation("y",16,y_v), x_v=y_v.
+flow(16,11) :- LtEqD("i",4,10), valuation("x",16,x_v), valuation("y",16,y_v), (x_v!=y_v).
+flow(11,13) :- LtEqD("i",4,10), valuation("x",16,x_v), valuation("y",16,y_v), (x_v!=y_v).
+flow(13,14) :- LtEqD("i",4,10), valuation("x",16,x_v), valuation("y",16,y_v), (x_v!=y_v).
+//AF("term"=1)
+.decl Start(x:number)
+.decl valuation(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
+.decl GtEqD(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl GtEq(x:symbol,loc:number,n:number)
+.decl Return(n:number,x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl not_term_eq_1(loc:number)
+.decl term_eq_1(loc:number)
+.decl AF_term_eq_1_T(interm_state:number,loc:number)
+.decl AF_term_eq_1_S(loc:number)
+.decl AF_term_eq_1(loc:number)
+.decl AF_term_eq_1_Final(loc:number)transFlow(x,y) :- flow(x,y).
+transFlow(x,z) :- flow(x,y), transFlow(y,z).
+valuation(x,loc,n) :- Eq(x,loc,n).
+valuation(x,loc,n) :- valuation(x,locI,n), flow(locI,loc), !Eq(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), flow(locI,loc), !Eq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), flow(locI,loc), !Eq(x,loc,_).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), flow(locI,loc), !Eq(x,loc,_).
+GtEqD(x,loc,n) :- GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), flow(locI,loc), !Eq(x,loc,_).
+not_term_eq_1(loc) :- State(loc), valuation("term",loc,term_v), (term_v!=1).
+term_eq_1(loc) :- State(loc), valuation("term",loc,_), !not_term_eq_1(loc).
+AF_term_eq_1_T(interm_state,loc) :- AF_term_eq_1_T(tempOne,loc), !term_eq_1(tempOne), flow(tempOne,interm_state).
+AF_term_eq_1_T(interm_state,loc) :- !term_eq_1(loc), flow(loc,interm_state).
+AF_term_eq_1_S(loc) :- !term_eq_1(loc), flow(loc,tempOne), AF_term_eq_1_S(tempOne).
+AF_term_eq_1_S(loc) :- AF_term_eq_1_T(loc,loc).
+AF_term_eq_1(loc) :- State(loc), !AF_term_eq_1_S(loc).
+AF_term_eq_1_Final(loc) :- Start(loc), AF_term_eq_1(loc).
+.output AF_term_eq_1_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(1,2). //@10:1-14:5
+Flow(14,15). //@24:5-25:1
+Flow(13,14). //@23:5-24:5
+Flow(9,10). //@21:5-21:12
+Flow(10,12). //@21:12-21:12
+Flow(10,11). //@21:12-21:12
+Flow(11,9). //@21:12-21:5
+Flow(12,13). //@21:12-23:5
+Flow(8,9). //@18:5-21:5
+Flow(5,16). //@18:9-18:9
+Flow(5,6). //@18:9-18:9
+Flow(6,7). //@18:9-19:9
+Flow(16,8). //@18:9-18:5
+Flow(7,8). //@19:9-18:5
+Flow(4,5). //@16:5-18:9
+Flow(3,4). //@15:5-16:5
+Flow(2,3). //@14:5-15:5
+Stmt_BinaryOperatorStmt(2,Assign,[IStore(&y,1)]). // @14:5
+Stmt_BinaryOperatorStmt(3,Assign,[ICall(_fun__nondet_int,,n$8),IStore(&i,n$8)]). // @15:5
+Stmt_BinaryOperatorStmt(4,Assign,[ICall(_fun__nondet_int,,n$7),IStore(&x,n$7)]). // @16:5
+Stmt_BinaryOperatorStmt(7,Assign,[IStore(&x,1)]). // @19:9
+PruneNode(16,false,[Prune(!(n$4 > 10), false)]). // @18:9
+PruneNode(6,true,[Prune((n$4 > 10), true)]). // @18:9
+Stmt_BinaryOperatorStmt(5,GT,[ILoad(&i,n$4)]). // @18:9
+Join(8,[]).  // @18:5
+PruneNode(12,false,[Prune(!(n$0 == n$1), false)]). // @21:12
+PruneNode(11,true,[Prune((n$0 == n$1), true)]). // @21:12
+Stmt_BinaryOperatorStmt(10,EQ,[ILoad(&x,n$0),ILoad(&y,n$1)]). // @21:12
+Join(9,[]).  // @21:5
+Stmt_Decl(13,[IStore(&term,1)]). // @23:5
+Stmt_Return(14,[IStore(&return,0)]). // @24:5
+Exit(15).  // @25:1
+Start(1). // @10:1
+*/
+
