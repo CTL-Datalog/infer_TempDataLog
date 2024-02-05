@@ -1,6 +1,7 @@
 open Z3
 
 let flowKeyword = "flow"
+let controlFlowKeyword = "control_flow"
 let valueKeyword = "valuation"
 let retKeyword = "Return"
 let joinKeyword = "Join"
@@ -16,6 +17,7 @@ let leqKeyWord = "LtEq"
 let gtKeyWord = "Gt"
 let ltKeyWord = "Lt"
 let geqKeyWord = "GtEq"
+let existFiniteTrace ="ExistFiniteTrace"
 
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
@@ -1176,7 +1178,7 @@ let reachablibilyrules head base =
   [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
   (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
-        Pos (flowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
+        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ]]
 
 
@@ -1199,7 +1201,11 @@ let rec translation (ctl:ctl) : string * datalog =
     (retKeyword,       [ ("n", Number); ("x", Number);]); (* currently only return integers *)
     (stateKeyWord,     [ ("x", Number)]);
     (flowKeyword,      [ ("x", Number); ("y", Number) ]);
+    (controlFlowKeyword,      [ ("x", Number); ("y", Number) ]);
     (transFlowKeyWord, [ ("x", Number); ("y", Number) ]); 
+    (existFiniteTrace,      [ ("loc", Number)]);
+
+    
     ]
     (*
     @
@@ -1230,14 +1236,25 @@ let rec translation (ctl:ctl) : string * datalog =
     
   in
   let defaultRules = [ 
-    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
-    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];
+    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
+    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];
     
     (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
     (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
-        Pos (flowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
+        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
+
+    (existFiniteTrace, [Basic (BVAR locKeyWord)]), [ Pos (stateKeyWord , [Basic (BVAR locKeyWord)]) ; Neg(controlFlowKeyword, [Basic (BVAR locKeyWord);Basic ANY])] ;
+    (existFiniteTrace, [Basic (BVAR locKeyWord )]), 
+          [ Pos (existFiniteTrace, [Basic (BVAR loc_inter_KeyWord)] );  
+            Pos (controlFlowKeyword, [Basic (BVAR locKeyWord); Basic (BVAR loc_inter_KeyWord)]); 
+          ] ;
+    
+        
+
+    (controlFlowKeyword,  [Basic (BVAR "x"); Basic (BVAR "y")]), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ];
+    (*control_flow(x, y) :- flow(x, y).*)
         
     ]
     @ reachablibilyrules (gtKeyWord^"D") gtKeyWord 
@@ -1259,7 +1276,10 @@ let rec translation (ctl:ctl) : string * datalog =
     | ((name, [Basic (BVAR locKeyWord)]), _)::_ -> 
       let nameFinal = name^outputShellKeyWord in 
       let finaDecl = (nameFinal,     [ (locKeyWord, Number)]) in 
-      let finalRule = ((nameFinal, [Basic (BVAR locKeyWord)]), [Pos(entryKeyWord,  [Basic (BVAR locKeyWord)]) ; Pos (name, [Basic (BVAR locKeyWord)])]) in 
+      let finalRule = ((nameFinal, [Basic (BVAR locKeyWord)]), 
+        [Pos(entryKeyWord,  [Basic (BVAR locKeyWord)]) ; Pos (name, [Basic (BVAR locKeyWord)]);
+         Neg(existFiniteTrace, [Basic (BVAR locKeyWord)])
+        ]) in 
       finaDecl::decs,  finalRule::rules
     | _ -> decs, rules
     ) in 
@@ -1375,7 +1395,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         let firstArg, fNewArgs = match fArgs with
           [] -> raise (Failure "confused")
           | x :: xs -> x, arg :: xs in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [  Pos(flowKeyword, [firstArg;arg] );    Pos (fName,fNewArgs) ]):: rules)
+        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [  Pos(controlFlowKeyword, [firstArg;arg] );    Pos (fName,fNewArgs) ]):: rules)
     | EF f ->     
       let fName,(declarations,rules) = translation_inner f in
       (* TODO *)
@@ -1389,7 +1409,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         newName,(  (newName,fParams) :: declarations, 
         [
           ( (newName,fArgs), [Pos (fName,fArgs) ]);
-          ( (newName,fArgs), [Pos(flowKeyword,[firstArg;arg]); Pos(newName,fNewArgs)     ] )
+          ( (newName,fArgs), [Pos(controlFlowKeyword,[firstArg;arg]); Pos(newName,fNewArgs)     ] )
 
         ]@ rules) 
     
@@ -1475,10 +1495,10 @@ and translation_inner (ctl:ctl) : string * datalog =
         (* for finite traces *)
         (* (sName,fArgs), [ Neg(fName, fArgs); Pos("end", [firstArg])];  *)
         (* for infinite traces *)
-        (sName,fArgs), [ Neg(fName, fArgs); Pos(flowKeyword, [firstArg; arg]); Pos(sName,fNewArgs)  ];
+        (sName,fArgs), [ Neg(fName, fArgs); Pos(controlFlowKeyword, [firstArg; arg]); Pos(sName,fNewArgs)  ];
 
-        (tName, tArgs), [ Neg(fName,fArgs); Pos(flowKeyword, [firstArg; tArg] ) ];
-        (tName, tArgs), [ Pos(tName,tNewArgs) ;Neg(fName,fNewArgs); Pos(flowKeyword, [arg; tArg] ) ];
+        (tName, tArgs), [ Neg(fName,fArgs); Pos(controlFlowKeyword, [firstArg; tArg] ) ];
+        (tName, tArgs), [ Pos(tName,tNewArgs) ;Neg(fName,fNewArgs); Pos(controlFlowKeyword, [arg; tArg] ) ];
         
 
       ] in
@@ -1495,7 +1515,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         | x :: xs -> x, arg :: xs in
         [ 
         (newName,newArgs) , [ Pos(x2,f2Args) ];
-        (newName,newArgs) , [ Pos(x1,f1Args); Pos(flowKeyword,[arg;firstArg]); Pos(newName,fNewArgs) ];
+        (newName,newArgs) , [ Pos(x1,f1Args); Pos(controlFlowKeyword,[arg;firstArg]); Pos(newName,fNewArgs) ];
       ])
 
     

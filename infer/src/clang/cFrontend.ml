@@ -1695,10 +1695,12 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             (match previousState with 
             | Some previousState -> 
               let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
               | None -> [stateFact; fact], []
-              | Some bodies -> [stateFact], [(fact, bodies(*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
+              | Some bodies -> [stateFact], [(fact', bodies(*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
               )
             | None -> [], []) in 
           let valueFacts = getFactFromPure p state reIn in 
@@ -1716,11 +1718,13 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             (match previousState with 
             | Some previousState -> 
               let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               let currentGuardBody = (pureToBodies guard (Some previousState) unknownVars) in 
               (match pathConstrint with 
               | None -> [stateFact], [(fact, currentGuardBody)]
-              | Some bodies -> [stateFact], [(fact, bodies @ currentGuardBody)]
+              | Some bodies -> [stateFact], [(fact', bodies @ currentGuardBody)]
               )
             | None -> [], []) in 
           let pathConstrint' = 
@@ -1817,7 +1821,21 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       let fname, program = (translation item) in 
       (*print_endline (string_of_datalog program);
       print_endline (".output "^ fname ^"Final(IO=stdout)\n") *)
-      [string_of_datalog program] @ [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
+      [string_of_datalog program] 
+      @ [".output Start"; 
+         ".output Eq";
+         ".output LtEq";
+         ".output Gt";
+         ".output Lt";
+         ".output GtEq";
+         ".output Return";
+         ".output State";
+         ".output flow";
+      ]@
+      [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
+      
+
+
      )) in 
      
   let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
