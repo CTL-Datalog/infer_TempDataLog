@@ -3,7 +3,7 @@
  *
  * -ctl "EF{exit: true}"
  */
-/*@ AF(term =1) @*/
+/*@ AF(EXIT()) @*/
 
 int _nondet_int(void);
 
@@ -20,7 +20,6 @@ int main() {
     }     
     while (x == y) {} // non-term : true 
     
-    int term = 1; 
     return 0;
 }
 

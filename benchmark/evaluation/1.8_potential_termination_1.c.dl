@@ -62,6 +62,7 @@ flow(13,14) :- LtEqD("i",4,10), valuation("x",16,x_v), valuation("y",16,y_v), (x
 .decl term_eq_1(loc:number)
 .decl AF_term_eq_1_T(interm_state:number,loc:number)
 .decl AF_term_eq_1_S(loc:number)
+.decl ExistFiniteTrace(loc:number)
 .decl AF_term_eq_1(loc:number)
 .decl AF_term_eq_1_Final(loc:number)transFlow(x,y) :- flow(x,y).
 transFlow(x,z) :- flow(x,y), transFlow(y,z).
@@ -82,7 +83,11 @@ AF_term_eq_1_T(interm_state,loc) :- !term_eq_1(loc), flow(loc,interm_state).
 AF_term_eq_1_S(loc) :- !term_eq_1(loc), flow(loc,tempOne), AF_term_eq_1_S(tempOne).
 AF_term_eq_1_S(loc) :- AF_term_eq_1_T(loc,loc).
 AF_term_eq_1(loc) :- State(loc), !AF_term_eq_1_S(loc).
-AF_term_eq_1_Final(loc) :- Start(loc), AF_term_eq_1(loc).
+AF_term_eq_1_Final(loc) :- Start(loc), AF_term_eq_1(loc), !ExistFiniteTrace(loc).
+
+ExistFiniteTrace(loc) :- State(loc), !flow(loc, _). 
+ExistFiniteTrace(loc) :- flow (loc, loc2), ExistFiniteTrace(loc2).
+
 .output AF_term_eq_1_Final(IO=stdout)
 
 /* Other information 

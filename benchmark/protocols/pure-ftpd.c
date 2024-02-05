@@ -28,7 +28,7 @@ int main () {
         goto afterquota;
     }
 
-afterquota:
+    afterquota:
     if (overflow > 0) {
         addreply(552);
     } else {
