@@ -59,236 +59,9 @@ let string_of_source_range ((s1, s2):Clang_ast_t.source_range) :string =
 
 
 
-let stmt2Term_helper (op: string) (t1: terms option) (t2: terms option) : terms option = 
-  match (t1, t2) with 
-  | (None, _) 
-  | (_, None ) -> None 
-  | (Some t1, Some t2) -> 
-    let p = 
-      if String.compare op "+" == 0 then Plus (t1, t2)
-    else Minus (t1, t2)
-    in Some p 
-
-let rec stmt2Term (instr: Clang_ast_t.stmt) : terms option = 
-  (*print_endline ("term kind:" ^ Clang_ast_proj.get_stmt_kind_string instr);
-*)
-  match instr with 
-  | ImplicitCastExpr (_, x::_, _, _, _) 
-    -> 
-    stmt2Term x
-  | CStyleCastExpr (_, x::rest, _, _, _) 
-  | ParenExpr (_, x::rest, _) -> 
-  (*print_string ("ParenExpr/CStyleCastExpr: " ^ (
-    List.fold_left (x::rest) ~init:"" ~f:(fun acc a -> acc ^ "," ^ Clang_ast_proj.get_stmt_kind_string a)
-  )^ "\n");
-  *)
-
-    stmt2Term x
-  
-  | BinaryOperator (stmt_info, x::y::_, expr_info, binop_info)->
-  (match binop_info.boi_kind with
-  | `Add -> stmt2Term_helper "+" (stmt2Term x) (stmt2Term y) 
-  | `Sub -> stmt2Term_helper "" (stmt2Term x) (stmt2Term y) 
-  | _ -> None 
-  )
-  | IntegerLiteral (_, stmt_list, expr_info, integer_literal_info) ->
-    Some (Basic(BINT (int_of_string(integer_literal_info.ili_value))))
-
-  | DeclRefExpr (stmt_info, _, _, decl_ref_expr_info) -> 
-  let (sl1, sl2) = stmt_info.si_source_range in 
-
-  (match decl_ref_expr_info.drti_decl_ref with 
-  | None -> None 
-  | Some decl_ref ->
-    (
-    match decl_ref.dr_name with 
-    | None -> None
-    | Some named_decl_info -> Some (Basic(BVAR (named_decl_info.ni_name)))
-      
-    )
-  )
-  | NullStmt _ -> Some (Basic(BVAR ("NULL")))
-  | MemberExpr (_, arlist, _, member_expr_info)  -> 
-    let memArg = member_expr_info.mei_name.ni_name in 
-    let temp = List.map arlist ~f:(fun a -> stmt2Term a) in 
-    let name  = List.fold_left temp ~init:"" ~f:(fun acc a -> 
-    acc ^ (
-      match a with
-      | None -> "_"
-      | Some t -> string_of_terms t ^ "_"
-    )) in 
-    Some (Basic(BVAR(name^memArg)))
-
-  | ArraySubscriptExpr (_, arlist, _)  -> 
-    let temp = List.map arlist ~f:(fun a -> stmt2Term a) in 
-    (*print_endline (string_of_int (List.length temp)); *)
-    let name  = List.fold_left temp ~init:"" ~f:(fun acc a -> 
-    acc ^ (
-      match a with
-      | None -> "_"
-      | Some t -> string_of_terms t ^ "_"
-    )) in 
-    Some (Basic(BVAR(name)))
-
-  | UnaryOperator (stmt_info, x::_, expr_info, op_info) ->
-    stmt2Term x 
-      
-
-  | _ -> Some (Basic(BVAR(Clang_ast_proj.get_stmt_kind_string instr))) 
 
 
 
-let rec string_of_decl (dec :Clang_ast_t.decl) : string = 
-  match dec with 
-  | VarDecl (_, ndi, qt, vdi) -> 
-    ndi.ni_name ^ "::" ^ Clang_ast_extend.type_ptr_to_string qt.qt_type_ptr
-    ^" "^ (match vdi.vdi_init_expr with 
-    | None -> ""
-    | Some stmt -> string_of_stmt stmt)
-
-    (* clang_prt_raw 1305- int, 901 - char *)
-  | _ ->  Clang_ast_proj.get_decl_kind_string dec
-
-and string_of_stmt_list (li: Clang_ast_t.stmt list) sep : string = 
-    match li with 
-  | [] -> ""
-  | [x] -> string_of_stmt x 
-  | x::xs -> string_of_stmt x ^ sep ^ string_of_stmt_list xs sep
-
-and string_of_stmt (instr: Clang_ast_t.stmt) : string = 
-  let rec helper_decl li sep = 
-    match li with 
-  | [] -> ""
-  | [x] -> string_of_decl  x 
-  | x::xs -> string_of_decl  x ^ sep ^ helper_decl xs sep
-  in 
-(*
-  let rec helper li sep = 
-    match li with 
-  | [] -> ""
-  | [x] -> string_of_stmt x 
-  | x::xs -> string_of_stmt x ^ sep ^ helper xs sep
-  in 
-*)
-  match instr with 
-  | ReturnStmt (stmt_info, stmt_list) ->
-    "ReturnStmt " ^ string_of_stmt_list stmt_list " " 
-
-  (*
-  | MemberExpr (stmt_info, stmt_list, _, member_expr_info) ->
-    "MemberExpr " ^ string_of_stmt_list stmt_list " " 
-    *)
-
-  | MemberExpr (_, arlist, _, member_expr_info)  -> 
-    let memArg = member_expr_info.mei_name.ni_name in 
-    let temp = List.map arlist ~f:(fun a -> stmt2Term a) in 
-    let name  = List.fold_left temp ~init:"" ~f:(fun acc a -> 
-    acc ^ (
-      match a with
-      | None -> "_"
-      | Some t -> string_of_terms t ^ "_"
-    )) in name^memArg
-
-  | IntegerLiteral (_, stmt_list, expr_info, integer_literal_info) ->
-    "IntegerLiteral " ^ integer_literal_info.ili_value
-
-  | StringLiteral (_, stmt_list, expr_info, str_list) -> 
-    let rec straux li = 
-      match li with 
-      | [] -> ""
-      | x :: xs  -> x  ^ " " ^ straux xs 
-    in (* "StringLiteral " ^ string_of_int (List.length stmt_list)  ^ ": " ^ *) straux str_list
-
-
-  | UnaryOperator (stmt_info, stmt_list, expr_info, unary_operator_info) ->
-    "UnaryOperator " ^ string_of_stmt_list stmt_list " " ^ ""
-  
-  | ImplicitCastExpr (stmt_info, stmt_list, expr_info, cast_kind, _) -> 
-    (*"ImplicitCastExpr " ^*) string_of_stmt_list stmt_list " " 
-  | DeclRefExpr (stmt_info, _, _, decl_ref_expr_info) ->
-    (*"DeclRefExpr "^*)
-    (match decl_ref_expr_info.drti_decl_ref with 
-    | None -> "none"
-    | Some decl_ref ->
-      (
-        match decl_ref.dr_name with 
-        | None -> "none1"
-        | Some named_decl_info -> named_decl_info.ni_name
-      )
-    )
-
-  | ParenExpr (stmt_info (*{Clang_ast_t.si_source_range} *), stmt_list, _) ->
-
-    "ParenExpr " ^ string_of_source_range  stmt_info.si_source_range
-    ^ string_of_stmt_list stmt_list " " 
-
-    
-  | CStyleCastExpr (stmt_info, stmt_list, expr_info, cast_kind, _) -> 
-  "CStyleCastExpr " ^ string_of_stmt_list stmt_list " " ^ ""
-
-
-  | IfStmt (stmt_info, stmt_list, if_stmt_info) ->
-
-  "IfStmt " ^ string_of_stmt_list stmt_list "," ^ ""
- 
-  | CompoundStmt (_, stmt_list) -> string_of_stmt_list stmt_list "; " 
-
-  | BinaryOperator (stmt_info, stmt_list, expr_info, binop_info) -> 
-   "BinaryOperator " ^ string_of_stmt_list stmt_list (" "^ Clang_ast_proj.string_of_binop_kind binop_info.boi_kind ^" ")  ^""
-
-  | DeclStmt (stmt_info, stmt_list, decl_list) -> 
-  "DeclStmt " (*  ^ string_of_stmt_list stmt_list " " ^ "\n"^
-    "/\\ "^ string_of_int stmt_info.si_pointer^ " " *)  ^ helper_decl decl_list " " ^ "" 
-  
-  | CallExpr (stmt_info, stmt_list, ei) -> 
-      (match stmt_list with
-      | [] -> assert false 
-      | x :: rest -> 
-    "CallExpr " ^ string_of_stmt x ^" (" ^  string_of_stmt_list rest ", " ^ ") "
-)
-
-  | ForStmt (stmt_info, [init; decl_stmt; condition; increment; body]) ->
-    "ForStmt " ^  string_of_stmt_list ([body]) " " 
-
-  | WhileStmt (stmt_info, [condition; body]) ->
-    "WhileStmt " ^  string_of_stmt_list ([body]) " " 
-  | WhileStmt (stmt_info, [decl_stmt; condition; body]) ->
-    "WhileStmt " ^  string_of_stmt_list ([body]) " " 
-
-  | RecoveryExpr _ -> "RecoveryExpr"
-  | BreakStmt _ -> "BreakStmt"
-
-
-  | _ -> "not yet " ^ Clang_ast_proj.get_stmt_kind_string instr;;
-
-
-
-
-
-let rec extractEventFromFUnctionCall (x:Clang_ast_t.stmt) (rest:Clang_ast_t.stmt list) : event option = 
-(match x with
-| DeclRefExpr (stmt_info, _, _, decl_ref_expr_info) -> 
-  let (sl1, sl2) = stmt_info.si_source_range in 
-  let (lineLoc:int option) = sl1.sl_line in 
-
-  (match decl_ref_expr_info.drti_decl_ref with 
-  | None -> None  
-  | Some decl_ref ->
-    (
-    match decl_ref.dr_name with 
-    | None -> None 
-    | Some named_decl_info -> 
-      Some (named_decl_info.ni_name, argumentsTerms2basic_types((
-        List.map rest ~f:(fun r -> stmt2Term r))))
-    )
-  )
-
-| ImplicitCastExpr (_, stmt_list, _, _, _) ->
-  (match stmt_list with 
-  | [] -> None 
-  | y :: restY -> extractEventFromFUnctionCall y rest)
-| _ -> None 
-)
 
 let getFirst (a, _) = a
 
@@ -337,43 +110,6 @@ let stmt2Pure_helper (op: string) (t1: terms option) (t2: terms option) : pure o
 
     else Eq (t1, t2)
     in Some p 
-
-
-let rec stmt2Pure (instr: Clang_ast_t.stmt) : pure option = 
-  (* print_endline (Clang_ast_proj.get_stmt_kind_string instr); *)
-
-  match instr with 
-  | BinaryOperator (stmt_info, x::y::_, expr_info, binop_info)->
-    (match binop_info.boi_kind with
-    | `LT -> stmt2Pure_helper "<" (stmt2Term x) (stmt2Term y) 
-    | `GT -> stmt2Pure_helper ">" (stmt2Term x) (stmt2Term y) 
-    | `GE -> stmt2Pure_helper ">=" (stmt2Term x) (stmt2Term y) 
-    | `LE -> stmt2Pure_helper "<=" (stmt2Term x) (stmt2Term y) 
-    | `EQ -> stmt2Pure_helper "=" (stmt2Term x) (stmt2Term y) 
-    | `NE -> stmt2Pure_helper "!=" (stmt2Term x) (stmt2Term y) 
-    | _ -> None 
-    )
-
-  | ImplicitCastExpr (_, x::_, _, _, _) -> stmt2Pure x
-  | UnaryOperator (stmt_info, x::_, expr_info, op_info)->
-    (match op_info.uoi_kind with
-    | `Not -> 
-      (match stmt2Pure x with 
-      | None -> None 
-      | Some p -> Some (Neg p))
-    | `LNot -> 
-      (match stmt2Term x with 
-      | None -> None 
-      | Some t -> Some (Eq(t, Basic(BINT 0)))
-      )
-      
-    | _ -> 
-      print_endline ("`LNot DeclRefExpr none4"); 
-      None
-    )
-  | ParenExpr (_, x::rest, _) -> stmt2Pure x
-  
-  | _ -> Some (Gt ((Basic( BVAR (Clang_ast_proj.get_stmt_kind_string instr))), Basic( BVAR ("null"))))
 
 
 
@@ -919,7 +655,7 @@ let string_of_instruction (ins:Sil.instr) : string =
 
 
   
-let getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option = 
+let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option = 
   (*print_endline ("getPureFromDeclStmtInstructions: " ^ string_of_int (List.length instrs));
   print_endline (List.fold instrs ~init:"" ~f:(fun acc a -> acc ^ "," ^ string_of_instruction a)); 
   *)
@@ -929,6 +665,10 @@ let getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option 
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
     Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
+  | Load l :: tail ->
+    let stack' = (l.e, l.id):: stack in 
+    getPureFromDeclStmtInstructions tail stack'
+
   | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
     (*print_endline (Exp.to_string e_fun) ;   *)
     getPureFromFunctionCall e_fun arg_ts (Store s) stack
@@ -977,8 +717,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       else 
         (match getPureFromBinaryOperatorStmtInstructions op instrs stack with 
         | Some pure -> Singleton (pure, node_key), []
-        | None -> Singleton(TRUE, node_key), [] )
-
+        | None -> Singleton(TRUE, node_key), [] )  
     | DeclStmt -> 
       (match getPureFromDeclStmtInstructions instrs stack with 
       | Some pure -> Singleton (pure, node_key), []
