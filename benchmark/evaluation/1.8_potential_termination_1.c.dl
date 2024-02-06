@@ -14,10 +14,10 @@ Start(1).
 State(1).
 Eq("y",2,1).
 State(2).
-Gt("i",3,10). // delete
+Gt("i",3,10).
 LtEq("i",3,10).
 State(3).
-Eq("x",4,1). // delete
+Eq("x",4,1).
 Eq("x",4,2).
 State(6).
 Eq("x",7,1).
@@ -55,7 +55,7 @@ control_flow(11,13) :- LtEqD("i",4,10), valuation("x",15,x_v), valuation("y",15,
 .decl flow(x:number,y:number)
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
-.decl ExistFiniteTrace(loc:number)
+.decl NotTotal(loc:number)
 .decl EXIT(loc:number)
 .decl AF_EXIT_T(interm_state:number,loc:number)
 .decl AF_EXIT_S(loc:number)
@@ -64,8 +64,8 @@ control_flow(11,13) :- LtEqD("i",4,10), valuation("x",15,x_v), valuation("y",15,
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 valuation(x,loc,n) :- Eq(x,loc,n).
 valuation(x,loc,n) :- valuation(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_).
-ExistFiniteTrace(loc) :- State(loc), !control_flow(loc,_).
-ExistFiniteTrace(loc) :- ExistFiniteTrace(locI), control_flow(loc,locI).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_).
@@ -81,7 +81,7 @@ AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
 AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
 AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
 AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
-AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !ExistFiniteTrace(loc).
+AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
 .output Start
 .output Eq
 .output LtEq

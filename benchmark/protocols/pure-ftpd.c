@@ -11,7 +11,6 @@ int _nondet_int(void);
 int close(void);
 int addreply (int);
 
-
 int main () {
     int overflow = 0; 
     int activated = _nondet_int(); 

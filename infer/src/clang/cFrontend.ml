@@ -861,11 +861,16 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     print_endline ("expressionToPure 3 None : " ^ Exp.to_string exp ); 
     None 
   
-let getPureFromFunctionCall (e_fun:Exp.t) ((Store s):IR.Sil.instr) stack =
-  if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall (Exp.to_string e_fun)  then 
+let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store s):IR.Sil.instr) stack =
+  let funName = (Exp.to_string e_fun) in 
+  if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall funName then 
     let exp1 = s.e1 in 
     Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
-  else None 
+  else 
+    let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in 
+    Some (Predicate(funName, argumentTerms))
+
+
 
 let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
   (*print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
@@ -882,7 +887,7 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       getPureFromBinaryOperatorStmtInstructions "Assign" tail stack'
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
       (*print_endline (Exp.to_string e_fun) ;   *)
-      getPureFromFunctionCall e_fun (Store s) stack
+      getPureFromFunctionCall e_fun arg_ts (Store s) stack
     
     | _ -> None 
   else if String.compare op "SubAssign" == 0 then  
@@ -918,7 +923,7 @@ let getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure option 
     Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
   | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
     (*print_endline (Exp.to_string e_fun) ;   *)
-    getPureFromFunctionCall e_fun (Store s) stack
+    getPureFromFunctionCall e_fun arg_ts (Store s) stack
     
   | _ -> None
 
@@ -978,6 +983,18 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         Singleton (Predicate (retKeyword, [expressionToTerm exp2 stack]), node_key), []
       | _ -> Singleton (Predicate (retKeyword, []), node_key), []
       )
+    | Call x  -> 
+      (match instrs with 
+      | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
+        let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in 
+        let funName = (Exp.to_string e_fun) in 
+        let funName = String.sub funName 5 (String.length funName - 5) in 
+        Singleton (Predicate (funName, argumentTerms), node_key), [] 
+       
+      | _ -> Singleton (Predicate (x, []), node_key), []
+      )
+    
+      
     | _ -> Singleton(TRUE, node_key) , []
 
 
@@ -1793,6 +1810,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   L.(debug Capture Verbose) "@\n Start buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
   let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
+  let start = Unix.gettimeofday () in 
+
   print_endline ("<== Anlaysing " ^ source_Address  ^ " ==>");
 
   let () = allTheUniqueIDs := (-1) in 
@@ -1846,6 +1865,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"]);
 
+
+  print_endline ("Totol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) *.1000. ) ^ " ms"); 
 
   print_endline ("\n========================================================================="); 
   print_endline ("<== Run$ souffle -F. -D. " ^ source_Address ^ ".dl" ^ " ==>");

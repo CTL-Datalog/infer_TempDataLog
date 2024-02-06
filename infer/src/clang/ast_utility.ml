@@ -1,5 +1,4 @@
 open Z3
-
 let flowKeyword = "flow"
 let controlFlowKeyword = "control_flow"
 let valueKeyword = "valuation"
@@ -17,7 +16,7 @@ let leqKeyWord = "LtEq"
 let gtKeyWord = "Gt"
 let ltKeyWord = "Lt"
 let geqKeyWord = "GtEq"
-let existFiniteTrace ="ExistFiniteTrace"
+let existFiniteTrace ="NotTotal"
 
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
