@@ -756,7 +756,15 @@ let rec expressionToTerm (exp:Exp.t) stack : terms  =
     | _ -> Basic BNULL
     )
 
+  | UnOp (Neg, t, _) -> 
+    (match expressionToTerm t stack with 
+    | Basic (BINT n) -> Basic (BINT ((-1) * n))
+    | _ -> Basic (BVAR ("UnOp1"))
+    )
+    
+    (** Unary minus *)
   | UnOp _ -> Basic (BVAR ("UnOp"))
+
   | BinOp (MinusA _, e1, e2)
   | BinOp (MinusPI, e1, e2)
   | BinOp (MinusPP, e1, e2) -> 
@@ -980,15 +988,20 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       | Store s :: _ -> 
         (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
         let exp2 = s.e2 in 
+        predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
+
         Singleton (Predicate (retKeyword, [expressionToTerm exp2 stack]), node_key), []
-      | _ -> Singleton (Predicate (retKeyword, []), node_key), []
+      | _ -> 
+        Singleton (Predicate (retKeyword, []), node_key), []
       )
     | Call x  -> 
       (match instrs with 
       | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
         let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in 
+        let argumentTermsType = List.map argumentTerms ~f:(fun a -> match a with | Basic(BINT _ ) ->"Number" | Basic(BVAR _ ) -> "Symbol" | Basic(BSTR _ ) -> "Symbol" | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
         let funName = String.sub funName 5 (String.length funName - 5) in 
+        predicateDeclearation:= (funName, argumentTermsType@["Number"]) :: !predicateDeclearation ;
         Singleton (Predicate (funName, argumentTerms), node_key), [] 
        
       | _ -> Singleton (Predicate (x, []), node_key), []
@@ -1566,7 +1579,7 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
     (* In case there are no reasonable value for not, just sample among the program value *)
     let valueSet  = if List.length valueSet == 0 then getProgramValues re else valueSet in 
     (* In case there are no program values, sample some a dummay set  *)
-    let valueSet = if List.length valueSet ==0  then [-1;0;1] else valueSet in 
+    let valueSet = if List.length valueSet ==0  then [0;1] else valueSet in 
     let concreteSample = List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet in 
     
     if List.length relationList == 0 
@@ -1816,6 +1829,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let () = allTheUniqueIDs := (-1) in 
   let () = ruleDeclearation := [] in 
+  let () = predicateDeclearation := [] in 
 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
@@ -1834,6 +1848,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   
   let (specPrinting:string list) = List.map specifications ~f:(fun ctl -> "//" ^ string_of_ctl ctl) in 
 
+  let predicateDeclearation = (sort_uniq (fun (a, _) (c, _) -> String.compare a c) !predicateDeclearation) in 
+  let (predicateDeclearationOutput: string list) = (List.map predicateDeclearation ~f:(fun (a, _) -> ".output " ^ a) ) in 
+
   let (datalogProgPrinting:string list) = 
     flattenList (List.map specifications 
     ~f:(fun item -> 
@@ -1847,11 +1864,11 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
          ".output Gt";
          ".output Lt";
          ".output GtEq";
-         ".output Return";
          ".output State";
          ".output flow";
-      ]@
-      [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
+      ]
+      @ predicateDeclearationOutput
+      @ [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
       
 
 

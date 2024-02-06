@@ -115,6 +115,8 @@ let (handlerVar: string option ref) = ref None
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
 let (ruleDeclearation:(string list) ref) = ref []
+let (predicateDeclearation:((string * ((string) list)) list) ref) = ref []
+
 let totol_execution_time  = ref 0.0
 let totol_Lines_of_Code  = ref 0
 let totol_Lines_of_Spec  = ref 0
@@ -760,7 +762,7 @@ let rec getAllNumFromPure (pi:pure):int list =
   | PureAnd (pi1,pi2) -> 
     getAllNumFromPure pi1 @ getAllNumFromPure pi2
   | Neg piN -> getAllNumFromPure piN
-  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllNumFromTerm t)
+  (*| Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllNumFromTerm t) *)
   | _ ->[]
   ;;
 
@@ -1186,47 +1188,56 @@ let rec translation (ctl:ctl) : string * datalog =
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
     (valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (gtKeyWord^"D",     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (leqKeyWord^"D",     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (ltKeyWord^"D",     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (geqKeyWord^"D",     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
 
     (assignKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (leqKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (gtKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (ltKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (geqKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
 
-    (retKeyword,       [ ("n", Number); ("x", Number);]); (* currently only return integers *)
-    (stateKeyWord,     [ ("x", Number)]);
-    (flowKeyword,      [ ("x", Number); ("y", Number) ]);
-    (controlFlowKeyword,      [ ("x", Number); ("y", Number) ]);
-    (transFlowKeyWord, [ ("x", Number); ("y", Number) ]); 
+    (*(retKeyword,            [ ("n", Number); ("x", Number);]);*) (* currently only return integers *)
+    (stateKeyWord,          [ ("x", Number)]);
+    (flowKeyword,           [ ("x", Number); ("y", Number) ]);
+    (controlFlowKeyword,    [ ("x", Number); ("y", Number) ]);
+    (transFlowKeyWord,      [ ("x", Number); ("y", Number) ]); 
     (existFiniteTrace,      [ ("loc", Number)]);
 
     
     ]
-    (*
+    @
+    List.map (sort_uniq (fun (a, _) (c, _) -> String.compare a c) !predicateDeclearation) 
+    ~f:(fun (predName, strLi) -> 
+    let rec attribute typLi n = 
+      match typLi with 
+      | [] -> [] 
+      | typ::rest -> 
+        (if String.compare typ "Number" == 0 then ("n"^string_of_int n, Number)
+        else ("x"^string_of_int n, Number))
+        :: attribute rest (n+1)
+    in 
+    (predName, attribute strLi 0)
+    )
+    
     @
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  leqKeyWord 
-     then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+           (leqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )@
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  gtKeyWord 
-     then [(gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     then [(gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+           (gtKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
     @
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  ltKeyWord 
-     then [(ltKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     then [(ltKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+           (ltKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
     @
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  geqKeyWord 
-     then [(geqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     then [(geqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+           (geqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
-    *)
+    
 
     
 
@@ -1331,22 +1342,28 @@ and translation_inner (ctl:ctl) : string * datalog =
       let valuationAtom var = Pos (valueKeyword, [Basic (BSTR var); Basic (BVAR locKeyWord); Basic(BVAR (var^"_v"))] ) in 
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        let cond = Pos (gtKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+      
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (GtEq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        let cond = Pos (geqKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (GtEq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Lt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        let cond = Pos (ltKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (Lt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])
 
       | Predicate (str, _) -> 
         if String.compare str "EXIT" == 0 then 
-          pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])])
+          (predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
+          pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
         else 
           pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       (* *********************************************************************

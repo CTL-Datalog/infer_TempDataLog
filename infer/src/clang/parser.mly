@@ -63,6 +63,20 @@ ctl_formula:
   let rec propositionName pi : (string * pure) = 
     match pi with 
     | Eq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int n, (Eq (Basic(BSTR str), Basic(BINT n)))
+    | Gt (Basic(BVAR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int n, (Gt (Basic(BSTR str), Basic(BINT n)))
+    | Lt (Basic(BVAR str), Basic(BINT n)) -> str ^ "_lt_" ^ string_of_int n, (Lt (Basic(BSTR str), Basic(BINT n)))
+    | GtEq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_gteq_" ^ string_of_int n, (GtEq (Basic(BSTR str), Basic(BINT n)))
+    | LtEq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_lteq_" ^ string_of_int n, (LtEq (Basic(BSTR str), Basic(BINT n)))
+    | PureAnd (pi1, pi2) -> 
+      let n1, p1 = propositionName pi1 in 
+      let n2, p2 = propositionName pi2 in 
+      n1 ^ "_and_" ^ n2, PureAnd (p1, p2)
+
+    | PureOr (pi1, pi2) -> 
+      let n1, p1 = propositionName pi1 in 
+      let n2, p2 = propositionName pi2 in 
+      n1 ^ "_or_" ^ n2, PureOr (p1, p2)
+
     | Predicate (str, termLi) -> str, (Predicate (str, termLi))
     | _ -> "propositionDefult", pi
   in  
