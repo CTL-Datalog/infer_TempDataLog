@@ -23,7 +23,7 @@ int main () {
     if ((
         // (max_filesize >=  0 &&
          // (max_filesize = user_quota_size - quota_size) <  0))) {
-        temp <  0)) {
+        max_filesize >=  0 && temp < 0)) {
         overflow = 1;
         goto afterquota;
     }

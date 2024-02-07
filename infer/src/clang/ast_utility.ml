@@ -543,7 +543,7 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | (Bot, _) -> Bot
     | (_, Bot) -> Bot
     | (Omega _, _) -> es1
-    | (Disjunction (es11, es12), es3) -> Disjunction(normalise_es (Concate (es11,es3)),  normalise_es (Concate (es12, es3))) 
+    (*| (Disjunction (es11, es12), es3) -> Disjunction(normalise_es (Concate (es11,es3)),  normalise_es (Concate (es12, es3))) *)
     | (Concate (es11, es12), es3) -> (Concate (es11, normalise_es (Concate (es12, es3))))
     | _ -> (Concate (es1, es2))
     )
@@ -553,6 +553,10 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | Emp -> Emp 
     | _ ->  
     Kleene (effIn'))
+  | Omega effIn -> 
+    let effIn' = normalise_es effIn in 
+    Omega (effIn')
+
   | _ -> eff 
 
 
@@ -1343,19 +1347,19 @@ and translation_inner (ctl:ctl) : string * datalog =
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (gtKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (Gt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
       
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (geqKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (GtEq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (ltKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (Lt(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond; Pure (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) ))]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])

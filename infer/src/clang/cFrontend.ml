@@ -664,7 +664,14 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
     let exp1 = s.e1 in 
     let exp2 = s.e2 in 
-    Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
+    let t1 = expressionToTerm exp1 stack in 
+    let t2 = expressionToTerm exp2 stack in 
+    (match t1, t2 with 
+    | Basic(BSTR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
+    | Basic(BVAR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
+    | _ -> Some (Eq (t1, Basic ANY)) (* if it is temp=user_quota_size-quota_size, temp will be ANY *)
+    )  
+    
   | Load l :: tail ->
     let stack' = (l.e, l.id):: stack in 
     getPureFromDeclStmtInstructions tail stack'
@@ -898,7 +905,24 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
     | [succ] -> 
       let stack'', re, nextJoin = findTheNextJoin (stack'@stack) loopJoins succ disjunStackIn  in 
       stack'', Concate(reExtension,re), nextJoin
-    | succ::_ ->
+    | [succ1;succ2] ->
+      let stack1'', re1, nextJoin1 = findTheNextJoin (stack'@stack) loopJoins succ1 (disjunStackIn)  in 
+      let stack2'', re2, nextJoin2 = findTheNextJoin (stack'@stack) loopJoins succ2 (disjunStackIn)  in 
+      
+      (match nextJoin1, nextJoin2 with 
+      | None, None  -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
+      | Some join1, Some join2 -> 
+        let joinID1 = (getNodeID join1) in
+        let joinID2 = (getNodeID join2) in
+        if joinID1 == joinID2 then stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
+        else raise (Failure ("findTheNextJoin non consitant join  " ^ string_of_int joinID1 ^ " " ^ string_of_int joinID2))
+      | None, Some join | Some join, None  -> 
+        stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), Some join
+      
+      )
+
+
+    | succ:: _  ->
       let stack'', re, nextJoin = findTheNextJoin (stack'@stack) loopJoins succ (currentID:: disjunStackIn) in 
       stack'', Concate(reExtension,re), nextJoin
       
@@ -1178,8 +1202,10 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
-  let pass1 = getRegularExprFromCFG procedure in 
-  let pass3 = normalise_es (deleteAllTheJoinNodes pass1) in 
+  let pass1 = normalise_es (getRegularExprFromCFG procedure) in 
+  let pass3 =  (deleteAllTheJoinNodes pass1) in 
+  print_endline ("normalise_es and \n"^string_of_regularExpr (pass3)^ "\n------------"); 
+
   recordTheMaxValue4RE pass3;
   let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
   let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
@@ -1305,11 +1331,13 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
   | Eq (Basic(BVAR var), Basic ANY) -> 
     (*print_endline ("\n======\nvar "^ var ^" is unknown");
-    print_endline ("regular expression:" ^ string_of_regularExpr re);*)
+    print_endline ("regular expression:" ^ string_of_regularExpr re); *)
     let (pathConditions: pure list) = getAllPathConditions re in 
-    (*print_endline ("pathConditions" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); *)
+    (*print_endline ("pathConditions" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions)));  *)
     let (pathConditionRelatedToVar:pure list) = pathConditionRelatedToVar var pathConditions in 
-    (*print_endline ("pathConditionRelatedToVar" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions))); *)
+    let (pathConditionRelatedToVar:pure list) = sort_uniq (fun a b -> if comparePure a b then 0 else -1) pathConditionRelatedToVar in 
+
+    (*print_endline ("pathConditionRelatedToVar" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditionRelatedToVar)));  *)
 
     let relationList = flattenList (List.map pathConditionRelatedToVar ~f:(fun pIn -> getFactFromPure pIn state Emp)) in 
 
@@ -1439,6 +1467,7 @@ let flowsForTheCycle (re:regularExpr) : relation list =
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
+  print_endline ("convertRE2Datalog");
   let (unknownVars:string list) = getUnknownVars re in 
   let rec mergeResults li (acca, accb) = 
     match li with 
@@ -1446,12 +1475,14 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
     | (a, b) :: xs -> mergeResults xs (acca@a, accb@b )
   in     
   let rec ietrater reIn (previousState:int option) (pathConstrint: (body list) option) : (relation list * rule list) = 
-    let fstSet = fst reIn in 
+    let reIn = normalise_es reIn in 
+    print_endline ( string_of_regularExpr reIn );
+
+    let fstSet = removeRedundant (fst reIn) compareEvent in 
     match fstSet with 
     | [] -> 
       (match previousState with 
       | Some previousState -> 
-        (*print_endline ("ietrater " ^ string_of_int previousState); *)
         let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
         ([stateFact], [])
       | _ -> ([], [])
@@ -1478,6 +1509,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | Predicate (s, _) -> if String.compare s joinKeyword == 0 then None else pathConstrint
             | _ -> pathConstrint
           in 
+          print_endline ( "ietrater PureEv");
+
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])
 
@@ -1501,6 +1534,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | None -> Some (pureToBodies guard previousState unknownVars)
             | Some bodies -> Some (bodies @ pureToBodies guard previousState unknownVars)
           in 
+          print_endline ( "ietrater GuardEv");
+
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
 
@@ -1576,6 +1611,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       let summary = computeSummaryFromCGF procedure in 
       List.append accs [summary] )) 
   in
+
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       let (facts, rules) = convertRE2Datalog (summary) in 
       
