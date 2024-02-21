@@ -4,6 +4,8 @@ let controlFlowKeyword = "control_flow"
 let valueKeyword = "valuation"
 let retKeyword = "Return"
 let joinKeyword = "Join"
+
+let skipKeyword = "Join"
 let entryKeyWord = "Start"
 let assignKeyWord = "Eq"
 let stateKeyWord = "State"
@@ -82,6 +84,7 @@ type regularExpr =
 
 type fstElem = 
     PureEv of (pure * state) 
+  | Delimiter of state
   | GuardEv of (pure * state) 
   | KleeneEv of regularExpr
   | OmegaEv of regularExpr
@@ -345,6 +348,7 @@ let rec nullable (eff:regularExpr) : bool =
 let string_of_fst_event (ele:fstElem) : string = 
   match ele with 
   | PureEv (p, s) -> string_of_pure p ^ string_of_loc s 
+  | Delimiter (s) -> skipKeyword ^ string_of_loc s 
   | GuardEv (p, s) -> "[" ^string_of_pure p ^ "]" ^ string_of_loc s 
   | KleeneEv re -> "(" ^ string_of_regularExpr re ^ ")^*"
   | OmegaEv re -> "(" ^ string_of_regularExpr re ^ ")^w"
@@ -353,6 +357,11 @@ let rec fst (eff:regularExpr) : (fstElem list) =
   match eff with 
   | Bot             -> []   
   | Emp  -> []
+  | Singleton (Predicate(s, args), loc) -> 
+    if String.compare s joinNodeKeyWord == 0  || String.compare s skipKeyword == 0  
+    then [Delimiter loc] 
+    else [PureEv (Predicate(s, args), loc)]
+
   | Singleton s     -> [(PureEv s)]
   | Guard s         -> [(GuardEv s)]
   | Concate (eff1, eff2) -> 
@@ -388,6 +397,7 @@ let rec getStatesFromFstEle (li:fstElem list): int list  =
   | x :: xs  -> 
     (match x with 
     | PureEv  (_, s) 
+    | Delimiter s 
     | GuardEv (_, s) -> [s] 
     | _ -> []
     ) @ getStatesFromFstEle xs 
@@ -408,6 +418,7 @@ let rec compareRE re1 re2 : bool =
 
 let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
   match (ev1, ev2) with 
+  | (Delimiter s1, Delimiter s2) -> s1 == s2 
   | (PureEv (p1, s1), PureEv(p2, s2))
   | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2 && s1 == s2 
   | (OmegaEv re1, OmegaEv re2)
@@ -435,7 +446,8 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
   | Singleton (p1, s1) -> 
     (match f with 
     | PureEv (p2, s2) -> if comparePure p1 p2 && s1 == s2 then Emp else Bot
-    | _ -> Bot 
+    | Delimiter s2 -> if comparePure p1 (Predicate(skipKeyword, [])) && s1 == s2 then Emp else Bot
+    | _  -> Bot 
     )
   | Guard (p1, s1) -> 
     (match f with 
@@ -458,6 +470,7 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
 let eventToRe (ev:fstElem) : regularExpr = 
   match ev with 
   | PureEv s -> Singleton s 
+  | Delimiter s -> Singleton ((Predicate(skipKeyword, [])), s) 
   | GuardEv s -> Guard s 
   | KleeneEv re -> Kleene re
   | OmegaEv re -> Omega re
@@ -467,16 +480,9 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
     (match fst re with 
     | [f] -> 
       (match f with 
-      | PureEv (Predicate (s, _), state) -> 
-        if String.compare joinKeyword s == 0 then 
-          let deriv = (derivitives f re) in 
-          Some (state, Emp, deriv)
-        else 
-          let deriv = (derivitives f re) in 
-          (match findTheFirstJoint deriv with 
-          | None  -> None 
-          | Some (a, b, c) -> Some (a, Concate (eventToRe f, b), c)
-          )
+      | Delimiter state -> 
+        let deriv = (derivitives f re) in 
+        Some (state, Emp, deriv)
 
       | _ -> 
         let deriv = (derivitives f re) in 
@@ -488,16 +494,20 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
       )
     | _ -> None )
 
+
+
 let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr = 
   match re with 
   | Singleton (Predicate (s, _), state) -> 
-    if String.compare s joinNodeKeyWord == 0  || String.compare s "SKIP" == 0  then Emp else re 
+    if String.compare s joinNodeKeyWord == 0  || String.compare s skipKeyword == 0  then Emp else re 
   | Kleene (reIn) -> Kleene (deleteAllTheJoinNodes reIn)
   | Disjunction(r1, r2) -> Disjunction(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
   | Concate (r1, r2) -> Concate(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
   | _ -> re
 
   ;;
+
+
 
 let normalise_terms (t:terms) : terms = 
   match t with 

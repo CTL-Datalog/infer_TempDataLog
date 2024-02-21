@@ -696,7 +696,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
   | Exit_node ->  Emp(* Singleton (Predicate ("Exit", []), node_key) *), []
   | Join_node ->  Singleton(Predicate (joinKeyword, []), node_key) , []
-  | Skip_node _ ->  Singleton(Predicate ("SKIP", []), node_key) , []
+  | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
   | Prune_node (f,_,_) ->  
     (match instrs with 
     | Prune (e, loc, f, _):: _ ->  
@@ -1215,7 +1215,7 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
 let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * pure = 
   match re with 
   | Kleene (reIn) -> 
-    let normalForm = normaliseTheDisjunctions reIn in 
+    let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in 
     let loopsummary = getLoopSummary normalForm path in 
     loopsummary, path
   | Disjunction(r1, r2) -> 
@@ -1247,7 +1247,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
   let pass1 =  normalise_es (getRegularExprFromCFG procedure) in 
-  let pass3 =  (deleteAllTheJoinNodes ( pass1)) in 
+  let pass3 =  ( ( pass1)) in 
   recordTheMaxValue4RE pass3; 
   let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
   let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
@@ -1513,11 +1513,8 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     *)
 
 
-
-
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
-  print_endline ("convertRE2Datalog");
-
+  let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
   print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));  
 
@@ -1543,6 +1540,34 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
     | li -> 
       List.fold_left li ~init:([], []) ~f:(fun (reAcc, ruAcc) f -> 
         match f with 
+        | Delimiter state -> 
+          
+          let (reAcc, ruAcc) = 
+            (match previousState with 
+            | Some previousState -> 
+              let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
+
+              let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+
+              (match pathConstrint with 
+              | None -> [stateFact; fact], []
+              | Some bodies -> [stateFact], [(fact', bodies(*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
+              )
+              
+
+            | None  -> [], []
+            )
+          in 
+          let (reAcc'', ruAcc'') = 
+            if existAux (==) !doneDelimiters state then [], []
+            else 
+              (doneDelimiters := state:: !doneDelimiters;
+              ietrater (derivitives f reIn) (Some state) None) in 
+          
+          mergeResults [(reAcc, ruAcc); (reAcc'', ruAcc'')] ([], [])
+
+
         | PureEv (p, state) -> 
           let (reAcc', ruAcc')  = 
             (match previousState with 
@@ -1709,7 +1734,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"]);
 
 
-  print_endline ("Totol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) *.1000. ) ^ " ms"); 
+  print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) *.1000. ) ^ " ms"); 
 
   print_endline ("\n========================================================================="); 
   print_endline ("<== Run$ souffle -F. -D. " ^ source_Address ^ ".dl" ^ " ==>");
