@@ -669,7 +669,8 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     (match t1, t2 with 
     | Basic(BSTR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
     | Basic(BVAR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
-    | _ -> Some (Eq (t1, Basic ANY)) (* if it is temp=user_quota_size-quota_size, temp will be ANY *)
+    | _ -> Some (Eq (t1, Basic ANY)) 
+    (* if it is temp=user_quota_size-quota_size, temp will be ANY *)
     )  
     
   | Load l :: tail ->
@@ -1294,12 +1295,16 @@ let rec findRelaventValueSet (re:regularExpr) (var:string) : int list =
 let rec getAllPathConditions (re:regularExpr): pure list = 
   match re with 
   | Emp | Bot | Singleton _ -> [TRUE]
-  | Guard (p, _) -> [p]
+  | Guard (p, _) -> [(normalise_pure p)]
   | Concate(re1, re2) ->
     let pc1 = getAllPathConditions re1 in 
     let pc2 = getAllPathConditions re2 in 
     let mix = cartesian_product pc1 pc2 in 
-    List.map mix ~f:(fun (a, b) -> PureAnd(a, b))
+    List.map mix ~f:(fun (a, b) -> 
+      match a, b with 
+      | Ast_utility.TRUE, _ -> b 
+      | _, Ast_utility.TRUE -> a 
+      | _,  _ -> PureAnd(a, b))
     
   | Disjunction (re1, re2) -> 
     let pc1 = getAllPathConditions re1 in 
@@ -1364,7 +1369,7 @@ let rec pathConditionRelatedToVar str (pathConditions:pure list): pure list =
   )
 
 
-let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list= 
+let rec getFactFromPure (p:pure) (state:int) (pathConditions:pure list): relation list= 
   
 
   let loc = Basic(BINT state) in 
@@ -1373,15 +1378,17 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Eq (Basic(BVAR var), Basic ANY) -> 
     (*print_endline ("\n======\nvar "^ var ^" is unknown");
     print_endline ("regular expression:" ^ string_of_regularExpr re); *)
-    let (pathConditions: pure list) = getAllPathConditions re in 
-    (*print_endline ("pathConditions" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditions)));  *)
     let (pathConditionRelatedToVar:pure list) = pathConditionRelatedToVar var pathConditions in 
     let (pathConditionRelatedToVar:pure list) = sort_uniq (fun a b -> if comparePure a b then 0 else -1) pathConditionRelatedToVar in 
 
     (*print_endline ("pathConditionRelatedToVar" ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) pathConditionRelatedToVar)));  *)
 
-    let relationList = flattenList (List.map pathConditionRelatedToVar ~f:(fun pIn -> getFactFromPure pIn state Emp)) in 
+    let relationList = flattenList (List.map pathConditionRelatedToVar ~f:(fun pIn -> getFactFromPure pIn state [])) in 
 
+    
+    relationList
+
+    (*
     (* old code for sampling the non-detreministic values *)
     let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
     (* In case there are no reasonable value for not, just sample among the program value *)
@@ -1389,10 +1396,11 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
     (* In case there are no program values, sample some a dummay set  *)
     let valueSet = if List.length valueSet ==0  then [0;1] else valueSet in 
     let concreteSample = List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet in 
-    
+
     if List.length relationList == 0 
     then relationList @ concreteSample 
     else relationList
+    *)
     
   | Eq (Basic(BVAR var), t2) -> 
     ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
@@ -1441,7 +1449,7 @@ let rec getFactFromPure (p:pure) (state:int) (re:regularExpr): relation list=
   | Neg (Eq (t1, t2)) -> [("NotEq", [t1;loc;t2])]
 
   | PureOr (p1, p2) 
-  | PureAnd (p1, p2) -> getFactFromPure p1 state re @ getFactFromPure p2 state re
+  | PureAnd (p1, p2) -> getFactFromPure p1 state pathConditions @ getFactFromPure p2 state pathConditions
   | Neg _  (*-> raise (Failure "getFactFromPure Neg") *)
   | FALSE | TRUE (*-> raise (Failure "getFactFromPure false") *)
   -> [] (*raise (Failure "getFactFromPure PureOr") *)
@@ -1508,7 +1516,11 @@ let flowsForTheCycle (re:regularExpr) : relation list =
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
-  (*print_endline ("convertRE2Datalog");*)
+  print_endline ("convertRE2Datalog");
+
+  let pathConditions = getAllPathConditions re in 
+  print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));  
+
   let (unknownVars:string list) = getUnknownVars re in 
   let rec mergeResults li (acca, accb) = 
     match li with 
@@ -1544,7 +1556,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               | Some bodies -> [stateFact], [(fact', bodies(*List.map ~f:(fun a -> Pos a) (getFactFromPure path previousState reIn)*))]
               )
             | None -> [], []) in 
-          let valueFacts = getFactFromPure p state reIn in 
+          let valueFacts = getFactFromPure p state pathConditions in 
           let pathConstrint' = 
             match p with 
             | Predicate (s, _) -> if String.compare s joinKeyword == 0 then None else pathConstrint

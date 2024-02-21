@@ -516,6 +516,10 @@ let rec normalise_pure (pi:pure) : pure =
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
   | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
   | PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
+  | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
+  | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
+  | Neg (LtEq (t1, t2)) -> Gt (t1, t2)
   | Neg piN -> Neg (normalise_pure piN)
   | PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
   | Predicate (str, termLi) -> 
