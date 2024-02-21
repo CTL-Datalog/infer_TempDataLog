@@ -695,7 +695,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
   | Exit_node ->  Emp(* Singleton (Predicate ("Exit", []), node_key) *), []
   | Join_node ->  Singleton(Predicate (joinKeyword, []), node_key) , []
-  | Skip_node t ->  Singleton(TRUE, node_key) , []
+  | Skip_node _ ->  Singleton(Predicate ("SKIP", []), node_key) , []
   | Prune_node (f,_,_) ->  
     (match instrs with 
     | Prune (e, loc, f, _):: _ ->  
@@ -906,8 +906,8 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
       let stack'', re, nextJoin = findTheNextJoin (stack'@stack) loopJoins succ disjunStackIn  in 
       stack'', Concate(reExtension,re), nextJoin
     | [succ1;succ2] ->
-      let stack1'', re1, nextJoin1 = findTheNextJoin (stack'@stack) loopJoins succ1 (disjunStackIn)  in 
-      let stack2'', re2, nextJoin2 = findTheNextJoin (stack'@stack) loopJoins succ2 (disjunStackIn)  in 
+      let stack1'', re1, nextJoin1 = findTheNextJoin (stack'@stack) loopJoins succ1 (currentID:: disjunStackIn)  in 
+      let stack2'', re2, nextJoin2 = findTheNextJoin (stack'@stack) loopJoins succ2 (currentID:: disjunStackIn)  in 
       
       (match nextJoin1, nextJoin2 with 
       | None, None  -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
@@ -923,8 +923,11 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
         | Skip_node _, Join_node -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
         | Join_node, Skip_node _ -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin2
         | _, _ -> 
-          if joinID1 == joinID2 then stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
-          else raise (Failure ("findTheNextJoin non consitant join  " ^ string_of_int joinID1 ^ " " ^ string_of_int joinID2))
+          if joinID1 == joinID2 then ()
+          else 
+            print_endline (("WARNING!!! findTheNextJoin non consitant join  " ^ string_of_int joinID1 ^ " " ^ string_of_int joinID2));
+          stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
+
         )
         
       | None, Some join | Some join, None  -> 
@@ -989,25 +992,51 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
 
       let s1, re1,(join1:Procdesc.Node.t option) = findTheNextJoin stack'' loopJoins succ1 [currentID] in 
       let s2, re2, (join2:Procdesc.Node.t option) = findTheNextJoin stack'' loopJoins succ2 [currentID] in 
-      let reDisjunction = Disjunction(re1, re2) in 
       let stack3 = stack''@s1@s2 in 
       (match join1, join2 with 
       | Some join1, Some join2 -> 
+        let reDisjunction = Disjunction(re1, re2) in 
+
+        let node_kind_join1 = (Procdesc.Node.get_kind join1) in
+        let node_kind_join2 = (Procdesc.Node.get_kind join2) in
+
         let joinID1 = (getNodeID join1) in
         let joinID2 = (getNodeID join2) in
-        if joinID1 == joinID2 then 
-          getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
-        else 
-          (*let info = string_of_int currentID ^ " <==> " ^ string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
-          print_endline (info);
-          *)
-          let re1, _ = getRegularExprFromCFG_helper loopJoins (Concate(history', re1)) stack'' join1 in 
-          let re2, stack''' = getRegularExprFromCFG_helper loopJoins (Concate(history', re2)) stack'' join2 in 
-          Disjunction (re1, re2), stack''' 
+        (match node_kind_join1, node_kind_join2 with 
+        (* here the first two cases are to deal with GOTO statements, although it is not complete still, 
+        this implementation is only true if from  the Join_node to the skip there is nothing happending. 
+        *)
+        | Skip_node _, Join_node -> getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
+        | Join_node, Skip_node _ -> getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join2
+        | _, _ -> 
+          if joinID1 == joinID2 then 
+            getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
+          else 
+        let info = string_of_int currentID ^ " join at " ^ string_of_int joinID1 ^ " and " ^ string_of_int joinID2 in 
+        print_endline (info);
+        
+            let re1', stack1'''= getRegularExprFromCFG_helper loopJoins re1 stack'' join1 in 
+            let re2', stack2''' = getRegularExprFromCFG_helper loopJoins re2 stack'' join2 in 
+            Concate(history', Disjunction (re1', re2')) , stack1''' @ stack2'''
 
-      | None, None -> Concate(history', reDisjunction), stack3
-      | None, Some joinNext
-      | Some joinNext, None -> getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack3 joinNext 
+
+        )
+        
+
+
+      | None, None -> 
+        let reDisjunction = Disjunction(re1, re2) in 
+        Concate(history', reDisjunction), stack3
+      | None, Some joinNext -> 
+        let secondContinue, stackSND = getRegularExprFromCFG_helper loopJoins re2 stack3 joinNext in 
+        Concate(history', Disjunction(re1, secondContinue)), stack3@ stackSND
+
+      | Some joinNext, None -> 
+        let secondContinue, stackFST = getRegularExprFromCFG_helper loopJoins re1 stack3 joinNext in 
+        Concate(history', Disjunction(re2, secondContinue)), stack3@ stackFST
+
+        
+        
 
       )
 
@@ -1216,8 +1245,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   let localVariables = Procdesc.get_locals procedure in 
   let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
   *)
-  let pass1 = normalise_es (getRegularExprFromCFG procedure) in 
-  let pass3 =  (deleteAllTheJoinNodes pass1) in 
+  let pass1 =  normalise_es (getRegularExprFromCFG procedure) in 
+  let pass3 =  (deleteAllTheJoinNodes ( pass1)) in 
   recordTheMaxValue4RE pass3; 
   let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
   let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)

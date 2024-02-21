@@ -491,7 +491,7 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
 let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr = 
   match re with 
   | Singleton (Predicate (s, _), state) -> 
-    if String.compare s joinNodeKeyWord == 0 then Emp else re 
+    if String.compare s joinNodeKeyWord == 0  || String.compare s "SKIP" == 0  then Emp else re 
   | Kleene (reIn) -> Kleene (deleteAllTheJoinNodes reIn)
   | Disjunction(r1, r2) -> Disjunction(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
   | Concate (r1, r2) -> Concate(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
