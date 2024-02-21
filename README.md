@@ -10,6 +10,7 @@ infer/bin/infer run -- clang -c benchmark/evaluation/1.8_potential_termination_1
 ```
 
 
+infer/bin/infer run -- clang -c benchmark/protocols/pure-ftpd.c
 
 ------
 ./build-infer.sh java

@@ -912,10 +912,21 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
       (match nextJoin1, nextJoin2 with 
       | None, None  -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
       | Some join1, Some join2 -> 
+        let node_kind_join1 = (Procdesc.Node.get_kind join1) in
+        let node_kind_join2 = (Procdesc.Node.get_kind join2) in
         let joinID1 = (getNodeID join1) in
         let joinID2 = (getNodeID join2) in
-        if joinID1 == joinID2 then stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
-        else raise (Failure ("findTheNextJoin non consitant join  " ^ string_of_int joinID1 ^ " " ^ string_of_int joinID2))
+        (match node_kind_join1, node_kind_join2 with 
+        (* here the first two cases are to deal with GOTO statements, although it is not complete still, 
+        this implementation is only true if from  the Join_node to the skip there is nothing happending. 
+        *)
+        | Skip_node _, Join_node -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
+        | Join_node, Skip_node _ -> stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin2
+        | _, _ -> 
+          if joinID1 == joinID2 then stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), nextJoin1
+          else raise (Failure ("findTheNextJoin non consitant join  " ^ string_of_int joinID1 ^ " " ^ string_of_int joinID2))
+        )
+        
       | None, Some join | Some join, None  -> 
         stack1''@stack2'', Concate(reExtension, Disjunction(re1,re2)), Some join
       
@@ -933,6 +944,8 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
     (stack@stack'), Omega(reExtension), None 
+
+  | Skip_node _ -> stack, Emp, Some currentState
 
   | Join_node -> 
     if existAux (==) loopJoins currentID then 
@@ -985,8 +998,9 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
         if joinID1 == joinID2 then 
           getRegularExprFromCFG_helper loopJoins (Concate(history', reDisjunction)) stack'' join1
         else 
-          let info = string_of_int currentID ^ " <==> " ^ string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
+          (*let info = string_of_int currentID ^ " <==> " ^ string_of_int joinID1 ^ "==" ^ string_of_int joinID2 in 
           print_endline (info);
+          *)
           let re1, _ = getRegularExprFromCFG_helper loopJoins (Concate(history', re1)) stack'' join1 in 
           let re2, stack''' = getRegularExprFromCFG_helper loopJoins (Concate(history', re2)) stack'' join2 in 
           Disjunction (re1, re2), stack''' 
@@ -1204,9 +1218,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   *)
   let pass1 = normalise_es (getRegularExprFromCFG procedure) in 
   let pass3 =  (deleteAllTheJoinNodes pass1) in 
-  print_endline ("normalise_es and \n"^string_of_regularExpr (pass3)^ "\n------------"); 
-
-  recordTheMaxValue4RE pass3;
+  recordTheMaxValue4RE pass3; 
   let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
   let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
   print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
@@ -1467,7 +1479,7 @@ let flowsForTheCycle (re:regularExpr) : relation list =
 
 
 let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
-  print_endline ("convertRE2Datalog");
+  (*print_endline ("convertRE2Datalog");*)
   let (unknownVars:string list) = getUnknownVars re in 
   let rec mergeResults li (acca, accb) = 
     match li with 
@@ -1476,7 +1488,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   in     
   let rec ietrater reIn (previousState:int option) (pathConstrint: (body list) option) : (relation list * rule list) = 
     let reIn = normalise_es reIn in 
-    print_endline ( string_of_regularExpr reIn );
+    (*print_endline ( string_of_regularExpr reIn );*)
 
     let fstSet = removeRedundant (fst reIn) compareEvent in 
     match fstSet with 
@@ -1509,7 +1521,6 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | Predicate (s, _) -> if String.compare s joinKeyword == 0 then None else pathConstrint
             | _ -> pathConstrint
           in 
-          print_endline ( "ietrater PureEv");
 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])
@@ -1534,7 +1545,6 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             | None -> Some (pureToBodies guard previousState unknownVars)
             | Some bodies -> Some (bodies @ pureToBodies guard previousState unknownVars)
           in 
-          print_endline ( "ietrater GuardEv");
 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint'  in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])

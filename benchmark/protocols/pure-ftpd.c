@@ -6,7 +6,7 @@
  * -ctl "AF{QuotaExceeded() -> }"
  */
 
-/*@ EG((temp>0) => AF(overflow=1)) @*/
+/*@ EG((max_filesize<0) => AF(overflow=1)) @*/
 
 int _nondet_int(void);
 int addreply (int);
@@ -17,7 +17,7 @@ int main () {
     int user_quota_size = _nondet_int();
     int quota_size = _nondet_int(); 
     int max_filesize = -1; 
-    int temp = (user_quota_size - quota_size);
+    int temp = (user_quota_size - quota_size); // overflow
     int ret = -1 ; 
 
     if ((

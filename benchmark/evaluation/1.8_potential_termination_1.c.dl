@@ -2,13 +2,12 @@
 
 State(0).
 
-/*(Start())@1 · (y=1)@2 · (i=_)@3 · (x=_)@4 · (([i>10]@6 · (x=1)@7 · ((([x=y]@17)^w) \/ ([(x!=y)]@11 · ((Return(0))@13)^w))) \/ ([(i<=10)]@15 · ((([x=y]@19)^w) \/ ([(x!=y)]@11 · ((Return(0))@13)^w))))*/
+/*(Start())@1 · (y=1)@2 · (i=_)@3 · (x=_)@4 · (([i>10]@6 · (x=1)@7) \/ ([(i<=10)]@15)) · ((([x=y]@17)^w) \/ ([(x!=y)]@11)) · ((Return(0))@13)^w*/
 
 flow(1,2).
 flow(2,3).
 flow(3,4).
 flow(17,17).
-flow(19,19).
 flow(13,13).
 Start(1).
 State(1).
@@ -21,10 +20,9 @@ Eq("x",4,1).
 Eq("x",4,2).
 State(6).
 Eq("x",7,1).
-State(17).
 State(7).
 State(4).
-State(19).
+State(17).
 State(15).
 State(11).
 Return(0,13).
@@ -35,27 +33,23 @@ control_flow(7,17) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v),
 control_flow(7,11) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v), (x_v!=y_v).
 control_flow(11,13) :- GtD("i",4,10), valuation("x",7,x_v), valuation("y",7,y_v), (x_v!=y_v).
 flow(4,15) :- LtEqD("i",4,10).
-control_flow(15,19) :- LtEqD("i",4,10), valuation("x",15,x_v), valuation("y",15,y_v), x_v=y_v.
+control_flow(15,17) :- LtEqD("i",4,10), valuation("x",15,x_v), valuation("y",15,y_v), x_v=y_v.
 control_flow(15,11) :- LtEqD("i",4,10), valuation("x",15,x_v), valuation("y",15,y_v), (x_v!=y_v).
 control_flow(11,13) :- LtEqD("i",4,10), valuation("x",15,x_v), valuation("y",15,y_v), (x_v!=y_v).
 //AF(EXIT())
 .decl Start(x:number)
 .decl valuation(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
-.decl LtEqD(x:symbol,loc:number,n:number)
-.decl LtD(x:symbol,loc:number,n:number)
-.decl GtEqD(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
-.decl LtEq(x:symbol,loc:number,n:number)
-.decl Gt(x:symbol,loc:number,n:number)
-.decl Lt(x:symbol,loc:number,n:number)
-.decl GtEq(x:symbol,loc:number,n:number)
-.decl Return(n:number,x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
 .decl EXIT(loc:number)
 .decl AF_EXIT_T(interm_state:number,loc:number)
 .decl AF_EXIT_S(loc:number)
@@ -88,9 +82,9 @@ AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
 .output Gt
 .output Lt
 .output GtEq
-.output Return
 .output State
 .output flow
+.output Return
 .output AF_EXIT_Final(IO=stdout)
 
 /* Other information 
@@ -100,13 +94,13 @@ AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
 //-- Facts for Procedure <main> 
 
 Flow(1,2). //@10:1-14:5
-Flow(13,14). //@23:5-24:1
-Flow(9,10). //@21:5-21:12
-Flow(10,12). //@21:12-21:12
-Flow(10,11). //@21:12-21:12
-Flow(11,9). //@21:12-21:5
-Flow(12,13). //@21:12-23:5
-Flow(8,9). //@18:5-21:5
+Flow(13,14). //@24:5-25:1
+Flow(9,10). //@22:5-22:12
+Flow(10,12). //@22:12-22:12
+Flow(10,11). //@22:12-22:12
+Flow(11,9). //@22:12-22:5
+Flow(12,13). //@22:12-24:5
+Flow(8,9). //@18:5-22:5
 Flow(5,15). //@18:9-18:9
 Flow(5,6). //@18:9-18:9
 Flow(6,7). //@18:9-19:9
@@ -123,12 +117,12 @@ PruneNode(15,false,[Prune(!(n$4 > 10), false)]). // @18:9
 PruneNode(6,true,[Prune((n$4 > 10), true)]). // @18:9
 Stmt_BinaryOperatorStmt(5,GT,[ILoad(&i,n$4)]). // @18:9
 Join(8,[]).  // @18:5
-PruneNode(12,false,[Prune(!(n$0 == n$1), false)]). // @21:12
-PruneNode(11,true,[Prune((n$0 == n$1), true)]). // @21:12
-Stmt_BinaryOperatorStmt(10,EQ,[ILoad(&x,n$0),ILoad(&y,n$1)]). // @21:12
-Join(9,[]).  // @21:5
-Stmt_Return(13,[IStore(&return,0)]). // @23:5
-Exit(14).  // @24:1
+PruneNode(12,false,[Prune(!(n$0 == n$1), false)]). // @22:12
+PruneNode(11,true,[Prune((n$0 == n$1), true)]). // @22:12
+Stmt_BinaryOperatorStmt(10,EQ,[ILoad(&x,n$0),ILoad(&y,n$1)]). // @22:12
+Join(9,[]).  // @22:5
+Stmt_Return(13,[IStore(&return,0)]). // @24:5
+Exit(14).  // @25:1
 Start(1). // @10:1
 */
 
