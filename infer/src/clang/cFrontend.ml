@@ -899,7 +899,10 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
   let currentID = getNodeID currentState in
   let helper disjunStackIn : stack * regularExpr * Procdesc.Node.t option = 
     let nextStates = Procdesc.Node.get_succs currentState in 
-    let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
+    let reExtension, stack' = 
+      match node_kind with 
+      | Join_node | Skip_node _ -> Emp, stack
+      | _ ->  recordToRegularExpr ([currentState]) stack in 
     match nextStates with 
     | [] -> 
       stack'@stack, reExtension , None
@@ -1401,6 +1404,20 @@ let rec getFactFromPure (p:pure) (state:int) (pathConditions:pure list): relatio
     then relationList @ concreteSample 
     else relationList
     *)
+  | Eq (Basic(BVAR var), Basic (BINT n)) -> 
+    let (pathConditionRelatedToVar:pure list) = pathConditionRelatedToVar var pathConditions in 
+    let (pathConditionRelatedToVar:pure list) = removeRedundant pathConditionRelatedToVar (comparePure) in 
+
+    let satisfiedPred:pure list = List.filter ~f:(fun pred ->  entailConstrains p pred && (not (comparePure p pred))) pathConditionRelatedToVar in 
+    print_endline ("satisfiedPred : " ^ (String.concat ~sep:"," (List.map ~f:(fun p -> string_of_pure p) satisfiedPred)));
+
+    (match satisfiedPred with
+    | [pred] -> getFactFromPure pred state []
+    | _ ->    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
+              [(assignKeyWord, [Basic(BSTR var);loc;Basic (BINT n)])]
+
+    )
+
     
   | Eq (Basic(BVAR var), t2) -> 
     ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
@@ -1445,8 +1462,15 @@ let rec getFactFromPure (p:pure) (state:int) (pathConditions:pure list): relatio
     ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
     [(leqKeyWord, [t1;loc;t2])]
 
-  | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> [("NotEq", [Basic(BSTR var);loc;Basic(BSTR var2)])]
-  | Neg (Eq (t1, t2)) -> [("NotEq", [t1;loc;t2])]
+  | Neg (Eq (Basic(BVAR var), t2)) -> 
+    ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
+
+    [(notEQKeyWord, [Basic(BSTR var);loc;t2])]
+    
+  | Neg (Eq (t1, t2)) -> 
+    ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
+
+    [(notEQKeyWord, [t1;loc;t2])]
 
   | PureOr (p1, p2) 
   | PureAnd (p1, p2) -> getFactFromPure p1 state pathConditions @ getFactFromPure p2 state pathConditions
@@ -1596,13 +1620,13 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 
-              let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
+              (*let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in *)
               let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               let currentGuardBody = (pureToBodies guard (Some previousState) unknownVars) in 
               (match pathConstrint with 
-              | None -> [stateFact], [(fact, currentGuardBody)]
+              | None -> [stateFact], [(fact', currentGuardBody)]
               | Some bodies -> [stateFact], [(fact', bodies @ currentGuardBody)]
               )
             | None -> [], []) in 

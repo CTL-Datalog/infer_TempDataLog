@@ -8,6 +8,9 @@ let joinKeyword = "Join"
 let skipKeyword = "Join"
 let entryKeyWord = "Start"
 let assignKeyWord = "Eq"
+
+let notEQKeyWord = "NotEq"
+
 let stateKeyWord = "State"
 let locKeyWord = "loc"
 let loc_inter_KeyWord = "locI"
@@ -1255,7 +1258,12 @@ let rec translation (ctl:ctl) : string * datalog =
            (geqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
-    
+    @
+    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  notEQKeyWord 
+     then [(notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     else []
+    )
+
 
     
 
@@ -1360,23 +1368,30 @@ and translation_inner (ctl:ctl) : string * datalog =
       let valuationAtom var = Pos (valueKeyword, [Basic (BSTR var); Basic (BVAR locKeyWord); Basic(BVAR (var^"_v"))] ) in 
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
-        let cond = Pos (gtKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        let cond = Pos (gtKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
       
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
-        let cond = Pos (geqKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        let cond = Pos (geqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
-        let cond = Pos (ltKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        let cond = Pos (ltKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+        
+      | LtEq(Basic (BSTR x), Basic (BINT n) ) -> 
+        let cond = Pos (leqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; valuationAtom x; Pure (Neg (Eq(Basic(BVAR (x^"_v")), Basic (BINT n) )))]) ])
+        let cond = Pos (notEQKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Predicate (str, _) -> 
         if String.compare str "EXIT" == 0 then 

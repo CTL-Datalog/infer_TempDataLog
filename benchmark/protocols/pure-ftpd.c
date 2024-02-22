@@ -6,7 +6,7 @@
  * -ctl "AF{QuotaExceeded() -> }"
  */
 
-/*@ EG((max_filesize<0) => AF(overflow=1)) @*/
+/*@ AG((temp<0) => AF(overflow>0)) @*/
 
 int _nondet_int(void);
 int addreply (int);
@@ -40,5 +40,6 @@ int main () {
     }
     return -1;
 }
+
 
 
