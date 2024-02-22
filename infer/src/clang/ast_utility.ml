@@ -1212,6 +1212,17 @@ let rec translation (ctl:ctl) : string * datalog =
 
     (assignKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
 
+    (leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (leqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (ltKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (ltKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (geqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (geqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (notEQKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+    (gtKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+
     (*(retKeyword,            [ ("n", Number); ("x", Number);]);*) (* currently only return integers *)
     (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,           [ ("x", Number); ("y", Number) ]);
@@ -1235,18 +1246,20 @@ let rec translation (ctl:ctl) : string * datalog =
     (predName, attribute strLi 0)
     )
     
+    (*@
     @
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  leqKeyWord 
      then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
            (leqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )@
+    
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  gtKeyWord 
      then [(gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
            (gtKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
-    @
+
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  ltKeyWord 
      then [(ltKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
            (ltKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
@@ -1258,12 +1271,15 @@ let rec translation (ctl:ctl) : string * datalog =
            (geqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
+
     @
+    
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  notEQKeyWord 
      then [(notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
            (notEQKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
-    )
+    )    
+    *)
 
 
     
@@ -1368,7 +1384,6 @@ and translation_inner (ctl:ctl) : string * datalog =
     | Atom (pName, pure) -> 
       let vars = Basic (BVAR locKeyWord) :: infer_variables pure in
       let params =  (locKeyWord , Number) :: infer_params pure in
-      let valuationAtom var = Pos (valueKeyword, [Basic (BSTR var); Basic (BVAR locKeyWord); Basic(BVAR (var^"_v"))] ) in 
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (gtKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
@@ -1404,7 +1419,7 @@ and translation_inner (ctl:ctl) : string * datalog =
           pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       (* *********************************************************************
       The above the pattern matching is needed for checking variables' values, for example, 
-      "x" > 1 will be written as valuation("x", loc, x_v), x_v>1. 
+      "x" > 1 will be written as GT("x", loc, 1). 
       --- Yahui Song
       ********************************************************************* *)
       | _ ->  pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])

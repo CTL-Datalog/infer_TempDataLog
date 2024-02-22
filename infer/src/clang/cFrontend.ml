@@ -1388,21 +1388,17 @@ let rec getFactFromPure (p:pure) (state:int) (pathConditions:pure list): relatio
 
     let relationList = flattenList (List.map pathConditionRelatedToVar ~f:(fun pIn -> getFactFromPure pIn state [])) in 
 
-    
-    relationList
-
-    (*
-    (* old code for sampling the non-detreministic values *)
-    let (valueSet: int list) = sort_uniq (-) (findRelaventValueSet re var)in 
-    (* In case there are no reasonable value for not, just sample among the program value *)
-    let valueSet  = if List.length valueSet == 0 then getProgramValues re else valueSet in 
     (* In case there are no program values, sample some a dummay set  *)
-    let valueSet = if List.length valueSet ==0  then [0;1] else valueSet in 
-    let concreteSample = List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) valueSet in 
+    let concreteSample = List.map ~f:(fun a -> (assignKeyWord, [Basic(BSTR var);loc;Basic(BINT a)])) [0;1] in 
+
 
     if List.length relationList == 0 
-    then relationList @ concreteSample 
+    then concreteSample 
     else relationList
+
+
+    (*
+
     *)
   | Eq (Basic(BVAR var), Basic (BINT n)) -> 
     let (pathConditionRelatedToVar:pure list) = pathConditionRelatedToVar var pathConditions in 
@@ -1746,6 +1742,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
          ".output Gt";
          ".output Lt";
          ".output GtEq";
+         ".output NotEq";
          ".output State";
          ".output flow";
       ]

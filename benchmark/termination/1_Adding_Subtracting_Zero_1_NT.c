@@ -16,15 +16,10 @@ int main()
     // linesToRead >= 0
     int h = __VERIFIER_nondet_int();
     while( h > 0 ) 
-    { // h > 0 
-        if( linesToRead > h )  // linesToRead >= 0 /\ h>0 /\ linesToRead > h
-            linesToRead = h; // linesToRead >= 0 /\ h>0 /\ linesToRead > h,  linesToRead = h
-        h -= linesToRead; // linesToRead >= 0 /\ h>0 /\ linesToRead <= h
-        //   linesToRead > h ->  linesToRead = h; h -= linesToRead;    
-        //\/ linesToRead <= h -> h -= linesToRead; 
+    {
+        if( linesToRead > h )  
+            linesToRead = h; 
+        h -= linesToRead; 
     } 
     return 0;
 }
-//flow(18, 24) :- LtEq(h, 0, 18).
-//loop: flow (22, 17) :- Gt(h, 0, 18), Eq(linesToRead, 0, 17)
-//      flow (22, 23) :- Gt(h, 0, 18), NegEq(linesToRead, 0, 17)
