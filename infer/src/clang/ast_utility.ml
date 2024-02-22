@@ -1260,7 +1260,8 @@ let rec translation (ctl:ctl) : string * datalog =
     )
     @
     (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  notEQKeyWord 
-     then [(notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
+     then [(notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
+           (notEQKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
      else []
     )
 
@@ -1297,6 +1298,8 @@ let rec translation (ctl:ctl) : string * datalog =
     @ reachablibilyrules (leqKeyWord^"D") leqKeyWord 
     @ reachablibilyrules (ltKeyWord^"D") ltKeyWord 
     @ reachablibilyrules (geqKeyWord^"D") geqKeyWord 
+    @ reachablibilyrules (notEQKeyWord^"D") notEQKeyWord 
+
    in
 
     
@@ -1389,7 +1392,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
-        let cond = Pos (notEQKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        let cond = Pos (notEQKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 

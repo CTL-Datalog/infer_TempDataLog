@@ -1466,7 +1466,7 @@ let rec getFactFromPure (p:pure) (state:int) (pathConditions:pure list): relatio
     ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
 
     [(notEQKeyWord, [Basic(BSTR var);loc;t2])]
-    
+
   | Neg (Eq (t1, t2)) -> 
     ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
 
@@ -1486,7 +1486,10 @@ let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body lis
     let valuation var = Pos (valueKeyword, [Basic(BSTR var); Basic(BINT state); Basic(BVAR (var^"_v"))]) in 
     (match p with 
     | Eq(Basic(BVAR var), Basic(BINT n)) -> 
-      [valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]
+      ruleDeclearation:= (valueKeyword) :: !ruleDeclearation ;
+      [Pos(valueKeyword, [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
+
+      (*[valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
     | Eq(Basic(BVAR var1), Basic(BVAR var2)) -> 
       [valuation var1; valuation var2; Pure (Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v"))))]
     | Neg (LtEq(Basic(BVAR var), Basic(BINT n)))
@@ -1514,6 +1517,10 @@ let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body lis
       [Pos(leqKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
 
       (*[valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
+    | Neg (Eq (Basic(BVAR var), Basic(BINT n))) -> 
+      ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
+      [Pos(notEQKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
+
     | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
       [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
 
