@@ -1,6 +1,18 @@
 <img src="website/static/img/feiyun.jpeg" alt="logo" width="15%" />
 
 
+TODO:
+
+1) when \phi1 \/ \phi2 . \phi3
+enumerate the behaviors to  (\phi1 . \phi3) \/ (\phi2 . \phi3)
+example is the overflow example with EG property
+
+2) delete all the sampling logics, and x==y example to achieve a 
+predicate on x and y. 
+
+3) check out the model repair and see the difference
+
+
 - To compile: 
 ```./compile  ```
 
