@@ -18,6 +18,7 @@ State(1).
 State(2).
 State(3).
 State(6).
+EqVar("x",7,"y").
 State(7).
 State(17).
 State(8).

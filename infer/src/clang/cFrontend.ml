@@ -1399,6 +1399,11 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
     let varL = match var with | None -> [] |  Some c -> [c] in 
     not (twoStringSetOverlap allVar (varL@allVarSide))
   in 
+  let relevent (conds:pure) (var: string) : bool = 
+    let (allVar:string list) = getAllVarFromPure conds [] in 
+    (twoStringSetOverlap allVar ([var]))
+  in 
+
   let rec removeConstrint (pLi:(pure list)) (var:string) : pure = 
     match pLi with 
     | [] -> TRUE 
@@ -1418,43 +1423,19 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
-
-
-    let predicates' = List.filter ~f:(fun ele -> entailConstrains pureOfCurrentState ele) predicates in 
-    let predicates'' = List.filter ~f:(fun ele -> entailConstrains pathConstrint' ele) predicates' in 
-
-    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates'') in 
+    let currentConstraint = PureAnd(pureOfCurrentState, pathConstrint') in 
+    let predicates' = List.filter ~f:(fun ele -> relevent ele var && entailConstrains currentConstraint ele) predicates in 
+    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     currentValuation', facts
-
-
-
 
   | Predicate (s, terms) -> 
     if twoStringSetOverlap [s] [entryKeyWord] 
     then currentValuation, ([(s, terms@[loc])] @ flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates))
     else if twoStringSetOverlap [s] [retKeyword] then currentValuation, [(s, terms@[loc])] 
-    else 
-       (let predicates' = 
-        match pathConstrint with 
-        | [] -> predicates
-        | pathConstrint -> 
-          (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint));*)
-          List.filter ~f:(fun ele -> nonRelevent ele None (pureOfPathConstrints pathConstrint) || entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates
-      in 
-      let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
-      currentValuation, facts)
+    else currentValuation, []
+      
 
-  | _ -> 
-    let predicates' = 
-      match pathConstrint with 
-      | [] -> predicates
-      | pathConstrint -> 
-        (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint));*)
-        List.filter ~f:(fun ele -> nonRelevent ele None (pureOfPathConstrints pathConstrint) || entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates
-    in 
-    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
-    currentValuation, facts
-    
+  | _ -> currentValuation, []
   ;;
 
 let rec pureToBodies (p:pure) (s:int option): body list = 
