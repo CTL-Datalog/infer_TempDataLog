@@ -17,7 +17,7 @@ Gt("i",3,10).
 LtEq("i",3,10).
 State(3).
 Eq("x",4,0).
-Eq("x",4,1). // x is not 1 and i is not > 10
+Eq("x",4,1).
 State(6).
 Eq("x",7,1).
 State(7).
