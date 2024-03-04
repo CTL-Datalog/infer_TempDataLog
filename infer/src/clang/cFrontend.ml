@@ -1220,6 +1220,7 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
   | Kleene (reIn) -> 
     let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in 
     let loopsummary = getLoopSummary normalForm path in 
+    print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary);
     loopsummary, path
   | Disjunction(r1, r2) -> 
     let re1, path1 = convertAllTheKleeneToOmega r1 path in 
@@ -1393,12 +1394,6 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
 
 
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
-  let nonRelevent (conds:pure) (var: string option) (side:pure) : bool = 
-    let (allVar:string list) = getAllVarFromPure conds [] in 
-    let (allVarSide:string list) = getAllVarFromPure side [] in 
-    let varL = match var with | None -> [] |  Some c -> [c] in 
-    not (twoStringSetOverlap allVar (varL@allVarSide))
-  in 
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -1473,9 +1468,9 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   let pathConditions = getAllPathConditions re in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
   let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) pathConditions )) comparePure in 
-  print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));   
+  (*print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));   
   print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) decomposedPathConditions)));   
-
+*)
   (*let (unknownVars:string list) = getUnknownVars re in 
   *)
   let rec mergeResults li (acca, accb) = 
@@ -1549,7 +1544,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions pathConstrint currentValuation in 
-          print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts);
+          (*print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts);*)
 
           let pathConstrint' = 
             match p with 
