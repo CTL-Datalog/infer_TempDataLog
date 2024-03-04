@@ -9,33 +9,44 @@ flow(2,3).
 flow(3,4).
 flow(17,17).
 flow(13,13).
-Start(1).
+Gt("i",1,10).
+Eq("x",1,y).
+LtEq("i",1,10).
+NotEq("x",1,y).
 State(1).
-Eq("y",2,1).
+Gt("i",2,10).
+LtEq("i",2,10).
 State(2).
 Gt("i",3,10).
+Eq("x",3,y).
 LtEq("i",3,10).
+NotEq("x",3,y).
 State(3).
-Eq("x",4,0).
-Eq("x",4,1).
+Gt("i",4,10).
+Eq("x",4,y).
+LtEq("i",4,10).
+NotEq("x",4,y).
 State(6).
-Eq("x",7,1).
+Gt("i",7,10).
+LtEq("i",7,10).
 State(7).
 State(17).
 State(8).
 State(11).
-Return(0,13).
+Gt("i",13,10).
+LtEq("i",13,10).
+NotEq("x",13,y).
 State(13).
 State(4).
 State(15).
 control_flow(4,6) :- GtD("i",4,10).
-control_flow(6,7) :- GtD("i",4,10).
-control_flow(7,8) :- GtD("i",4,10).
+control_flow(6,7) :- GtD("i",6,10).
+control_flow(7,8) :- GtD("i",7,10).
 control_flow(8,17) :- valuation("x",8,x_v), valuation("y",8,y_v), x_v=y_v.
 control_flow(8,11) :- valuation("x",8,x_v), valuation("y",8,y_v), (x_v!=y_v).
-control_flow(11,13) :- valuation("x",8,x_v), valuation("y",8,y_v), (x_v!=y_v).
+control_flow(11,13) :- valuation("x",11,x_v), valuation("y",11,y_v), (x_v!=y_v).
 control_flow(4,15) :- LtEqD("i",4,10).
-control_flow(15,8) :- LtEqD("i",4,10).
+control_flow(15,8) :- LtEqD("i",15,10).
 //AF(EXIT())
 .decl Start(x:number)
 .decl valuation(x:symbol,loc:number,n:number)

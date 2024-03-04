@@ -1446,29 +1446,54 @@ let rec pureOfCurrentState (currentValuation: (string * basic_type) list) : pure
   match currentValuation with 
   | [] -> TRUE 
   | (var, n):: xs-> PureAnd(Eq(Basic (BVAR var), Basic n), pureOfCurrentState xs) 
+
+let rec pureOfPathConstrints (currentValuation: (pure) list) : pure = 
+  match currentValuation with 
+  | [] -> TRUE 
+  | p:: xs-> PureAnd(p, pureOfPathConstrints xs) 
+
   
 
-let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
-  
-  let loc = Basic(BINT state) in 
+
+let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConstrint: (pure list) option) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
+  let nonRelevent (conds:pure) (var: string option) (side:pure) : bool = 
+    let (allVar:string list) = getAllVarFromPure conds [] in 
+    let (allVarSide:string list) = getAllVarFromPure side [] in 
+    let varL = match var with | None -> [] |  Some c -> [c] in 
+    not (twoStringSetOverlap allVar (varL@allVarSide))
+  in 
   match p with 
   (* assign concret value *)
   | Eq (Basic(BVAR var), Basic (BINT n)) -> 
 
     let currentValuation' = updateCurrentValuation currentValuation var (BINT n) in 
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
-    let predicates' = List.filter ~f:(fun ele -> entailConstrains pureOfCurrentState ele) predicates in 
-    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
+    let predicates' = List.filter ~f:(fun ele -> nonRelevent ele (Some var) TRUE || entailConstrains pureOfCurrentState ele) predicates in 
+    let predicates'' = 
+      match pathConstrint with 
+      | None -> predicates'
+      | Some pathConstrint -> 
+        (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint)); *)
+        List.filter ~f:(fun ele ->  nonRelevent ele (Some var) TRUE ||  entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates'
+    in 
+    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates'') in 
     currentValuation', facts
 
 
   | _ -> 
-    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates) in 
+    let predicates' = 
+      match pathConstrint with 
+      | None -> predicates
+      | Some pathConstrint -> 
+        (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint));*)
+        List.filter ~f:(fun ele -> nonRelevent ele None (pureOfPathConstrints pathConstrint) || entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates
+    in 
+    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     currentValuation, facts
     
   ;;
 
-let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body list = 
+let rec pureToBodies (p:pure) (s:int option): body list = 
   match s with 
   | None  -> [] 
   | Some state -> 
@@ -1513,7 +1538,7 @@ let rec pureToBodies (p:pure) (s:int option) (unknownVars:string list): body lis
     | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
       [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
 
-    | PureAnd (p1, p2) -> pureToBodies p1 (s) unknownVars @ (pureToBodies p2 s unknownVars)
+    | PureAnd (p1, p2) -> pureToBodies p1 (s) @ (pureToBodies p2 s)
 
     | _ -> [])
 
@@ -1546,16 +1571,24 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));   
   print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) decomposedPathConditions)));   
 
-  let (unknownVars:string list) = getUnknownVars re in 
+  (*let (unknownVars:string list) = getUnknownVars re in 
+  *)
   let rec mergeResults li (acca, accb) = 
     match li with 
     | [] -> (acca, accb) 
     | (a, b) :: xs -> mergeResults xs (acca@a, accb@b )
   in     
-  let rec ietrater reIn (previousState:int option) (pathConstrint: (body list) option) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
+  let rec ietrater reIn (previousState:int option) (pathConstrint: (pure list) option) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
     let reIn = normalise_es reIn in 
-    (*print_endline ( string_of_regularExpr reIn );*)
-    print_endline (List.fold_left ~init:"currentValuation " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation);
+    (*print_endline ( string_of_regularExpr reIn );
+    (match pathConstrint with 
+    | None -> print_endline ("no pathConstrint")
+    | Some pathConstrint -> print_endline (List.fold_left ~init:"pathConstrint " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) pathConstrint)
+
+    );
+    *)
+    
+    (*print_endline (List.fold_left ~init:"currentValuation " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation); *)
     
     let fstSet = removeRedundant (fst reIn) compareEvent in 
     match fstSet with 
@@ -1581,7 +1614,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
               (match pathConstrint with 
               | None -> [stateFact; fact], []
-              | Some bodies -> [stateFact], [(fact', bodies)]
+              | Some bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
               )
               
 
@@ -1607,10 +1640,10 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
               | None -> [stateFact; fact], []
-              | Some bodies -> [stateFact], [(fact', bodies)]
+              | Some bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
               )
             | None -> [], []) in 
-          let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions currentValuation in 
+          let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions pathConstrint currentValuation in 
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts);
 
           let pathConstrint' = 
@@ -1624,6 +1657,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
           
         | GuardEv (guard, state) ->  
+          (*print_endline ("GuardEv " ^ string_of_pure guard ); *)
+          let currentGuardBody = (pureToBodies guard (previousState)) in 
           let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 
@@ -1631,16 +1666,16 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
-              let currentGuardBody = (pureToBodies guard (Some previousState) unknownVars) in 
               (match pathConstrint with 
               | None -> [stateFact], [(fact', currentGuardBody)]
-              | Some bodies -> [stateFact], [(fact', bodies @ currentGuardBody)]
+              | Some bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies) @ currentGuardBody)]
               )
-            | None -> [], []) in 
-          let pathConstrint' = 
+            | None -> [], []) 
+          in 
+          let (pathConstrint': (pure list) option) = 
             match pathConstrint with 
-            | None -> Some (pureToBodies guard previousState unknownVars)
-            | Some bodies -> Some (bodies @ pureToBodies guard previousState unknownVars)
+            | None -> Some ([guard])
+            | Some bodies -> Some (bodies @ [guard])
           in 
 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint' currentValuation in 
