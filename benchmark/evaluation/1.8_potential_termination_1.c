@@ -11,7 +11,7 @@ int main() {
     int i;
     int x;
     int y;
-    y = 1;
+    y = x;
     i = _nondet_int(); 
     x = _nondet_int(); 
 

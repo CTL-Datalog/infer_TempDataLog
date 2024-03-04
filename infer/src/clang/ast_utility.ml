@@ -7,21 +7,30 @@ let joinKeyword = "Join"
 
 let skipKeyword = "Join"
 let entryKeyWord = "Start"
-let assignKeyWord = "Eq"
-
-let notEQKeyWord = "NotEq"
-
 let stateKeyWord = "State"
 let locKeyWord = "loc"
 let loc_inter_KeyWord = "locI"
 let transFlowKeyWord = "transFlow"
 let outputShellKeyWord = "_Final"
 let joinNodeKeyWord ="Join"
+let existFiniteTrace ="NotTotal"
+
+
+let assignKeyWord = "Eq"
+let notEQKeyWord = "NotEq"
 let leqKeyWord = "LtEq"
 let gtKeyWord = "Gt"
 let ltKeyWord = "Lt"
 let geqKeyWord = "GtEq"
-let existFiniteTrace ="NotTotal"
+let postfixPurePred = "Var"
+let assignKeyWordVar = assignKeyWord ^ postfixPurePred
+let notEQKeyWordVar = notEQKeyWord^ postfixPurePred
+let leqKeyWordVar = leqKeyWord^ postfixPurePred
+let gtKeyWordVar = gtKeyWord^ postfixPurePred
+let ltKeyWordVar = ltKeyWord^ postfixPurePred
+let geqKeyWordVar = geqKeyWord^ postfixPurePred
+
+
 
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
@@ -964,6 +973,124 @@ type body = Pos of relation | Neg of relation | Pure of pure
 type rule = head * (body list) 
 type datalog = decl list * rule list
 
+
+let rec getFactFromPure (p:pure) (state:int) : relation list = 
+  print_endline ("getFactFromPure " ^ string_of_pure p);
+  let loc = Basic(BINT state) in 
+  match p with 
+  | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
+
+  | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
+    ruleDeclearation:= (assignKeyWordVar) :: !ruleDeclearation ;
+    [(assignKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
+  | Eq (Basic(BVAR var), Basic (BINT t2)) -> 
+    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
+    [(assignKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
+
+
+  | Neg (LtEq (Basic(BVAR var), Basic(BVAR var2)))
+  | Gt (Basic(BVAR var), Basic(BVAR var2)) -> 
+    ruleDeclearation:= (gtKeyWordVar) :: !ruleDeclearation ;
+    [(gtKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (LtEq (Basic(BVAR var), t2))
+  | Gt (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+    [(gtKeyWord, [Basic(BSTR var);loc;t2])]
+
+
+  | Neg (LtEq (t1, Basic(BVAR var2)))
+  | Gt (t1, Basic(BVAR var2)) -> 
+    ruleDeclearation:= (gtKeyWordVar) :: !ruleDeclearation ;
+    [(gtKeyWordVar, [t1;loc;Basic(BSTR var2)])]
+  | Neg (LtEq (t1, t2))
+  | Gt (t1, t2) -> 
+    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+    [(gtKeyWord, [t1;loc;t2])]
+
+
+  | Neg (GtEq (Basic(BVAR var), Basic(BVAR var2)))
+  | Lt (Basic(BVAR var), Basic(BVAR var2)) -> 
+    ruleDeclearation:= (ltKeyWordVar) :: !ruleDeclearation ;
+    [(ltKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (GtEq (Basic(BVAR var), t2))
+  | Lt (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+    [(ltKeyWord, [Basic(BSTR var);loc;t2])]
+
+
+  | Neg (GtEq (t1, Basic(BVAR var2)))
+  | Lt (t1, Basic(BVAR var2)) -> 
+    ruleDeclearation:= (ltKeyWordVar) :: !ruleDeclearation ;
+    [(ltKeyWordVar, [t1;loc;Basic(BSTR var2)])]
+  | Neg (GtEq (t1, t2))
+  | Lt (t1, t2) -> 
+    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+    [(ltKeyWord, [t1;loc;t2])]
+
+
+  | Neg (Lt (Basic(BVAR var), Basic(BVAR var2)))
+  | GtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
+    ruleDeclearation:= (geqKeyWordVar) :: !ruleDeclearation ;
+    [(geqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (Lt (Basic(BVAR var), t2))
+  | GtEq (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+    [(geqKeyWord, [Basic(BSTR var);loc;t2])]
+
+
+  | Neg (Lt (t1, Basic(BVAR var2)))
+  | GtEq (t1, Basic(BVAR var2)) -> 
+    ruleDeclearation:= (geqKeyWordVar) :: !ruleDeclearation ;
+    [(geqKeyWordVar, [t1;loc;Basic(BSTR var2)])]
+  | Neg (Lt (t1, t2))
+  | GtEq (t1, t2) -> 
+    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+    [(geqKeyWord, [t1;loc;t2])]
+
+
+  | Neg (Gt (Basic(BVAR var), Basic(BVAR var2)))
+  | LtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
+    ruleDeclearation:= (leqKeyWordVar) :: !ruleDeclearation ;
+    [(leqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (Gt (Basic(BVAR var), t2))
+  | LtEq (Basic(BVAR var), t2) -> 
+    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+    [(leqKeyWord, [Basic(BSTR var);loc;t2])]
+
+
+  | Neg (Gt (t1, Basic(BVAR var2)))
+  | LtEq (t1, Basic(BVAR var2)) -> 
+    ruleDeclearation:= (leqKeyWordVar) :: !ruleDeclearation ;
+    [(leqKeyWordVar, [t1;loc;Basic(BSTR var2)])]
+  | Neg (Gt (t1, t2))
+  | LtEq (t1, t2) -> 
+    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+    [(leqKeyWord, [t1;loc;t2])]
+
+
+  | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> 
+    ruleDeclearation:= (notEQKeyWordVar) :: !ruleDeclearation ;
+    [(notEQKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (Eq (Basic(BVAR var), t2)) -> 
+    ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation;
+    [(notEQKeyWord, [Basic(BSTR var);loc;t2])]
+
+
+
+  | PureOr (p1, p2) 
+  | PureAnd (p1, p2) -> getFactFromPure p1 state @ getFactFromPure p2 state
+  | Neg _  
+  | FALSE | TRUE 
+  -> [] 
+  | _ -> []
+  (*
+    
+    | Eq (t1, t2) -> 
+    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
+    [(assignKeyWord, [t1;loc;t2])]
+   
+  *)
+
 let compareRelation r1 r2 : bool = 
   let (s1, tL1) = r1 in 
   let (s2, tL2) = r2 in 
@@ -1516,22 +1643,8 @@ and translation_inner (ctl:ctl) : string * datalog =
           notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
 
 
-      (* *********************************************************************
-      The above the pattern matching is needed for constructing the atomic P rules, 
-      when we are computing AF p. Usually the encoding needs simple "!P". 
-      But since the analysis may be overapproximating, we need to compute “for sure !P” 
-      For example, AF x<0, will be encoded as: 
-
-      1) not_xIsSmallerThan_0(loc) :- state(loc), valuation("x",loc,x_v), (x_v >= 0).
-      2) xIsSmallerThan_0(loc) :- state(loc), valuation("x",loc,_), !not_xIsSmallerThan_0(loc).
-
-      where 1) captures the negation of x<0, then 2) captures "for sure x<0", 
-      then subsequently, we can use !xIsSmallerThan_0 as usual. 
-
-      --- Yahui Song
-      ********************************************************************* *)
-
-        | _ -> translation_inner f in
+        | _ -> translation_inner f 
+      in
       let newName = "AF_" ^ fName in
       let sName = newName ^ "_S" in
       let tName = newName ^ "_T" in

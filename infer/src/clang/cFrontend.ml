@@ -1371,69 +1371,6 @@ let rec pathConditionRelatedToVar str (pathConditions:pure list): pure list =
     | Some p' -> acc @ [p'] 
   )
 
-let rec getFactFromPure (p:pure) (state:int) : relation list = 
-  let loc = Basic(BINT state) in 
-  match p with 
-  | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
-
-  | Eq (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
-    [(assignKeyWord, [Basic(BSTR var);loc;t2])]
-  | Eq (t1, t2) -> 
-    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
-    [(assignKeyWord, [t1;loc;t2])]
-
-  | Neg (LtEq (Basic(BVAR var), t2))
-  | Gt (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
-    [(gtKeyWord, [Basic(BSTR var);loc;t2])]
-  | Neg (LtEq (t1, t2))
-  | Gt (t1, t2) -> 
-    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
-    [(gtKeyWord, [t1;loc;t2])]
-
-  | Neg (GtEq (Basic(BVAR var), t2))
-  | Lt (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
-    [(ltKeyWord, [Basic(BSTR var);loc;t2])]
-  | Neg (GtEq (t1, t2))
-  | Lt (t1, t2) -> 
-    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
-    [(ltKeyWord, [t1;loc;t2])]
-
-  | Neg (Lt (Basic(BVAR var), t2))
-  | GtEq (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
-    [(geqKeyWord, [Basic(BSTR var);loc;t2])]
-  | Neg (Lt (t1, t2))
-  | GtEq (t1, t2) -> 
-    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
-    [(geqKeyWord, [t1;loc;t2])]
-
-  | Neg (Gt (Basic(BVAR var), t2))
-  | LtEq (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
-    [(leqKeyWord, [Basic(BSTR var);loc;t2])]
-  | Neg (Gt (t1, t2))
-  | LtEq (t1, t2) -> 
-    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
-    [(leqKeyWord, [t1;loc;t2])]
-
-  | Neg (Eq (Basic(BVAR var), t2)) -> 
-    ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
-
-    [(notEQKeyWord, [Basic(BSTR var);loc;t2])]
-
-  | Neg (Eq (t1, t2)) -> 
-    ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
-
-    [(notEQKeyWord, [t1;loc;t2])]
-
-  | PureOr (p1, p2) 
-  | PureAnd (p1, p2) -> getFactFromPure p1 state @ getFactFromPure p2 state
-  | Neg _  
-  | FALSE | TRUE 
-  -> [] 
 
 let rec updateCurrentValuation (currentValuation: (string * basic_type) list) (var:string) (n:basic_type): (string * basic_type) list = 
   match currentValuation with 
@@ -1497,50 +1434,8 @@ let rec pureToBodies (p:pure) (s:int option): body list =
   match s with 
   | None  -> [] 
   | Some state -> 
-    let valuation var = Pos (valueKeyword, [Basic(BSTR var); Basic(BINT state); Basic(BVAR (var^"_v"))]) in 
-    (match p with 
-    | Eq(Basic(BVAR var), Basic(BINT n)) -> 
-      ruleDeclearation:= (valueKeyword) :: !ruleDeclearation ;
-      [Pos(valueKeyword, [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
-
-      (*[valuation var; Pure (Eq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
-    | Eq(Basic(BVAR var1), Basic(BVAR var2)) -> 
-      [valuation var1; valuation var2; Pure (Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v"))))]
-    | Neg (LtEq(Basic(BVAR var), Basic(BINT n)))
-    | Gt(Basic(BVAR var), Basic(BINT n)) -> 
-      ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
-
-      [Pos(gtKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
-      (*[valuation var; Pure (Gt(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
-    | Neg (GtEq(Basic(BVAR var), Basic(BINT n)))
-    | Lt(Basic(BVAR var), Basic(BINT n)) -> 
-      ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
-      [Pos(ltKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
-
-      (*[valuation var; Pure (Lt(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
-    | Neg (Lt(Basic(BVAR var), Basic(BINT n)))
-    | GtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
-      [Pos(geqKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
-
-      (*[valuation var; Pure (GtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
-    | Neg (Gt(Basic(BVAR var), Basic(BINT n)))
-    | LtEq(Basic(BVAR var), Basic(BINT n)) -> 
-      ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
-
-      [Pos(leqKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
-
-      (*[valuation var; Pure (LtEq(Basic(BVAR (var^"_v")), Basic(BINT n)))]*)
-    | Neg (Eq (Basic(BVAR var), Basic(BINT n))) -> 
-      ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation ;
-      [Pos(notEQKeyWord^"D", [Basic(BSTR var);(Basic (BINT state));(Basic (BINT n))])]
-
-    | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) -> 
-      [valuation var1; valuation var2; Pure(Neg(Eq(Basic(BVAR (var1^"_v")), Basic(BVAR (var2^"_v")))))]
-
-    | PureAnd (p1, p2) -> pureToBodies p1 (s) @ (pureToBodies p2 s)
-
-    | _ -> [])
+    let relations = getFactFromPure p state in 
+    List.map ~f:(fun ((str, args)) -> Pos (str^"D",args) ) relations 
 
 
 
