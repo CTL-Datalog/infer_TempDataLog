@@ -1,0 +1,87 @@
+/*(Join())@0*/
+
+State(0).
+
+/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((((([(h<=0)]@13) \/ ([h>0∧linesToRead>0]@24)) · ((h<=0))@22) \/ (([h>0∧(linesToRead<=0)]@25 · [h>0]@23)^w))) \/ ((Join())@10 · [(h<=0)]@20 · (Return(0))@21)) · ((Return(0))@21)^w))*/
+
+flow(1,2).
+flow(5,5).
+flow(8,9).
+flow(9,10).
+flow(21,21).
+Start(1).
+Lt("linesToRead",1,0).
+Gt("linesToRead",1,0).
+LtEq("linesToRead",1,0).
+Gt("h",1,0).
+GtEq("linesToRead",1,0).
+LtEq("h",1,0).
+State(1).
+State(4).
+Return(0,5).
+State(5).
+State(2).
+State(7).
+State(8).
+State(9).
+State(10).
+State(20).
+Return(0,21).
+State(21).
+control_flow(2,4) :- LtD("linesToRead",2,0).
+control_flow(4,5) :- LtD("linesToRead",4,0).
+control_flow(2,7) :- GtEqD("linesToRead",2,0).
+control_flow(7,8) :- GtEqD("linesToRead",7,0).
+control_flow(10,20) :- LtEqD("h",10,0).
+control_flow(20,21) :- LtEqD("h",20,0).
+control_flow(21,21) :- LtEqD("h",21,0).
+//AF(EXIT())
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl GtEq(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtEqD(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
+.decl EXIT(loc:number)
+.decl AF_EXIT_T(interm_state:number,loc:number)
+.decl AF_EXIT_S(loc:number)
+.decl AF_EXIT(loc:number)
+.decl AF_EXIT_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_).
+GtEqD(x,loc,n) :- GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_).
+EXIT(loc) :- Return(_,loc).
+AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
+AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
+AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
+AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
+AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
+AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output GtEq
+.output LtEq
+.output Gt
+.output Lt
+.output Start
+.output State
+.output flow
+.output Return
+.output AF_EXIT_Final(IO=stdout)
+
