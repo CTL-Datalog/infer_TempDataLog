@@ -1399,6 +1399,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
     let varL = match var with | None -> [] |  Some c -> [c] in 
     not (twoStringSetOverlap allVar (varL@allVarSide))
   in 
+  let loc = Basic(BINT state) in 
   match p with 
   (* assign concret value *)
   | Eq (Basic(BVAR var), Basic (BINT n)) -> 
@@ -1416,6 +1417,20 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates'') in 
     currentValuation', facts
 
+
+  | Predicate (s, terms) -> 
+    if twoStringSetOverlap [s] [entryKeyWord;retKeyword] 
+    then currentValuation, [(s, terms@[loc])] 
+    else 
+       (let predicates' = 
+        match pathConstrint with 
+        | None -> predicates
+        | Some pathConstrint -> 
+          (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint));*)
+          List.filter ~f:(fun ele -> nonRelevent ele None (pureOfPathConstrints pathConstrint) || entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates
+      in 
+      let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
+      currentValuation, facts)
 
   | _ -> 
     let predicates' = 

@@ -9,10 +9,7 @@ flow(2,3).
 flow(3,4).
 flow(17,17).
 flow(13,13).
-Gt("i",1,10).
-EqVar("x",1,"y").
-LtEq("i",1,10).
-NotEqVar("x",1,"y").
+Start(1).
 State(1).
 Gt("i",2,10).
 EqVar("x",2,"y").
@@ -35,9 +32,7 @@ State(7).
 State(17).
 State(8).
 State(11).
-Gt("i",13,10).
-LtEq("i",13,10).
-NotEqVar("x",13,"y").
+Return(0,13).
 State(13).
 State(4).
 State(15).
