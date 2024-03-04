@@ -22,6 +22,13 @@ infer/bin/infer run -- clang -c benchmark/evaluation/1.8_potential_termination_1
 ```
 
 
+
+souffle -F. -D. ef.dl
+
+souffle -t explain ef.dl
+
+explain path(1, 3)
+
 infer/bin/infer run -- clang -c benchmark/protocols/pure-ftpd.c
 
 ------

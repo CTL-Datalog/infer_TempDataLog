@@ -1392,40 +1392,52 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
   
 
 
-let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConstrint: (pure list) option) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
+let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
   let nonRelevent (conds:pure) (var: string option) (side:pure) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     let (allVarSide:string list) = getAllVarFromPure side [] in 
     let varL = match var with | None -> [] |  Some c -> [c] in 
     not (twoStringSetOverlap allVar (varL@allVarSide))
   in 
+  let rec removeConstrint (pLi:(pure list)) (var:string) : pure = 
+    match pLi with 
+    | [] -> TRUE 
+    | p1::xs -> 
+      let (allVar:string list) = getAllVarFromPure p1 [] in 
+      if twoStringSetOverlap allVar [var] then removeConstrint xs var 
+      else PureAnd (p1, (removeConstrint xs var ))
+
+  in 
   let loc = Basic(BINT state) in 
   match p with 
-  (* assign concret value *)
-  | Eq (Basic(BVAR var), Basic (BINT n)) -> 
+  | Eq (Basic(BVAR _), Basic (ANY)) ->  currentValuation, []
 
-    let currentValuation' = updateCurrentValuation currentValuation var (BINT n) in 
+  (* assign concret value *)
+  | Eq (Basic(BVAR var), Basic t1) -> 
+
+    let currentValuation' = updateCurrentValuation currentValuation var t1 in 
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
-    let predicates' = List.filter ~f:(fun ele -> nonRelevent ele (Some var) TRUE || entailConstrains pureOfCurrentState ele) predicates in 
-    let predicates'' = 
-      match pathConstrint with 
-      | None -> predicates'
-      | Some pathConstrint -> 
-        (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint)); *)
-        List.filter ~f:(fun ele ->  nonRelevent ele (Some var) TRUE ||  entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates'
-    in 
+    let pathConstrint' = removeConstrint pathConstrint var in 
+
+
+    let predicates' = List.filter ~f:(fun ele -> entailConstrains pureOfCurrentState ele) predicates in 
+    let predicates'' = List.filter ~f:(fun ele -> entailConstrains pathConstrint' ele) predicates' in 
+
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates'') in 
     currentValuation', facts
 
 
+
+
   | Predicate (s, terms) -> 
-    if twoStringSetOverlap [s] [entryKeyWord;retKeyword] 
-    then currentValuation, [(s, terms@[loc])] 
+    if twoStringSetOverlap [s] [entryKeyWord] 
+    then currentValuation, ([(s, terms@[loc])] @ flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates))
+    else if twoStringSetOverlap [s] [retKeyword] then currentValuation, [(s, terms@[loc])] 
     else 
        (let predicates' = 
         match pathConstrint with 
-        | None -> predicates
-        | Some pathConstrint -> 
+        | [] -> predicates
+        | pathConstrint -> 
           (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint));*)
           List.filter ~f:(fun ele -> nonRelevent ele None (pureOfPathConstrints pathConstrint) || entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates
       in 
@@ -1435,8 +1447,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
   | _ -> 
     let predicates' = 
       match pathConstrint with 
-      | None -> predicates
-      | Some pathConstrint -> 
+      | [] -> predicates
+      | pathConstrint -> 
         (*print_endline ("getFactFromPureEv " ^ string_of_pure (pureOfPathConstrints pathConstrint));*)
         List.filter ~f:(fun ele -> nonRelevent ele None (pureOfPathConstrints pathConstrint) || entailConstrains (pureOfPathConstrints pathConstrint) ele) predicates
     in 
@@ -1490,7 +1502,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
     | [] -> (acca, accb) 
     | (a, b) :: xs -> mergeResults xs (acca@a, accb@b )
   in     
-  let rec ietrater reIn (previousState:int option) (pathConstrint: (pure list) option) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
+  let rec ietrater reIn (previousState:int option) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
     let reIn = normalise_es reIn in 
     (*print_endline ( string_of_regularExpr reIn );
     (match pathConstrint with 
@@ -1525,8 +1537,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
 
               (match pathConstrint with 
-              | None -> [stateFact; fact], []
-              | Some bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
+              | [] -> [stateFact; fact], []
+              | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
               )
               
 
@@ -1537,7 +1549,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
             if existAux (==) !doneDelimiters state then [], []
             else 
               (doneDelimiters := state:: !doneDelimiters;
-              ietrater (derivitives f reIn) (Some state) None) currentValuation in 
+              ietrater (derivitives f reIn) (Some state) []) currentValuation in 
           
           mergeResults [(reAcc, ruAcc); (reAcc'', ruAcc'')] ([], [])
 
@@ -1551,8 +1563,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
-              | None -> [stateFact; fact], []
-              | Some bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
+              | [] -> [stateFact; fact], []
+              | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions pathConstrint currentValuation in 
@@ -1560,7 +1572,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
           let pathConstrint' = 
             match p with 
-            | Predicate (s, _) -> if String.compare s joinKeyword == 0 then None else pathConstrint
+            | Predicate (s, _) -> if String.compare s joinKeyword == 0 then [] else pathConstrint
             | _ -> pathConstrint
           in 
 
@@ -1579,15 +1591,15 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
-              | None -> [stateFact], [(fact', currentGuardBody)]
-              | Some bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies) @ currentGuardBody)]
+              | [] -> [stateFact], [(fact', currentGuardBody)]
+              | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies) @ currentGuardBody)]
               )
             | None -> [], []) 
           in 
-          let (pathConstrint': (pure list) option) = 
+          let (pathConstrint': (pure list)) = 
             match pathConstrint with 
-            | None -> Some ([guard])
-            | Some bodies -> Some (bodies @ [guard])
+            | [] -> ([guard])
+            | bodies -> (bodies @ [guard])
           in 
 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint' currentValuation in 
@@ -1603,7 +1615,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
       )
   in 
-  ietrater re None None [] 
+  ietrater re None [] [] 
 
 let sortFacts factL : relation list  = 
   let rec helper ((left, right):(relation list * relation list)) liIn = 
@@ -1681,7 +1693,6 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let (specPrinting:string list) = List.map specifications ~f:(fun ctl -> "//" ^ string_of_ctl ctl) in 
 
   let predicateDeclearation = (sort_uniq (fun (a, _) (c, _) -> String.compare a c) !predicateDeclearation) in 
-  let (predicateDeclearationOutput: string list) = (List.map predicateDeclearation ~f:(fun (a, _) -> ".output " ^ a) ) in 
 
   let (datalogProgPrinting:string list) = 
     flattenList (List.map specifications 
@@ -1690,17 +1701,15 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       (*print_endline (string_of_datalog program);
       print_endline (".output "^ fname ^"Final(IO=stdout)\n") *)
       [string_of_datalog program] 
-      @ [".output Start"; 
-         ".output Eq";
-         ".output LtEq";
-         ".output Gt";
-         ".output Lt";
-         ".output GtEq";
-         ".output NotEq";
+      @ List.map !ruleDeclearation ~f:(fun a -> ".output " ^ a) 
+      @ 
+      
+      [  ".output Start"; 
          ".output State";
          ".output flow";
       ]
-      @ predicateDeclearationOutput
+      
+      @ (List.map predicateDeclearation ~f:(fun (a, _) -> ".output " ^ a) )
       @ [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
       
 
@@ -1713,7 +1722,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let facts = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
   Out_channel.write_lines (source_Address ^ ".dl") 
-  (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"]);
+  (factPrinting@specPrinting@datalogProgPrinting (*@ ["/* Other information \n"]@facts@["*/\n"] *) );
 
 
   print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) *.1000. ) ^ " ms"); 

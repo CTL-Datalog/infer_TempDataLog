@@ -1322,12 +1322,13 @@ let rec infer_params (pure:pure) : param list =
   in sort_uniq param_compare x
   (*| Pos a -> get_variable_terms a *)
 
-let reachablibilyrules head base = 
+let reachablibilyrules head = 
+  let base = ((String.sub head (0) (String.length head -1))) in 
   [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
-  (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+   (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ]]
+        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ]]
 
 let nameContainsVar str n : bool = 
   let l = String.length str in 
@@ -1343,10 +1344,7 @@ let rec translation (ctl:ctl) : string * datalog =
   let fname, (decs,rules) = (translation_inner ctl) in
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
-    (valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-
-    (assignKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-
+    (*(valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]); *)
     (*(retKeyword,            [ ("n", Number); ("x", Number);]);*) (* currently only return integers *)
     (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,           [ ("x", Number); ("y", Number) ]);
@@ -1398,11 +1396,12 @@ let rec translation (ctl:ctl) : string * datalog =
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];
     
-    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+    (*(valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
     (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
+        *)
 
     (existFiniteTrace, [Basic (BVAR locKeyWord)]), [ Pos (stateKeyWord , [Basic (BVAR locKeyWord)]) ; Neg(controlFlowKeyword, [Basic (BVAR locKeyWord);Basic ANY])] ;
     (existFiniteTrace, [Basic (BVAR locKeyWord )]), 
@@ -1416,11 +1415,7 @@ let rec translation (ctl:ctl) : string * datalog =
     (*control_flow(x, y) :- flow(x, y).*)
         
     ]
-    @ reachablibilyrules (gtKeyWord^"D") gtKeyWord 
-    @ reachablibilyrules (leqKeyWord^"D") leqKeyWord 
-    @ reachablibilyrules (ltKeyWord^"D") ltKeyWord 
-    @ reachablibilyrules (geqKeyWord^"D") geqKeyWord 
-    @ reachablibilyrules (notEQKeyWord^"D") notEQKeyWord 
+    @ flattenList (List.map (!bodyDeclearation) ~f:(fun nameD -> reachablibilyrules nameD))
 
    in
 
