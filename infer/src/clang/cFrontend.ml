@@ -1450,7 +1450,9 @@ let rec pureToBodies (p:pure) (s:int option): body list =
   | None  -> [] 
   | Some state -> 
     let relations = getFactFromPure p state in 
-    List.map ~f:(fun ((str, args)) -> Pos (str^"D",args) ) relations 
+    List.map ~f:(fun ((str, args)) -> 
+      updateRuleDeclearation bodyDeclearation (str^"D");
+      Pos (str^"D",args) ) relations 
 
 
 
@@ -1654,7 +1656,10 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   print_endline ("<== Anlaysing " ^ source_Address  ^ " ==>");
 
   let () = allTheUniqueIDs := (-1) in 
+
   let () = ruleDeclearation := [] in 
+  let () = bodyDeclearation := [] in 
+
   let () = predicateDeclearation := [] in 
 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 

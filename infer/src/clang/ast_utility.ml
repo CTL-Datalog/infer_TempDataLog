@@ -130,6 +130,8 @@ let (handlerVar: string option ref) = ref None
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
 let (ruleDeclearation:(string list) ref) = ref []
+let (bodyDeclearation:(string list) ref) = ref []
+
 let (predicateDeclearation:((string * ((string) list)) list) ref) = ref []
 
 let totol_execution_time  = ref 0.0
@@ -973,6 +975,10 @@ type body = Pos of relation | Neg of relation | Pure of pure
 type rule = head * (body list) 
 type datalog = decl list * rule list
 
+let updateRuleDeclearation reference str : unit = 
+  if twoStringSetOverlap !reference [str] then ()
+  else reference:= (str) :: !reference 
+
 
 let rec getFactFromPure (p:pure) (state:int) : relation list = 
   print_endline ("getFactFromPure " ^ string_of_pure p);
@@ -981,100 +987,99 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
 
   | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
-    ruleDeclearation:= (assignKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
     [(assignKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
   | Eq (Basic(BVAR var), Basic (BINT t2)) -> 
-    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (assignKeyWord) ;
     [(assignKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
 
 
   | Neg (LtEq (Basic(BVAR var), Basic(BVAR var2)))
   | Gt (Basic(BVAR var), Basic(BVAR var2)) -> 
-    ruleDeclearation:= (gtKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (gtKeyWordVar) ;
     [(gtKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (LtEq (Basic(BVAR var), t2))
   | Gt (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (gtKeyWord);
     [(gtKeyWord, [Basic(BSTR var);loc;t2])]
 
 
   | Neg (LtEq (t1, Basic(BVAR var2)))
   | Gt (t1, Basic(BVAR var2)) -> 
-    ruleDeclearation:= (gtKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (gtKeyWordVar);
     [(gtKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (LtEq (t1, t2))
   | Gt (t1, t2) -> 
-    ruleDeclearation:= (gtKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (gtKeyWord) ;
     [(gtKeyWord, [t1;loc;t2])]
 
 
   | Neg (GtEq (Basic(BVAR var), Basic(BVAR var2)))
   | Lt (Basic(BVAR var), Basic(BVAR var2)) -> 
-    ruleDeclearation:= (ltKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
     [(ltKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (GtEq (Basic(BVAR var), t2))
   | Lt (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (ltKeyWord);
     [(ltKeyWord, [Basic(BSTR var);loc;t2])]
 
 
   | Neg (GtEq (t1, Basic(BVAR var2)))
   | Lt (t1, Basic(BVAR var2)) -> 
-    ruleDeclearation:= (ltKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
     [(ltKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (GtEq (t1, t2))
   | Lt (t1, t2) -> 
-    ruleDeclearation:= (ltKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (ltKeyWord);
     [(ltKeyWord, [t1;loc;t2])]
 
 
   | Neg (Lt (Basic(BVAR var), Basic(BVAR var2)))
   | GtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
-    ruleDeclearation:= (geqKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (geqKeyWordVar);
     [(geqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (Lt (Basic(BVAR var), t2))
   | GtEq (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (geqKeyWord);
     [(geqKeyWord, [Basic(BSTR var);loc;t2])]
 
 
   | Neg (Lt (t1, Basic(BVAR var2)))
   | GtEq (t1, Basic(BVAR var2)) -> 
-    ruleDeclearation:= (geqKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (geqKeyWordVar);
     [(geqKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (Lt (t1, t2))
   | GtEq (t1, t2) -> 
-    ruleDeclearation:= (geqKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (geqKeyWord);
     [(geqKeyWord, [t1;loc;t2])]
 
 
   | Neg (Gt (Basic(BVAR var), Basic(BVAR var2)))
   | LtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
-    ruleDeclearation:= (leqKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
     [(leqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (Gt (Basic(BVAR var), t2))
   | LtEq (Basic(BVAR var), t2) -> 
-    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (leqKeyWord);
     [(leqKeyWord, [Basic(BSTR var);loc;t2])]
 
 
   | Neg (Gt (t1, Basic(BVAR var2)))
   | LtEq (t1, Basic(BVAR var2)) -> 
-    ruleDeclearation:= (leqKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
     [(leqKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (Gt (t1, t2))
   | LtEq (t1, t2) -> 
-    ruleDeclearation:= (leqKeyWord) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (leqKeyWord);
     [(leqKeyWord, [t1;loc;t2])]
 
 
   | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> 
-    ruleDeclearation:= (notEQKeyWordVar) :: !ruleDeclearation ;
+    updateRuleDeclearation ruleDeclearation (notEQKeyWordVar);
     [(notEQKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (Eq (Basic(BVAR var), t2)) -> 
-    ruleDeclearation:= (notEQKeyWord) :: !ruleDeclearation;
+    updateRuleDeclearation ruleDeclearation (notEQKeyWord);
     [(notEQKeyWord, [Basic(BSTR var);loc;t2])]
-
 
 
   | PureOr (p1, p2) 
@@ -1083,13 +1088,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   | FALSE | TRUE 
   -> [] 
   | _ -> []
-  (*
-    
-    | Eq (t1, t2) -> 
-    ruleDeclearation:= (assignKeyWord) :: !ruleDeclearation ;
-    [(assignKeyWord, [t1;loc;t2])]
-   
-  *)
+
 
 let compareRelation r1 r2 : bool = 
   let (s1, tL1) = r1 in 
@@ -1330,25 +1329,23 @@ let reachablibilyrules head base =
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ]]
 
+let nameContainsVar str n : bool = 
+  let l = String.length str in 
+  if l <= n+1 then false 
+  else 
+    let substr = (String.sub str (l-n) 3) in 
+    if String.compare "Var" substr == 0 then true else false 
+
+
 
 let rec translation (ctl:ctl) : string * datalog = 
+  print_endline ("\n" ^ String.concat ~sep:" " !ruleDeclearation ^ "\n"); 
   let fname, (decs,rules) = (translation_inner ctl) in
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
     (valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
 
     (assignKeyWord,    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-
-    (leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (leqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (ltKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (ltKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (geqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (geqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (notEQKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-    (gtKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
 
     (*(retKeyword,            [ ("n", Number); ("x", Number);]);*) (* currently only return integers *)
     (stateKeyWord,          [ ("x", Number)]);
@@ -1372,41 +1369,23 @@ let rec translation (ctl:ctl) : string * datalog =
     in 
     (predName, attribute strLi 0)
     )
+
+    @ List.map (!ruleDeclearation) ~f:(fun predefinedPred -> 
+      if nameContainsVar predefinedPred 3 then 
+        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
+      else 
+        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
     
-    (*@
-    @
-    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  leqKeyWord 
-     then [(leqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-           (leqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
-     else []
-    )@
-    
-    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  gtKeyWord 
-     then [(gtKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-           (gtKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
-     else []
     )
 
-    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  ltKeyWord 
-     then [(ltKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-           (ltKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
-     else []
-    )
-    @
-    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  geqKeyWord 
-     then [(geqKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-           (geqKeyWord^"D",   [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
-     else []
+    @ List.map (!bodyDeclearation) ~f:(fun predefinedPred -> 
+      if nameContainsVar predefinedPred 4 then 
+        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
+      else 
+        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
+    
     )
 
-    @
-    
-    (if existAux (fun a b -> String.compare a b == 0) !ruleDeclearation  notEQKeyWord 
-     then [(notEQKeyWord, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]);
-           (notEQKeyWord^"D",    [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])]
-     else []
-    )    
-    *)
 
 
     
