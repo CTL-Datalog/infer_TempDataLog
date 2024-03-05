@@ -566,7 +566,9 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     let es1 = normalise_es es1 in 
     let es2 = normalise_es es2 in 
     (match (es1, es2) with 
+    | (Singleton (TRUE, _), _)
     | (Emp, _) -> normalise_es es2
+    | (_, Singleton (TRUE, _))
     | (_, Emp) -> normalise_es es1
     | (Bot, _) -> Bot
     | (_, Bot) -> Bot
@@ -981,7 +983,7 @@ let updateRuleDeclearation reference str : unit =
 
 
 let rec getFactFromPure (p:pure) (state:int) : relation list = 
-  print_endline ("getFactFromPure " ^ string_of_pure p);
+  (*print_endline ("getFactFromPure " ^ string_of_pure p); *)
   let loc = Basic(BINT state) in 
   match p with 
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
@@ -1323,12 +1325,31 @@ let rec infer_params (pure:pure) : param list =
   (*| Pos a -> get_variable_terms a *)
 
 let reachablibilyrules head = 
+  let negatedPredicate str: string = 
+    if String.compare str assignKeyWord == 0 then notEQKeyWord 
+    else if String.compare str leqKeyWord == 0 then gtKeyWord 
+    else if String.compare str ltKeyWord == 0 then geqKeyWord 
+    else if String.compare str assignKeyWordVar == 0 then notEQKeyWordVar 
+    else if String.compare str leqKeyWordVar == 0 then gtKeyWordVar 
+    else if String.compare str ltKeyWordVar == 0 then geqKeyWordVar
+
+    else if String.compare str notEQKeyWord  == 0 then  assignKeyWord
+    else if String.compare str gtKeyWord  == 0 then  leqKeyWord
+    else if String.compare str geqKeyWord  == 0 then  ltKeyWord
+    else if String.compare str notEQKeyWordVar  == 0 then  assignKeyWordVar
+    else if String.compare str gtKeyWordVar  == 0 then  leqKeyWordVar
+    else if String.compare str geqKeyWordVar  == 0 then ltKeyWordVar
+
+    else str 
+
+  in 
   let base = ((String.sub head (0) (String.length head -1))) in 
   [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
    (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ]]
+        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]);
+        Neg (negatedPredicate base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
 
 let nameContainsVar str n : bool = 
   let l = String.length str in 
@@ -1340,7 +1361,7 @@ let nameContainsVar str n : bool =
 
 
 let rec translation (ctl:ctl) : string * datalog = 
-  print_endline ("\n" ^ String.concat ~sep:" " !ruleDeclearation ^ "\n"); 
+  (*print_endline ("\n" ^ String.concat ~sep:" " !ruleDeclearation ^ "\n"); *)
   let fname, (decs,rules) = (translation_inner ctl) in
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  

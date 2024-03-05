@@ -5,6 +5,9 @@ Project Name: libvncserver
 License: GPL-2.0
 termination: TRUE
 */
+
+/*@ AF(EXIT()) @*/
+
 int main()
 {
 

@@ -1209,7 +1209,6 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
         Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
     )
 
-
   | [hd] -> raise (Failure ("getLoopSummary: loops has a PureEv head, this is cause by the expressionToPure function not coplete" ^ string_of_fst_event hd))
   | _-> raise (Failure "loop starting with more than one fst")
 
@@ -1416,18 +1415,25 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
   | Eq (Basic(BVAR var), Basic t1) -> 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
+    print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
+
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
     let currentConstraint = PureAnd(pureOfCurrentState, pathConstrint') in 
-    let predicates' = List.filter ~f:(fun ele -> relevent ele var && entailConstrains currentConstraint ele) predicates in 
+    print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
+    
+    let predicates' = 
+        if entailConstrains currentConstraint FALSE 
+        (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
+        then List.filter ~f:(fun ele -> relevent ele var && entailConstrains pureOfCurrentState ele) predicates 
+        else List.filter ~f:(fun ele -> relevent ele var && entailConstrains currentConstraint ele) predicates in 
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     currentValuation', facts
 
   | Predicate (s, terms) -> 
     if twoStringSetOverlap [s] [entryKeyWord] 
     then currentValuation, ([(s, terms@[loc])] @ flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates))
-    else if twoStringSetOverlap [s] [retKeyword] then currentValuation, [(s, terms@[loc])] 
-    else currentValuation, []
+    else currentValuation, [(s, terms@[loc])] 
       
 
   | _ -> currentValuation, []
@@ -1480,15 +1486,8 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   in     
   let rec ietrater reIn (previousState:int option) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
     let reIn = normalise_es reIn in 
-    (*print_endline ( string_of_regularExpr reIn );
-    (match pathConstrint with 
-    | None -> print_endline ("no pathConstrint")
-    | Some pathConstrint -> print_endline (List.fold_left ~init:"pathConstrint " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) pathConstrint)
+    (*print_endline ( string_of_regularExpr reIn );    *)
 
-    );
-    *)
-    
-    (*print_endline (List.fold_left ~init:"currentValuation " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation); *)
     
     let fstSet = removeRedundant (fst reIn) compareEvent in 
     match fstSet with 
@@ -1531,6 +1530,11 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
 
 
         | PureEv (p, state) -> 
+        print_endline ("============\n"^ string_of_fst_event f);
+        print_endline (List.fold_left ~init:"pathConstrint " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) pathConstrint);
+        print_endline (List.fold_left ~init:"decomposedPathConditions " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) decomposedPathConditions);
+        print_endline (List.fold_left ~init:"currentValuation " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation); 
+    
           let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 
@@ -1544,7 +1548,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions pathConstrint currentValuation in 
-          (*print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts);*)
+          print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
 
           let pathConstrint' = 
             match p with 
