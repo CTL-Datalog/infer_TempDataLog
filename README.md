@@ -19,6 +19,8 @@ predicate on x and y.
 - The first example: 
 ```
 infer/bin/infer run -- clang -c benchmark/evaluation/1.8_potential_termination_1.c
+infer/bin/infer run -- clang -c benchmark/protocols/pure-ftpd.c           
+infer/bin/infer run -- clang -c benchmark/termination/1_Adding_Subtracting_Zero_1_NT.c
 ```
 
 

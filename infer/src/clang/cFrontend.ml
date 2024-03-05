@@ -1463,18 +1463,64 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     (stateKeyWord, [Basic (BINT s)])))
     *)
 
+let rec lookforExistingMapping li (n:int) : int option  = 
+    match li with 
+    | [] -> None 
+    | (n1, n2):: xs  -> if n1 == n then Some n2 else lookforExistingMapping xs n 
+
+let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regularExpr * ((int * int )list )= 
+  match reIn with 
+  | Bot           
+  | Emp   -> reIn, record
+  | Guard (p, state) -> 
+    (match lookforExistingMapping record state with
+    | None -> 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let stateNew = !allTheUniqueIDs in 
+      let record' = (state, stateNew) :: record in 
+      Guard (p, stateNew) , record' 
+
+    | Some stateNew -> Guard (p, stateNew) , record 
+    ) 
+    
+
+  | Singleton (p, state)  -> 
+    (match lookforExistingMapping record state with
+    | None -> 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let stateNew = !allTheUniqueIDs in 
+      let record' = (state, stateNew) :: record in 
+      Singleton (p, stateNew) , record' 
+
+    | Some stateNew -> Singleton (p, stateNew) , record 
+    ) 
+  | Concate (eff1, eff2) -> 
+    let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
+    let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
+    Concate (re1, re2), record2
+    
+  | Disjunction (eff1, eff2) ->
+    let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
+    let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
+    Disjunction (re1, re2), record2
+  | Kleene effIn          ->
+     let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
+     Kleene re1, record1
+     
+  | Omega effIn          ->
+    let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
+    Omega re1, record1
+
+
 let rec decomposePure p : pure list = 
   match p with 
   | PureAnd (p1, p2) -> decomposePure p1 @ decomposePure p2 
   | _ -> [p]
 
-let disjunctAllJoin (re:regularExpr): regularExpr = 
-  print_endline ("disjunctAllJoin: " ^ string_of_regularExpr re);
-  re
 
 
-let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
-  let (allVarSpec:string list) = flattenList (List.map ~f:(fun ctl -> getAllVarFromCTL ctl) specs) in 
+
+let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
 
   let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
@@ -1536,11 +1582,11 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
 
 
         | PureEv (p, state) -> 
-        print_endline ("============\n"^ string_of_fst_event f);
+        (*print_endline ("============\n"^ string_of_fst_event f);
         print_endline (List.fold_left ~init:"pathConstrint " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) pathConstrint);
         print_endline (List.fold_left ~init:"decomposedPathConditions " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) decomposedPathConditions);
         print_endline (List.fold_left ~init:"currentValuation " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation); 
-    
+    *)
           let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 
@@ -1557,14 +1603,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
 
           let (derivitives:regularExpr) = 
-            let original = (derivitives f reIn) in 
-            match p with 
-            | Eq (Basic(BVAR var), Basic (BINT _ )) 
-            | Eq (Basic(BVAR var), Basic (BVAR _ )) ->  
-              if twoStringSetOverlap [var] allVarSpec then 
-                disjunctAllJoin original
-              else original
-            | _ -> original
+            let original = (derivitives f reIn) in original
           in 
 
           let pathConstrint' = 
@@ -1641,6 +1680,43 @@ let sortRules (ruleL : rule list) : rule list  =
   ) ruleL
 
 
+let createNecessaryDisjunction (re:regularExpr ) (specs:ctl list) : regularExpr = 
+  let (allVarSpec:pure list) = flattenList (List.map ~f:(fun ctl -> getAllPureFromCTL ctl) specs) in 
+  print_endline ("allVarSpec:\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) allVarSpec)));   
+
+  let rec partitionRE reIn :  regularExpr list = 
+    match reIn with 
+    | Concate (re1, re2) -> partitionRE re1  @ partitionRE re2
+    | _ -> [reIn]
+  in 
+  let segemants = partitionRE re in 
+
+  print_endline ("\nsegemants:\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_regularExpr p) segemants)) ^ "\n");
+  
+  let rec iteraterSegemnst reInLi : regularExpr = 
+    match reInLi with 
+    | Disjunction(es1, es2) :: xs -> 
+      let x = Disjunction(es1, es2) in 
+      let containRelevantPure = containRelevantPureRE x allVarSpec in 
+      if containRelevantPure then 
+        let derivitives = iteraterSegemnst xs in  
+        print_endline ("derivitives " ^ string_of_regularExpr derivitives);  
+        let derivitives1, _ = instantiateREStatesWithFreshNum derivitives [] in 
+        let (extendedDerivitives:regularExpr) = Disjunction(Concate (es1, derivitives1 ), Concate (es2, derivitives )) in 
+        print_endline ("after  " ^ string_of_regularExpr extendedDerivitives);  
+
+        extendedDerivitives
+
+      else Concate (x, iteraterSegemnst xs)
+    | [x] ->  x
+    | x :: xs  -> Concate (x, iteraterSegemnst xs)
+    | [] -> Emp
+  in 
+
+  iteraterSegemnst segemants
+
+  
+
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
   let tenv = Tenv.create () in
@@ -1679,9 +1755,12 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       List.append accs [summary] )) 
   in
 
+
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
-      let (facts, rules) = convertRE2Datalog (summary) specifications in 
+      let summary' = createNecessaryDisjunction summary specifications in
+      let (facts, rules) = convertRE2Datalog (summary') in 
       ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
+      ("/*" ^ string_of_regularExpr summary' ^ "*/") :: 
       string_of_facts (sortFacts facts) :: 
       string_of_rules (sortRules rules) :: []
   )) in 

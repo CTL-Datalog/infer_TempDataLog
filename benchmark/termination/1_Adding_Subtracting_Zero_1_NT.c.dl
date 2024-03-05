@@ -1,8 +1,10 @@
 /*(Join())@0*/
+/*(Join())@0*/
 
 State(0).
 
 /*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((([(h<=0)]@12) \/ ([h>0∧linesToRead>0]@23)) · ((h<=0))@21) \/ (([h>0∧(linesToRead<=0)]@24 · [h>0]@22)^w)) · ((Return(0))@20)^w))*/
+/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((([(h<=0)]@12) \/ ([h>0∧linesToRead>0]@23)) · ((h<=0))@21) \/ (([h>0∧(linesToRead<=0)]@24 · [h>0]@22)^w)) · ((Return(0))@20)^w)) · 𝝐 */
 
 flow(1,2).
 flow(5,5).
@@ -14,7 +16,7 @@ Lt("linesToRead",1,0).
 LtEq("h",1,0).
 Gt("linesToRead",1,0).
 GtEq("linesToRead",1,0).
-//LtEq("linesToRead",1,0).
+LtEq("linesToRead",1,0).
 Gt("h",1,0).
 State(1).
 State(4).
@@ -69,13 +71,13 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
-GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
-LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
 EXIT(loc) :- Return(_,loc).
 AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
 AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).

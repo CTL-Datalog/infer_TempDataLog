@@ -1,12 +1,15 @@
 /*(Join())@0*/
+/*(Join())@0*/
 
 State(0).
 
+/*(Join())@0*/
 /*(Join())@0*/
 
 State(0).
 
 /*(Start())@1 · (overflow=0)@2 · (activated=_)@3 · (user_quota_size=_)@4 · (quota_size=_)@5 · (max_filesize=-1)@6 · (temp=_)@7 · (ret=-1)@8 · (([max_filesize>=0]@10 · (([temp<0]@12 · (overflow=1)@13) \/ ([!(temp<0)]@28))) \/ ([!(max_filesize>=0)]@30)) · (Join())@14 · (([overflow>0]@16 · (addreply(552))@17) \/ ([(overflow<=0)]@21 · (([ret=0]@23 · (addreply(226))@24) \/ ([(ret!=0)]@26 · (addreply(451))@27)))) · (Join())@18 · ((Return(-1))@19)^w*/
+/*(Start())@1 · (overflow=0)@2 · (activated=_)@3 · (user_quota_size=_)@4 · (quota_size=_)@5 · (max_filesize=-1)@6 · (temp=_)@7 · (ret=-1)@8 · (([max_filesize>=0]@10 · (([temp<0]@12 · (overflow=1)@13) \/ ([!(temp<0)]@28)) · (Join())@31 · (([overflow>0]@32 · (addreply(552))@33) \/ ([(overflow<=0)]@34 · (([ret=0]@35 · (addreply(226))@36) \/ ([(ret!=0)]@37 · (addreply(451))@38)))) · (Join())@39 · ((Return(-1))@40)^w) \/ ([!(max_filesize>=0)]@30 · (Join())@14 · (([overflow>0]@16 · (addreply(552))@17) \/ ([(overflow<=0)]@21 · (([ret=0]@23 · (addreply(226))@24) \/ ([(ret!=0)]@26 · (addreply(451))@27)))) · (Join())@18 · ((Return(-1))@19)^w))*/
 
 flow(1,2).
 flow(2,3).
@@ -15,6 +18,8 @@ flow(4,5).
 flow(5,6).
 flow(6,7).
 flow(7,8).
+flow(39,40).
+flow(40,40).
 flow(18,19).
 flow(19,19).
 Start(1).
@@ -32,13 +37,31 @@ State(2).
 State(3).
 State(4).
 State(5).
-GtEq("max_filesize",6,0).
+Lt("max_filesize",6,0).
 State(6).
 State(7).
 NotEq("ret",8,0).
 State(12).
 Gt("overflow",13,0).
 State(13).
+State(32).
+addreply(552,33).
+State(33).
+State(39).
+Return(-1,40).
+State(40).
+State(31).
+State(35).
+addreply(226,36).
+State(36).
+State(34).
+State(37).
+addreply(451,38).
+State(38).
+State(10).
+State(28).
+State(8).
+State(30).
 State(16).
 addreply(552,17).
 State(17).
@@ -53,14 +76,24 @@ State(21).
 State(26).
 addreply(451,27).
 State(27).
-State(10).
-State(28).
-State(8).
-State(30).
 control_flow(8,10) :- GtEqD("max_filesize",8,0).
 control_flow(10,12) :- GtEqD("max_filesize",10,0), LtD("temp",10,0).
 control_flow(12,13) :- GtEqD("max_filesize",12,0), LtD("temp",12,0).
-control_flow(13,14) :- GtEqD("max_filesize",13,0), LtD("temp",13,0).
+control_flow(13,31) :- GtEqD("max_filesize",13,0), LtD("temp",13,0).
+control_flow(31,32) :- GtD("overflow",31,0).
+control_flow(32,33) :- GtD("overflow",32,0).
+control_flow(33,39) :- GtD("overflow",33,0).
+control_flow(31,34) :- LtEqD("overflow",31,0).
+control_flow(34,35) :- LtEqD("overflow",34,0), EqD("ret",34,0).
+control_flow(35,36) :- LtEqD("overflow",35,0), EqD("ret",35,0).
+control_flow(36,39) :- LtEqD("overflow",36,0), EqD("ret",36,0).
+control_flow(34,37) :- LtEqD("overflow",34,0), NotEqD("ret",34,0).
+control_flow(37,38) :- LtEqD("overflow",37,0), NotEqD("ret",37,0).
+control_flow(38,39) :- LtEqD("overflow",38,0), NotEqD("ret",38,0).
+control_flow(10,28) :- GtEqD("max_filesize",10,0), GtEqD("temp",10,0).
+control_flow(28,31) :- GtEqD("max_filesize",28,0), GtEqD("temp",28,0).
+control_flow(8,30) :- LtD("max_filesize",8,0).
+control_flow(30,14) :- LtD("max_filesize",30,0).
 control_flow(14,16) :- GtD("overflow",14,0).
 control_flow(16,17) :- GtD("overflow",16,0).
 control_flow(17,18) :- GtD("overflow",17,0).
@@ -71,10 +104,6 @@ control_flow(24,18) :- LtEqD("overflow",24,0), EqD("ret",24,0).
 control_flow(21,26) :- LtEqD("overflow",21,0), NotEqD("ret",21,0).
 control_flow(26,27) :- LtEqD("overflow",26,0), NotEqD("ret",26,0).
 control_flow(27,18) :- LtEqD("overflow",27,0), NotEqD("ret",27,0).
-control_flow(10,28) :- GtEqD("max_filesize",10,0), GtEqD("temp",10,0).
-control_flow(28,14) :- GtEqD("max_filesize",28,0), GtEqD("temp",28,0).
-control_flow(8,30) :- LtD("max_filesize",8,0).
-control_flow(30,14) :- LtD("max_filesize",30,0).
 //AG(("temp"<0 => AF("overflow">0)))
 .decl Start(x:number)
 .decl State(x:number)
@@ -148,5 +177,4 @@ AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final(loc) :- Start(loc), AG_temp_lt_0_IMPLY
 .output Return
 .output addreply
 .output AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final(IO=stdout)
-.output control_flow(IO=stdout)
 

@@ -735,6 +735,18 @@ let rec getAllVarFromTerm (t:terms) (acc:string list):string list =
 | _ -> acc
 ;;
 
+let rec getAllStrFromTerm (t:terms) (acc:string list):string list = 
+  match t with
+| Basic (BSTR name) -> List.append acc [name]
+| Plus (t1, t2) -> 
+    let cur = getAllStrFromTerm t1 acc in 
+    getAllStrFromTerm t2 cur
+| Minus (t1, t2) -> 
+    let cur = getAllStrFromTerm t1 acc in 
+    getAllStrFromTerm t2 cur
+| _ -> acc
+;;
+
 let rec getAllNumFromTerm (t:terms):int list = 
   match t with
 | Basic (BINT n) -> [n]
@@ -744,7 +756,43 @@ let rec getAllNumFromTerm (t:terms):int list =
 ;;
 
 
+let rec getAllStrFromPure (pi:pure) (acc:string list):string list = 
+  match pi with
+    TRUE -> acc
+  | FALSE -> acc
+  | Gt (term1, term2) -> 
+      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
+      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
+  | Lt (term1, term2) -> 
+      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
+      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
+  | GtEq (term1, term2) -> 
+      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
+      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
+  | LtEq (term1, term2) -> 
+      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
+      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
+  | Eq (term1, term2) -> 
+      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
+      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
+  | PureAnd (pi1,pi2) -> 
+      let temp1 = getAllStrFromPure pi1 [] in
+      let temp2 = getAllStrFromPure pi2 [] in
+      List.append acc (List.append temp1 temp2) 
+  | Neg piN -> 
+      List.append acc (getAllStrFromPure piN [])
+  | PureOr (pi1,pi2) -> 
+      let temp1 = getAllStrFromPure pi1 [] in
+      let temp2 = getAllStrFromPure pi2 [] in
+      List.append acc (List.append temp1 temp2) 
+  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllStrFromTerm t [])
 
+  ;;
 
 let rec getAllVarFromPure (pi:pure) (acc:string list):string list = 
   match pi with
@@ -832,10 +880,10 @@ let rec existInhistoryTable pi table=
 
 let rec term_to_expr ctx : terms -> Z3.Expr.expr = function
   | (Basic(BINT n))        -> Z3.Arithmetic.Real.mk_numeral_i ctx n
+  | Basic (BSTR v)
   | (Basic(BVAR v))           -> Z3.Arithmetic.Real.mk_const_s ctx v
   | (Basic(BNULL))           -> Z3.Arithmetic.Real.mk_const_s ctx "nil"
   | (Basic(BRET))           -> Z3.Arithmetic.Real.mk_const_s ctx "ret"
-  | Basic (BSTR _)
   | Basic ANY -> raise (Failure "term_to_expr not yet")
 
   (*
@@ -1739,21 +1787,35 @@ and translation_inner (ctl:ctl) : string * datalog =
   (* core, EX, AF, AU, the rest needs to be translated *)
 
 
-let rec getAllVarFromCTL (ctl:ctl): string list  = 
+let rec getAllPureFromCTL (ctl:ctl): pure list  = 
   match ctl with
-  | Atom (_, p) -> getAllVarFromPure p [] 
+  | Atom (_, p) -> [p]
   | AX c 
   | EX c 
   | AF c
   | EF c 
   | AG c 
   | EG c 
-  | Neg c -> getAllVarFromCTL c
+  | Neg c -> getAllPureFromCTL c
   | Conj (c1, c2) 
   | Disj (c1, c2) 
   | AU (c1, c2)
   | EU (c1, c2) 
-  | Imply (c1, c2) -> getAllVarFromCTL c1 @ getAllVarFromCTL c2
+  | Imply (c1, c2) -> getAllPureFromCTL c1 @ getAllPureFromCTL c2
+
+let rec containRelevantPureRE (re:regularExpr) (allVarSpec:pure list): bool  = 
+  match re with 
+  | Singleton (p, _)  -> 
+    (match p with 
+    | Eq (Basic(BVAR _), Basic (BINT _ )) 
+    | Eq (Basic(BVAR _), Basic (BVAR _ )) ->  
+      let shouldDisjunct = List.fold_left ~init:false ~f:(fun acc pred -> if entailConstrains p pred then true else acc) allVarSpec in 
+      if shouldDisjunct then true 
+      else false 
+    | _ -> false)
+  | Concate (eff1, eff2) 
+  | Disjunction (eff1, eff2) -> containRelevantPureRE eff1 allVarSpec || containRelevantPureRE eff2 allVarSpec
+  | _ -> false 
 
   
 
