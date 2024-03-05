@@ -1360,6 +1360,7 @@ let nameContainsVar str n : bool =
 
 
 
+
 let rec translation (ctl:ctl) : string * datalog = 
   (*print_endline ("\n" ^ String.concat ~sep:" " !ruleDeclearation ^ "\n"); *)
   let fname, (decs,rules) = (translation_inner ctl) in
@@ -1736,6 +1737,25 @@ and translation_inner (ctl:ctl) : string * datalog =
 
     
   (* core, EX, AF, AU, the rest needs to be translated *)
+
+
+let rec getAllVarFromCTL (ctl:ctl): string list  = 
+  match ctl with
+  | Atom (_, p) -> getAllVarFromPure p [] 
+  | AX c 
+  | EX c 
+  | AF c
+  | EF c 
+  | AG c 
+  | EG c 
+  | Neg c -> getAllVarFromCTL c
+  | Conj (c1, c2) 
+  | Disj (c1, c2) 
+  | AU (c1, c2)
+  | EU (c1, c2) 
+  | Imply (c1, c2) -> getAllVarFromCTL c1 @ getAllVarFromCTL c2
+
+  
 
 let rec string_of_ctl (ctl:ctl) = 
   match ctl with

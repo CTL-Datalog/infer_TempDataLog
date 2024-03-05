@@ -1468,8 +1468,14 @@ let rec decomposePure p : pure list =
   | PureAnd (p1, p2) -> decomposePure p1 @ decomposePure p2 
   | _ -> [p]
 
+let disjunctAllJoin (re:regularExpr): regularExpr = 
+  print_endline ("disjunctAllJoin: " ^ string_of_regularExpr re);
+  re
 
-let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
+
+let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
+  let (allVarSpec:string list) = flattenList (List.map ~f:(fun ctl -> getAllVarFromCTL ctl) specs) in 
+
   let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
@@ -1550,13 +1556,25 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions pathConstrint currentValuation in 
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
 
+          let (derivitives:regularExpr) = 
+            let original = (derivitives f reIn) in 
+            match p with 
+            | Eq (Basic(BVAR var), Basic (BINT _ )) 
+            | Eq (Basic(BVAR var), Basic (BVAR _ )) ->  
+              if twoStringSetOverlap [var] allVarSpec then 
+                disjunctAllJoin original
+              else original
+            | _ -> original
+          in 
+
           let pathConstrint' = 
             match p with 
             | Predicate (s, _) -> if String.compare s joinKeyword == 0 then [] else pathConstrint
             | _ -> pathConstrint
           in 
 
-          let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint' currentValuation' in 
+
+          let (reAcc'', ruAcc'') = ietrater derivitives (Some state) pathConstrint' currentValuation' in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])
 
           
@@ -1622,7 +1640,7 @@ let sortRules (ruleL : rule list) : rule list  =
     then 0 else -1 
   ) ruleL
 
-  
+
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
   let tenv = Tenv.create () in
@@ -1662,8 +1680,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   in
 
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
-      let (facts, rules) = convertRE2Datalog (summary) in 
-      
+      let (facts, rules) = convertRE2Datalog (summary) specifications in 
       ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
       string_of_facts (sortFacts facts) :: 
       string_of_rules (sortRules rules) :: []
