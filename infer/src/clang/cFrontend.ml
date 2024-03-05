@@ -62,13 +62,59 @@ let string_of_source_range ((s1, s2):Clang_ast_t.source_range) :string =
 
 
 
+let rec decomposePure p : pure list = 
+  match p with 
+  | PureAnd (p1, p2) -> decomposePure p1 @ decomposePure p2 
+  | Ast_utility.TRUE -> []
+  | _ -> [p]
 
-let getFirst (a, _) = a
+
 
 let conjunctPure (pi1:pure) (pi2:pure): pure = 
   if entailConstrains pi1 pi2 then pi1 
-        else if entailConstrains pi2 pi1 then pi2
-        else  PureAnd (pi1, pi2)
+  else if entailConstrains pi2 pi1 then pi2
+  else  
+    let pi1 = normalise_pure pi1 in 
+    let pi2 = normalise_pure pi2 in 
+    (match pi1, pi2 with 
+    | ((GtEq(Basic (BVAR var1), Basic(BINT 0))), PureAnd (pi11, LtEq(Basic (BVAR var2), Basic(BINT 0)))) -> 
+      if String.compare var1 var2 == 0 then PureAnd(Eq(Basic (BVAR var1), Basic(BINT 0)), pi11)
+      else PureAnd (pi1, pi2)
+    | ((GtEq(Basic (BVAR var1), Basic(BINT 0))), LtEq(Basic (BVAR var2), Basic(BINT 0))) -> 
+      if String.compare var1 var2 == 0 then Eq(Basic (BVAR var1), Basic(BINT 0))
+      else PureAnd (pi1, pi2)
+
+    | _, _ -> PureAnd (pi1, pi2)
+    )
+    (*
+    let pLi = decomposePure (PureAnd (pi1, pi2)) in 
+    let rec sortList (acc:(string * (pure list)) list) li = 
+      match li with 
+      | [] -> acc 
+      | px :: xs-> 
+        (match px with 
+        | Eq (Basic (BVAR var), t2) -> 
+
+          (match findFromRecord acc var with 
+          | None -> 
+            let acc' = (var, [px]): acc'  in 
+            sortList acc' xs 
+          | Some (acc', pureLi) -> 
+            let acc2 = (var, px::pureLi): acc'  in 
+            sortList acc2 xs )
+        | _ -> 
+            
+        )
+
+    in 
+    let sortsByVar = sortList [] pLi in 
+    let rec iterateSort (acc:(string * (pure list)) list) : (pure list) =    
+    *)
+
+    
+
+  
+  
 
 
 
@@ -1201,9 +1247,9 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
     | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
     | weakestPre -> 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminating = eventToRe (GuardEv (PureAnd(pi, weakestPre), !allTheUniqueIDs))  in 
+      let terminating = eventToRe (GuardEv (PureAnd(pi, conjunctPure path weakestPre), !allTheUniqueIDs))  in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, Neg weakestPre), !allTheUniqueIDs)) in 
+      let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, conjunctPure path (normalise_pure (Neg weakestPre))), !allTheUniqueIDs)) in 
       let non_terminating = Omega (Concate(non_termination_guard, stateWhenNonTerminate )) in 
       disjunctRE [
         Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
@@ -1218,7 +1264,8 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
   match re with 
   | Kleene (reIn) -> 
     let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in 
-    let loopsummary = getLoopSummary normalForm path in 
+    let loopsummary = getLoopSummary normalForm (normalise_pure path) in 
+    print_endline ("before loopsummary: " ^ string_of_pure  path);
     print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary);
     loopsummary, path
   | Disjunction(r1, r2) -> 
@@ -1511,11 +1558,6 @@ let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regula
     let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
     Omega re1, record1
 
-
-let rec decomposePure p : pure list = 
-  match p with 
-  | PureAnd (p1, p2) -> decomposePure p1 @ decomposePure p2 
-  | _ -> [p]
 
 
 

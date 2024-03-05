@@ -539,6 +539,9 @@ let rec normalise_pure (pi:pure) : pure =
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
   | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
+  | PureAnd (pi1,TRUE) 
+  | PureAnd (TRUE, pi1) -> normalise_pure pi1
+
   | PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
   | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
   | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
@@ -1392,12 +1395,14 @@ let reachablibilyrules head =
 
   in 
   let base = ((String.sub head (0) (String.length head -1))) in 
+  let negBase = negatedPredicate base in 
+  updateRuleDeclearation ruleDeclearation (negBase);
   [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
    (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]);
-        Neg (negatedPredicate base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
+        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
 
 let nameContainsVar str n : bool = 
   let l = String.length str in 
@@ -1412,6 +1417,32 @@ let nameContainsVar str n : bool =
 let rec translation (ctl:ctl) : string * datalog = 
   (*print_endline ("\n" ^ String.concat ~sep:" " !ruleDeclearation ^ "\n"); *)
   let fname, (decs,rules) = (translation_inner ctl) in
+  let defaultRules = [ 
+    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
+    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];
+    
+    (*(valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+      [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
+        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
+        Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
+        *)
+
+    (existFiniteTrace, [Basic (BVAR locKeyWord)]), [ Pos (stateKeyWord , [Basic (BVAR locKeyWord)]) ; Neg(controlFlowKeyword, [Basic (BVAR locKeyWord);Basic ANY])] ;
+    (existFiniteTrace, [Basic (BVAR locKeyWord )]), 
+          [ Pos (existFiniteTrace, [Basic (BVAR loc_inter_KeyWord)] );  
+            Pos (controlFlowKeyword, [Basic (BVAR locKeyWord); Basic (BVAR loc_inter_KeyWord)]); 
+          ] ;
+    
+        
+
+    (controlFlowKeyword,  [Basic (BVAR "x"); Basic (BVAR "y")]), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ];
+    (*control_flow(x, y) :- flow(x, y).*)
+        
+    ]
+    @ flattenList (List.map (!bodyDeclearation) ~f:(fun nameD -> reachablibilyrules nameD))
+
+  in
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
     (*(valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]); *)
@@ -1462,32 +1493,7 @@ let rec translation (ctl:ctl) : string * datalog =
 
     
   in
-  let defaultRules = [ 
-    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
-    (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];
-    
-    (*(valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
-    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
-      [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
-        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
-        *)
 
-    (existFiniteTrace, [Basic (BVAR locKeyWord)]), [ Pos (stateKeyWord , [Basic (BVAR locKeyWord)]) ; Neg(controlFlowKeyword, [Basic (BVAR locKeyWord);Basic ANY])] ;
-    (existFiniteTrace, [Basic (BVAR locKeyWord )]), 
-          [ Pos (existFiniteTrace, [Basic (BVAR loc_inter_KeyWord)] );  
-            Pos (controlFlowKeyword, [Basic (BVAR locKeyWord); Basic (BVAR loc_inter_KeyWord)]); 
-          ] ;
-    
-        
-
-    (controlFlowKeyword,  [Basic (BVAR "x"); Basic (BVAR "y")]), [ Pos (flowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ];
-    (*control_flow(x, y) :- flow(x, y).*)
-        
-    ]
-    @ flattenList (List.map (!bodyDeclearation) ~f:(fun nameD -> reachablibilyrules nameD))
-
-   in
 
     
     (**********************************************************************

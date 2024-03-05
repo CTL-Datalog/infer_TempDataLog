@@ -3,8 +3,8 @@
 
 State(0).
 
-/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((([(h<=0)]@12) \/ ([h>0∧linesToRead>0]@23)) · ((h<=0))@21) \/ (([h>0∧(linesToRead<=0)]@24 · [h>0]@22)^w)) · ((Return(0))@20)^w))*/
-/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((([(h<=0)]@12) \/ ([h>0∧linesToRead>0]@23)) · ((h<=0))@21) \/ (([h>0∧(linesToRead<=0)]@24 · [h>0]@22)^w)) · ((Return(0))@20)^w)) · 𝝐 */
+/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((([(h<=0)]@12) \/ ([h>0∧linesToRead>0]@23)) · ((h<=0))@21) \/ (([h>0∧linesToRead=0]@24 · [h>0]@22)^w)) · ((Return(0))@20)^w))*/
+/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((([(h<=0)]@12) \/ ([h>0∧linesToRead>0]@23)) · ((h<=0))@21) \/ (([h>0∧linesToRead=0]@24 · [h>0]@22)^w)) · ((Return(0))@20)^w)) · 𝝐 */
 
 flow(1,2).
 flow(5,5).
@@ -13,8 +13,10 @@ flow(20,20).
 flow(22,24).
 Start(1).
 Lt("linesToRead",1,0).
+LtEq("h",1,0).
 Gt("linesToRead",1,0).
-Eq("linesToRead",1,0).
+GtEq("linesToRead",1,0).
+//Eq("linesToRead",1,0). // the repair is to delete this line 
 Gt("h",1,0).
 State(1).
 State(4).
@@ -51,14 +53,14 @@ control_flow(24,22) :- GtD("h",24,0), EqD("linesToRead",24,0), GtD("h",24,0).
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
 .decl GtEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
-.decl Eq(x:symbol,loc:number,n:number)
-
+.decl GtD(x:symbol,loc:number,n:number)
 .decl LtEqD(x:symbol,loc:number,n:number)
 .decl GtEqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
@@ -71,6 +73,8 @@ transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
 GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
@@ -79,9 +83,6 @@ GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
 LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
-EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- Eq(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_).
-
 EXIT(loc) :- Return(_,loc).
 AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
 AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
@@ -89,6 +90,8 @@ AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
 AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
 AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
 AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output NotEq
+.output Eq
 .output GtEq
 .output Gt
 .output LtEq
@@ -98,5 +101,4 @@ AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_EXIT_Final(IO=stdout)
-.output control_flow(IO=stdout)
 
