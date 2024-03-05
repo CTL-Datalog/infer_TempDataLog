@@ -13,10 +13,8 @@ flow(20,20).
 flow(22,24).
 Start(1).
 Lt("linesToRead",1,0).
-LtEq("h",1,0).
 Gt("linesToRead",1,0).
-GtEq("linesToRead",1,0).
-LtEq("linesToRead",1,0).
+Eq("linesToRead",1,0).
 Gt("h",1,0).
 State(1).
 State(4).
@@ -43,8 +41,8 @@ control_flow(21,20) :- LtEqD("h",21,0).
 control_flow(9,23) :- GtD("h",9,0), GtD("linesToRead",9,0).
 control_flow(23,21) :- GtD("h",23,0), GtD("linesToRead",23,0).
 control_flow(21,20) :- GtD("h",21,0), GtD("linesToRead",21,0).
-control_flow(9,24) :- GtD("h",9,0), LtEqD("linesToRead",9,0).
-control_flow(24,22) :- GtD("h",24,0), LtEqD("linesToRead",24,0), GtD("h",24,0).
+control_flow(9,24) :- GtD("h",9,0), EqD("linesToRead",9,0).
+control_flow(24,22) :- GtD("h",24,0), EqD("linesToRead",24,0), GtD("h",24,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -58,6 +56,9 @@ control_flow(24,22) :- GtD("h",24,0), LtEqD("linesToRead",24,0), GtD("h",24,0).
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+
 .decl LtEqD(x:symbol,loc:number,n:number)
 .decl GtEqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
@@ -78,6 +79,9 @@ GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
 LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- Eq(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_).
+
 EXIT(loc) :- Return(_,loc).
 AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
 AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
@@ -94,4 +98,5 @@ AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_EXIT_Final(IO=stdout)
+.output control_flow(IO=stdout)
 

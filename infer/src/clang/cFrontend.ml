@@ -1526,9 +1526,9 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
   let pathConditions = getAllPathConditions re in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
   let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) pathConditions )) comparePure in 
-  (*print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));   
+  print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));   
   print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) decomposedPathConditions)));   
-*)
+
   (*let (unknownVars:string list) = getUnknownVars re in 
   *)
   let rec mergeResults li (acca, accb) = 
