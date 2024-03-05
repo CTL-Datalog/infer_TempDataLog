@@ -1,7 +1,9 @@
 /*(Join())@0*/
+/*(Join())@0*/
 
 State(0).
 
+/*(Start())@1 · (y=1)@2 · (i=_)@3 · (x=_)@4 · (([i>10]@6 · (x=1)@7) \/ ([(i<=10)]@15)) · (Join())@8 · ((([x=y]@17)^w) \/ ([(x!=y)]@11)) · ((Return(0))@13)^w*/
 /*(Start())@1 · (y=1)@2 · (i=_)@3 · (x=_)@4 · (([i>10]@6 · (x=1)@7) \/ ([(i<=10)]@15)) · (Join())@8 · ((([x=y]@17)^w) \/ ([(x!=y)]@11)) · ((Return(0))@13)^w*/
 
 flow(1,2).
@@ -10,8 +12,8 @@ flow(3,4).
 flow(17,17).
 flow(13,13).
 Start(1).
-//Gt("i",1,10).
-//EqVar("x",1,"y").
+Gt("i",1,10).     // The repair is to delete 
+EqVar("x",1,"y"). // these two lines
 LtEq("i",1,10).
 NotEqVar("x",1,"y").
 State(1).
@@ -61,13 +63,13 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
 NotEqVarD(x,loc,n) :- NotEqVar(x,loc,n).
-NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,_).
+NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,_), !EqVar(x,loc,_).
 EqVarD(x,loc,n) :- EqVar(x,loc,n).
-EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,_).
+EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,_), !NotEqVar(x,loc,_).
 GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 EXIT(loc) :- Return(_,loc).
 AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
 AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).

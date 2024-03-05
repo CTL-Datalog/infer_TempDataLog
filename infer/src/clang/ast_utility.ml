@@ -1789,6 +1789,7 @@ and translation_inner (ctl:ctl) : string * datalog =
 
 let rec getAllPureFromCTL (ctl:ctl): pure list  = 
   match ctl with
+  | Atom (_, Predicate _ ) -> []
   | Atom (_, p) -> [p]
   | AX c 
   | EX c 
