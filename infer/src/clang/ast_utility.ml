@@ -548,6 +548,10 @@ let rec normalise_pure (pi:pure) : pure =
   | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
   | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
   | Neg (LtEq (t1, t2)) -> Gt (t1, t2)
+  | Neg (Predicate (str, termLi)) -> 
+    if String.compare str evenKeyWord == 0 then Predicate (oddKeyWord, termLi)
+    else if String.compare str oddKeyWord == 0 then Predicate (evenKeyWord, termLi)
+    else Predicate (str, List.map termLi ~f:(normalise_terms))
   | Neg piN -> Neg (normalise_pure piN)
   | PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
   | Predicate (str, termLi) -> 
@@ -1798,7 +1802,11 @@ and translation_inner (ctl:ctl) : string * datalog =
 let rec getAllPureFromCTL (ctl:ctl): pure list  = 
   match ctl with
   | Atom (_, Predicate _ ) -> []
-  | Atom (_, p) -> [p]
+  | Atom (_, p) -> 
+    (match p with
+    | Eq (Basic(BSTR v), Basic(BINT n)) -> [Eq (Basic(BVAR v), Basic(BINT n))]
+    | _ -> [p]
+    )
   | AX c 
   | EX c 
   | AF c

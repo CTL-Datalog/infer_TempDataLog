@@ -1384,6 +1384,9 @@ let rec getAllPathConditions (re:regularExpr): pure list =
   | Omega re -> getAllPathConditions re 
   | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
 
+let rec getAllPathConditionsCTL (ctls:ctl list): pure list = 
+  List.fold_left ~init:[] ~f:(fun acc ctl -> acc @ getAllPureFromCTL ctl) ctls 
+
 let rec getUnknownVars (re:regularExpr): string list = 
   match re with 
   | Singleton (Eq (Basic(BVAR var), Basic ANY), _)  -> [var]
@@ -1460,7 +1463,7 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
   
 
 
-let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
+let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -1493,8 +1496,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (pathConst
     let predicates' = 
         if entailConstrains currentConstraint FALSE 
         (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
-        then List.filter ~f:(fun ele -> relevent ele var && entailConstrains pureOfCurrentState ele) predicates 
-        else List.filter ~f:(fun ele -> relevent ele var && entailConstrains currentConstraint ele) predicates in 
+        then List.filter ~f:(fun ele -> relevent ele var && entailConstrains pureOfCurrentState ele) (predicates@predicatesSpec) 
+        else List.filter ~f:(fun ele -> relevent ele var && entailConstrains currentConstraint ele) (predicates@predicatesSpec) in 
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     currentValuation', facts
 
@@ -1531,10 +1534,11 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     (stateKeyWord, [Basic (BINT s)])))
     *)
 
-let rec lookforExistingMapping li (n:int) : int option  = 
-    match li with 
+let rec lookforExistingMapping li (n:int) : int option  = None 
+    (*match li with 
     | [] -> None 
     | (n1, n2):: xs  -> if n1 == n then Some n2 else lookforExistingMapping xs n 
+*)
 
 let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regularExpr * ((int * int )list )= 
   match reIn with 
@@ -1583,17 +1587,20 @@ let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regula
 
 
 
-let convertRE2Datalog (re:regularExpr): (relation list * rule list) = 
+let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
 
   let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
+  let (pathConditionsSpec:pure list) = getAllPathConditionsCTL specs in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
-  let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) pathConditions )) comparePure in 
-  print_endline ("pathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) pathConditions)));   
-  print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) decomposedPathConditions)));   
+  let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
+  
+  let (decomposedpathConditionsSpec:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsSpec) )) comparePure in 
 
-  (*let (unknownVars:string list) = getUnknownVars re in 
-  *)
+  
+  print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions@decomposedpathConditionsSpec))));   
+
+
   let rec mergeResults li (acca, accb) = 
     match li with 
     | [] -> (acca, accb) 
@@ -1662,7 +1669,7 @@ let convertRE2Datalog (re:regularExpr): (relation list * rule list) =
               | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun a -> (pureToBodies a (Some previousState))) bodies))]
               )
             | None -> [], []) in 
-          let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions pathConstrint currentValuation in 
+          let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec pathConstrint currentValuation in 
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
 
           let (derivitives:regularExpr) = 
@@ -1764,11 +1771,10 @@ let createNecessaryDisjunction (re:regularExpr ) (specs:ctl list) : regularExpr 
       if containRelevantPure then 
         let derivitives = iteraterSegemnst xs in  
         print_endline ("derivitives " ^ string_of_regularExpr derivitives);  
-        let derivitives1, _ = instantiateREStatesWithFreshNum derivitives [] in 
-        let (extendedDerivitives:regularExpr) = Disjunction(Concate (es1, derivitives1 ), Concate (es2, derivitives )) in 
-        print_endline ("after  " ^ string_of_regularExpr extendedDerivitives);  
+        let derivitives1, _ = instantiateREStatesWithFreshNum (Concate (x, derivitives)) [] in 
+        print_endline ("after  " ^ string_of_regularExpr derivitives1);  
 
-        extendedDerivitives
+        derivitives1
 
       else Concate (x, iteraterSegemnst xs)
     | [x] ->  x
@@ -1821,7 +1827,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       let summary' = createNecessaryDisjunction summary specifications in
-      let (facts, rules) = convertRE2Datalog (summary') in 
+      let (facts, rules) = convertRE2Datalog (summary') specifications in 
       ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
       ("/*" ^ string_of_regularExpr summary' ^ "*/") :: 
       string_of_facts (sortFacts facts) :: 
