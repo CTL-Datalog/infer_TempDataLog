@@ -2,6 +2,9 @@
 // -ctl "AF{y==1}"
 // -precondition true 
 
+/*@ AF(y=1) @*/
+
+
 void main() {
     int y;
     int x;

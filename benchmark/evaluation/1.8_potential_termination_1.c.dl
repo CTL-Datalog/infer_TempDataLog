@@ -12,8 +12,8 @@ flow(3,4).
 flow(17,17).
 flow(13,13).
 Start(1).
-Gt("i",1,10).     // The repair is to delete 
-EqVar("x",1,"y"). // these two lines
+Gt("i",1,10).
+EqVar("x",1,"y").
 LtEq("i",1,10).
 NotEqVar("x",1,"y").
 State(1).

@@ -1,7 +1,6 @@
 open Z3
 let flowKeyword = "flow"
 let controlFlowKeyword = "control_flow"
-let valueKeyword = "valuation"
 let retKeyword = "Return"
 let joinKeyword = "Join"
 
@@ -30,6 +29,8 @@ let gtKeyWordVar = gtKeyWord^ postfixPurePred
 let ltKeyWordVar = ltKeyWord^ postfixPurePred
 let geqKeyWordVar = geqKeyWord^ postfixPurePred
 
+let evenKeyWord = "Even"
+let oddKeyWord = "Odd"
 
 
 
@@ -896,6 +897,10 @@ let rec term_to_expr ctx : terms -> Z3.Expr.expr = function
   | Minus (t1, t2) -> Z3.Arithmetic.mk_sub ctx [ term_to_expr ctx t1; term_to_expr ctx t2 ]
 
 
+let get_pred_decl ctx s =
+  let boolSort = (Z3.Boolean.mk_sort ctx) in 
+  Z3.FuncDecl.mk_func_decl_s ctx s [(Z3.Arithmetic.Integer.mk_sort ctx)] boolSort
+
 let rec pi_to_expr ctx : pure -> Expr.expr = function
   | TRUE                -> Z3.Boolean.mk_true ctx
   | FALSE               -> Z3.Boolean.mk_false ctx
@@ -934,7 +939,10 @@ let rec pi_to_expr ctx : pure -> Expr.expr = function
   (*| Imply (pi1, pi2)    -> Z3.Boolean.mk_implies ctx (pi_to_expr ctx pi1) (pi_to_expr ctx pi2)
   *)
   | Neg pi              -> Z3.Boolean.mk_not ctx (pi_to_expr ctx pi)
-  | Predicate (str, termLi) -> raise (Failure "to z3  expr not yet for predicate")
+  | Predicate (f, termLi) -> 
+      Z3.Expr.mk_app ctx (get_pred_decl ctx f) (List.map ~f:(fun a -> term_to_expr ctx a) termLi)
+
+  
 
 
 
@@ -1037,7 +1045,13 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   (*print_endline ("getFactFromPure " ^ string_of_pure p); *)
   let loc = Basic(BINT state) in 
   match p with 
-  | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else [(s, terms@[loc])]
+
+  | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else 
+    (
+    (if String.compare s evenKeyWord == 0 || String.compare s oddKeyWord == 0 then 
+    updateRuleDeclearation ruleDeclearation s
+    else ());
+    [(s, terms@[loc])])
 
   | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
@@ -1375,30 +1389,43 @@ let rec infer_params (pure:pure) : param list =
   in sort_uniq param_compare x
   (*| Pos a -> get_variable_terms a *)
 
+
+let negatedPredicate str: string = 
+  if String.compare str assignKeyWord == 0 then notEQKeyWord 
+  else if String.compare str leqKeyWord == 0 then gtKeyWord 
+  else if String.compare str ltKeyWord == 0 then geqKeyWord 
+  else if String.compare str assignKeyWordVar == 0 then notEQKeyWordVar 
+  else if String.compare str leqKeyWordVar == 0 then gtKeyWordVar 
+  else if String.compare str ltKeyWordVar == 0 then geqKeyWordVar
+
+  else if String.compare str notEQKeyWord  == 0 then  assignKeyWord
+  else if String.compare str gtKeyWord  == 0 then  leqKeyWord
+  else if String.compare str geqKeyWord  == 0 then  ltKeyWord
+  else if String.compare str notEQKeyWordVar  == 0 then  assignKeyWordVar
+  else if String.compare str gtKeyWordVar  == 0 then  leqKeyWordVar
+  else if String.compare str geqKeyWordVar  == 0 then ltKeyWordVar
+  else if String.compare str evenKeyWord  == 0 then oddKeyWord
+  else if String.compare str oddKeyWord  == 0 then evenKeyWord
+
+  else str 
+
 let reachablibilyrules head = 
-  let negatedPredicate str: string = 
-    if String.compare str assignKeyWord == 0 then notEQKeyWord 
-    else if String.compare str leqKeyWord == 0 then gtKeyWord 
-    else if String.compare str ltKeyWord == 0 then geqKeyWord 
-    else if String.compare str assignKeyWordVar == 0 then notEQKeyWordVar 
-    else if String.compare str leqKeyWordVar == 0 then gtKeyWordVar 
-    else if String.compare str ltKeyWordVar == 0 then geqKeyWordVar
-
-    else if String.compare str notEQKeyWord  == 0 then  assignKeyWord
-    else if String.compare str gtKeyWord  == 0 then  leqKeyWord
-    else if String.compare str geqKeyWord  == 0 then  ltKeyWord
-    else if String.compare str notEQKeyWordVar  == 0 then  assignKeyWordVar
-    else if String.compare str gtKeyWordVar  == 0 then  leqKeyWordVar
-    else if String.compare str geqKeyWordVar  == 0 then ltKeyWordVar
-
-    else str 
-
-  in 
   let base = ((String.sub head (0) (String.length head -1))) in 
   let negBase = negatedPredicate base in 
   updateRuleDeclearation ruleDeclearation (negBase);
-  [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
-   (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+
+
+  if String.compare base evenKeyWord == 0 || String.compare base oddKeyWord == 0 then 
+    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]) ] ;
+     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), 
+      [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord)] );  
+        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
+        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]);
+        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]); ]]
+
+  else 
+    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
         Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]);
@@ -1420,13 +1447,7 @@ let rec translation (ctl:ctl) : string * datalog =
   let defaultRules = [ 
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "y")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]) ] ;
     (transFlowKeyWord, [Basic (BVAR "x"); Basic (BVAR "z")] ), [ Pos (controlFlowKeyword, [Basic (BVAR "x"); Basic (BVAR "y")]); Pos (transFlowKeyWord, [Basic (BVAR "y"); Basic (BVAR "z")]) ];
-    
-    (*(valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
-    (valueKeyword, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
-      [ Pos (valueKeyword, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
-        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (assignKeyWord, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]) ] ;
-        *)
+
 
     (existFiniteTrace, [Basic (BVAR locKeyWord)]), [ Pos (stateKeyWord , [Basic (BVAR locKeyWord)]) ; Neg(controlFlowKeyword, [Basic (BVAR locKeyWord);Basic ANY])] ;
     (existFiniteTrace, [Basic (BVAR locKeyWord )]), 
@@ -1445,7 +1466,6 @@ let rec translation (ctl:ctl) : string * datalog =
   in
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
-    (*(valueKeyword,     [ ("x", Symbol); (locKeyWord, Number); ("n", Number)]); *)
     (*(retKeyword,            [ ("n", Number); ("x", Number);]);*) (* currently only return integers *)
     (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,           [ ("x", Number); ("y", Number) ]);
@@ -1473,7 +1493,9 @@ let rec translation (ctl:ctl) : string * datalog =
       if nameContainsVar predefinedPred 3 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
       else 
-        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
+        if String.compare predefinedPred evenKeyWord == 0 || String.compare predefinedPred oddKeyWord == 0
+        then (predefinedPred, [ ("x", Symbol); (locKeyWord, Number)])
+        else  (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
     
     )
 
@@ -1669,31 +1691,9 @@ and translation_inner (ctl:ctl) : string * datalog =
       The approach here makes y and z first to allow for easier manipulation 
 
       *)
-      let fName,(declarations,rules) = 
-        match f with 
+      let fName,(declarations,rules) = translation_inner f 
+        
 
-        | Atom (notPName, Lt(Basic (BSTR x), Basic (BINT n))) -> 
-
-          let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  GtEq(Basic (BSTR x), Basic (BINT n)))) in 
-          
-          let findallDecl = (notPName, [ (locKeyWord, Number)]) in  
-          let findallRules = (notPName, [Basic (BVAR locKeyWord)] ), [ Pos (stateKeyWord, [Basic (BVAR locKeyWord)]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR locKeyWord); Basic(ANY)]); Neg(negetionName, [Basic (BVAR locKeyWord)]) ] in  
-
-
-          notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
-
-        | Atom (notPName, Eq(Basic (BSTR x), Basic (BINT n))) -> 
-
-          let negetionName, (negetionDecl, negetionRules) = translation_inner (Atom ("not_"^notPName,  Neg (Eq(Basic (BSTR x), Basic (BINT n))))) in 
-          
-          let findallDecl = (notPName, [ (locKeyWord, Number)]) in  
-          let findallRules = (notPName, [Basic (BVAR locKeyWord)] ), [ Pos (stateKeyWord, [Basic (BVAR locKeyWord)]); Pos(valueKeyword, [Basic (BSTR x); Basic (BVAR locKeyWord); Basic(ANY)]); Neg(negetionName, [Basic (BVAR locKeyWord)]) ] in  
-
-
-          notPName, (findallDecl :: negetionDecl, findallRules :: negetionRules)
-
-
-        | _ -> translation_inner f 
       in
       let newName = "AF_" ^ fName in
       let sName = newName ^ "_S" in

@@ -564,7 +564,28 @@ let rec expressionToTerm (exp:Exp.t) stack : terms  =
 
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
   match exp with 
+  | BinOp (Eq, BinOp (Mod _, e1, e2), e3) ->  
+    let t1 = expressionToTerm e1 stack in 
+    let t2 = expressionToTerm e2 stack in 
+    let t3 = expressionToTerm e3 stack in 
+    (match (t1, t2,  t3) with 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate("Even", [Basic(BSTR var )])) 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate("Odd", [Basic(BSTR var )])) 
+    | _ -> None 
+    )
+  | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
+    let t1 = expressionToTerm e1 stack in 
+    let t2 = expressionToTerm e2 stack in 
+    let t3 = expressionToTerm e3 stack in 
+    (match (t1, t2,  t3) with 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate("Odd", [Basic(BSTR var )])) 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate("Even", [Basic(BSTR var )])) 
+    | _ -> None 
+    )
+
+
   | BinOp (bop, e1, e2) -> 
+
     let t1 = expressionToTerm e1 stack in 
     let t2 = expressionToTerm e2 stack in 
     (match bop with 
@@ -1843,7 +1864,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   (factPrinting@specPrinting@datalogProgPrinting (*@ ["/* Other information \n"]@facts@["*/\n"] *) );
 
 
-  print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) *.1000. ) ^ " ms"); 
+  print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s"); 
 
   print_endline ("\n========================================================================="); 
   print_endline ("<== Run$ souffle -F. -D. " ^ source_Address ^ ".dl" ^ " ==>");
