@@ -597,6 +597,11 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     let effIn' = normalise_es effIn in 
     Omega (effIn')
 
+
+  | Guard (p, state) ->  Guard (normalise_pure p, state)
+
+  | Singleton (p, state) ->  Singleton (normalise_pure p, state)
+
   | _ -> eff 
 
 
@@ -1726,6 +1731,12 @@ and translation_inner (ctl:ctl) : string * datalog =
         (tName, tParams);
 
       ] in
+
+      let negFname fName fArgs = 
+        if String.compare fName evenKeyWord == 0 then Pos(oddKeyWord,fArgs) 
+        else if String.compare fName oddKeyWord == 0 then  Pos(evenKeyWord,fArgs) 
+        else Neg (fName, fArgs)
+      in 
       let newRules = [
         (newName,fArgs), [Pos(stateKeyWord, [firstArg]); Neg (sName, fArgs)];
 
@@ -1733,10 +1744,10 @@ and translation_inner (ctl:ctl) : string * datalog =
         (* for finite traces *)
         (* (sName,fArgs), [ Neg(fName, fArgs); Pos("end", [firstArg])];  *)
         (* for infinite traces *)
-        (sName,fArgs), [ Neg(fName, fArgs); Pos(controlFlowKeyword, [firstArg; arg]); Pos(sName,fNewArgs)  ];
+        (sName,fArgs), [ negFname fName fArgs; Pos(controlFlowKeyword, [firstArg; arg]); Pos(sName,fNewArgs)  ];
 
-        (tName, tArgs), [ Neg(fName,fArgs); Pos(controlFlowKeyword, [firstArg; tArg] ) ];
-        (tName, tArgs), [ Pos(tName,tNewArgs) ;Neg(fName,fNewArgs); Pos(controlFlowKeyword, [arg; tArg] ) ];
+        (tName, tArgs), [negFname fName fArgs ; Pos(controlFlowKeyword, [firstArg; tArg] ) ];
+        (tName, tArgs), [ Pos(tName,tNewArgs) ; negFname fName fNewArgs; Pos(controlFlowKeyword, [arg; tArg] ) ];
         
 
       ] in

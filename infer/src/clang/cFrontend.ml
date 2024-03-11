@@ -1249,35 +1249,48 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
     | Some pre -> pre 
 
 let getLoopSummary (re:regularExpr) (path:pure): regularExpr =  
-  print_endline ("getLoopSummary " ^ string_of_regularExpr re);
+  let re = normalise_es re in
+  print_endline ("getLoopSummary " ^ string_of_regularExpr (re));
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
-  match fstSet' with 
+  let pi, deriv, rankingFun, loc =  (match fstSet' with 
   | [GuardEv (pi, loc)] ->  
     let f = GuardEv (pi, loc) in 
     let (rankingFun:terms option) = makeAGuess pi in 
     let deriv = normalise_es (derivitives f re) in 
-    print_endline ("loop guard " ^ string_of_pure pi );
-    let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let stateWhenNonTerminate = Guard(pi, !allTheUniqueIDs) in 
-    (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
-    | FALSE -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
-    | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
-    | weakestPre -> 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminating = eventToRe (GuardEv (PureAnd(pi, conjunctPure path weakestPre), !allTheUniqueIDs))  in 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, conjunctPure path (normalise_pure (Neg weakestPre))), !allTheUniqueIDs)) in 
-      let non_terminating = Omega (Concate(non_termination_guard, stateWhenNonTerminate )) in 
-      disjunctRE [
-        Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
-    )
+    pi, deriv, rankingFun, loc
 
-  | [hd] -> raise (Failure ("getLoopSummary: loops has a PureEv head, this is cause by the expressionToPure function not coplete" ^ string_of_fst_event hd))
+  | [PureEv (_, loc)] -> raise (Failure "loop starting with PureEv") (*Ast_utility.TRUE, re, None, loc *)
+  
   | _-> raise (Failure "loop starting with more than one fst")
+  )
+  in 
+
+
+
+  print_endline ("loop guard " ^ string_of_pure pi );
+  let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
+  let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+  let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
+  let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+  let stateWhenNonTerminate = match pi with | TRUE -> deriv | _ -> re in 
+  (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
+  | FALSE -> 
+    (match pi with 
+    | TRUE  -> Omega (stateWhenNonTerminate)
+    | _ -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
+    )
+  | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
+  | weakestPre -> 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let terminating = eventToRe (GuardEv (PureAnd(pi, conjunctPure path weakestPre), !allTheUniqueIDs))  in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, conjunctPure path (normalise_pure (Neg weakestPre))), !allTheUniqueIDs)) in 
+    let non_terminating = Omega (Concate(non_termination_guard, stateWhenNonTerminate )) in 
+    disjunctRE [
+      Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
+  )
+
 
 
   
@@ -1868,7 +1881,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let facts = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
   Out_channel.write_lines (source_Address ^ ".dl") 
-  (factPrinting@specPrinting@datalogProgPrinting (*@ ["/* Other information \n"]@facts@["*/\n"] *) );
+  (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"] );
 
 
   print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s"); 
