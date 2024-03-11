@@ -1,9 +1,5 @@
-// FuncTion arguments:
-// -ctl "AF{y==1}"
-// -precondition true 
 
 /*@ AF(y=1) @*/
-
 
 int main() {
     int y;

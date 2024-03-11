@@ -1462,7 +1462,11 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
 
   
 
-
+(* predicates are the precicates derived from the program, whereas the 
+   predicatesSpec are the precicates derived from the specifiction, 
+   the difference is that precicates needs to be sampled at the start location, 
+   where as predicatesSpec only matters to generate facts for PureEv
+*)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
@@ -1596,7 +1600,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
   let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
   
   let (decomposedpathConditionsSpec:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsSpec) )) comparePure in 
-
+(* decomposedPathConditions are the precicates derived from the program, whereas the 
+   decomposedpathConditionsSpec are the precicates derived from the specifiction, 
+*)
   
   print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions@decomposedpathConditionsSpec))));   
 
@@ -1652,11 +1658,6 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
 
 
         | PureEv (p, state) -> 
-        (*print_endline ("============\n"^ string_of_fst_event f);
-        print_endline (List.fold_left ~init:"pathConstrint " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) pathConstrint);
-        print_endline (List.fold_left ~init:"decomposedPathConditions " ~f:(fun acc p -> acc ^ (", "  ^ string_of_pure p)) decomposedPathConditions);
-        print_endline (List.fold_left ~init:"currentValuation " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation); 
-    *)
           let (reAcc', ruAcc')  = 
             (match previousState with 
             | Some previousState -> 

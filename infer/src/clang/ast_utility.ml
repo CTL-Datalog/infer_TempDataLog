@@ -130,7 +130,9 @@ let (handlerVar: string option ref) = ref None
 
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
+(* ruleDeclearation is for the non ^D predicate declrations and outoutEDB *)
 let (ruleDeclearation:(string list) ref) = ref []
+(* bodyDeclearation is for the ^D predicate declration and rules *)
 let (bodyDeclearation:(string list) ref) = ref []
 
 let (predicateDeclearation:((string * ((string) list)) list) ref) = ref []
