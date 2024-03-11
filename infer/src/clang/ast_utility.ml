@@ -1503,7 +1503,9 @@ let rec translation (ctl:ctl) : string * datalog =
       if nameContainsVar predefinedPred 4 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
       else 
-        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
+        if String.compare predefinedPred (evenKeyWord^"D") == 0 || String.compare predefinedPred (oddKeyWord^"D") == 0
+        then (predefinedPred, [ ("x", Symbol); (locKeyWord, Number)])
+        else (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
     
     )
 
