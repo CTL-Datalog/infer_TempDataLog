@@ -554,6 +554,12 @@ let rec expressionToTerm (exp:Exp.t) stack : terms  =
     let t2 = expressionToTerm e2 stack in 
     Minus (t1, t2)
 
+  | BinOp (PlusA _, e1, e2)
+  | BinOp (PlusPI, e1, e2) -> 
+    let t1 = expressionToTerm e1 stack in 
+    let t2 = expressionToTerm e2 stack in 
+    Plus (t1, t2)
+
   | BinOp _ -> Basic (BVAR ("BinOp"))
   | Exn _ -> Basic (BVAR ("Exn"))
   | Closure _ -> Basic (BVAR ("Closure"))
@@ -736,8 +742,11 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     (match t1, t2 with 
     | Basic(BSTR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
     | Basic(BVAR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
-    | _ -> Some (Eq (t1, Basic ANY)) 
+    (*
+    | _ -> Some (Eq (t1, Basic ANY))  *)
     (* if it is temp=user_quota_size-quota_size, temp will be ANY *)
+    | _ -> Some (Eq (t1, t2)) 
+
     )  
     
   | Load l :: tail ->
@@ -788,11 +797,12 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         (*Singleton(TRUE, node_key), stack *)
         (* This is to avoid th extra (T)@loc before the guard, we only need to 
            record the stack, but no need any event *)
-
       else 
         (match getPureFromBinaryOperatorStmtInstructions op instrs stack with 
         | Some pure -> Singleton (pure, node_key), []
         | None -> Singleton(TRUE, node_key), [] )  
+        
+    | UnaryOperator 
     | DeclStmt -> 
       (match getPureFromDeclStmtInstructions instrs stack with 
       | Some pure -> Singleton (pure, node_key), []
