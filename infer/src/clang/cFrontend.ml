@@ -1258,9 +1258,66 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
     | None -> TRUE 
     | Some pre -> pre 
 
+
+let rec fstEleList2regularExpr (record:fstElem list) : regularExpr  =
+  match  record with 
+  | [] -> Emp 
+  | [x] -> eventToRe x
+  | x::xs -> Concate (eventToRe x, fstEleList2regularExpr xs)
+
+
+let infiniteLoopSummaryCalculus (re:regularExpr) =  
+  let reoccur (his:fstElem list)  f =
+    match his with 
+    | [] -> false 
+    | hd::_ -> relaxed_compareEvent hd f 
+  in 
+  let rec helper (f:fstElem option) (reIn:regularExpr) (his:fstElem list) : (fstElem list) list = 
+    let (fstSet:(fstElem list)) = fst reIn in 
+    if List.length fstSet == 0 then [his]
+    else 
+
+      let his' = his@(match f with | None -> [] | Some f -> [f]) in 
+
+     
+      flattenList(List.map ~f:(fun f -> 
+        if reoccur his f then [his] 
+        else 
+          let deriv = normalise_es (derivitives f reIn) in 
+          let f' = 
+            match f with 
+            | GuardEv (p, loc) -> PureEv (p, loc) 
+            | PureEv (p, loc) -> 
+              (match p with 
+              | Eq(Basic (BVAR v1), Minus (Basic (BVAR v2), Basic (BINT 1))) 
+              | Eq(Basic (BVAR v1), Plus (Basic (BVAR v2), Basic (BINT 1))) -> 
+                if String.compare v1 v2 == 0 
+                then 
+                  if reoccur his' (PureEv (Predicate("Even", [Basic (BVAR v1)]), loc)) 
+                  then (PureEv (Predicate("Odd", [Basic (BVAR v1)]), loc))
+                  else (PureEv (Predicate("Even", [Basic (BVAR v1)]), loc))
+                else PureEv (p, loc) 
+              | _ -> PureEv (p, loc) 
+              )
+            
+            
+            | _ -> raise (Failure "loop summary with a nested loop")
+
+          in 
+          helper ( Some f') deriv his'  
+
+      ) fstSet)
+
+  in 
+  let (pathes: (fstElem list) list) =  helper None re [] in 
+  let (res:regularExpr list) = List.map ~f:(fun a -> fstEleList2regularExpr a) pathes in 
+  disjunctRE res
+  
+
+
 let getLoopSummary (re:regularExpr) (path:pure): regularExpr =  
   let re = normalise_es re in
-  print_endline ("getLoopSummary " ^ string_of_regularExpr (re));
+  print_endline ("getLoopSummary:\n" ^ string_of_regularExpr (re));
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
   let pi, deriv, rankingFun, loc =  (match fstSet' with 
@@ -1278,12 +1335,14 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
 
 
 
-  print_endline ("loop guard " ^ string_of_pure pi );
+  print_endline ("loop guard: " ^ string_of_pure pi );
   let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
   let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
   let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
   let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
   let stateWhenNonTerminate = match pi with | TRUE -> deriv | _ -> re in 
+  let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus stateWhenNonTerminate in 
+  print_endline("stateWhenNonTerminate_fixpoint:\n" ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
   (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
   | FALSE -> 
     (match pi with 
@@ -1513,12 +1572,13 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   | Eq (Basic(BVAR var), Basic t1) -> 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
-    print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
-
+    (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
+*)
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
     let currentConstraint = PureAnd(pureOfCurrentState, pathConstrint') in 
-    print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
+    (*print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
+    *)
     
     let predicates' = 
         if entailConstrains currentConstraint FALSE 
@@ -1694,8 +1754,8 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec pathConstrint currentValuation in 
-          print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-
+          (*print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
+*)
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
           in 

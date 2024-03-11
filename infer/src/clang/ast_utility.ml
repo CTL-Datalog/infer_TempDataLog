@@ -442,6 +442,16 @@ let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   | (KleeneEv re1, KleeneEv re2) -> compareRE re1 re2
   | _ -> false 
 
+let relaxed_compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
+  match (ev1, ev2) with 
+  | (Delimiter s1, Delimiter s2) -> true
+  | (PureEv (p1, s1), PureEv(p2, s2))
+  | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2  
+  | (OmegaEv re1, OmegaEv re2)
+  | (KleeneEv re1, KleeneEv re2) -> compareRE re1 re2
+  | _ -> false 
+  
+
 let rec existAux f (li:('a list)) (ele:'a) = 
     match li with 
     | [] ->  false 

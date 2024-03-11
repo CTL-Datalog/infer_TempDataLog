@@ -1,7 +1,7 @@
 // -ctl "AG{AND{AF{t == 1}{AF{t == 0}}}}"
 // CHECK( init(main()), LTL( G(F"t==1" && F"t==0") ) )
 
-/*@ AG(AF(Even(t)) /\ AF(Odd(t))) @*/
+/*@ AG(AF(t=1) /\ AF(t=0)) @*/
 
 int main()
 {
