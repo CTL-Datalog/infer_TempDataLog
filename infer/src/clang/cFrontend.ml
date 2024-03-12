@@ -812,7 +812,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       | Store s :: _ -> 
         (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
         let exp2 = s.e2 in 
-        predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
+        (*predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
+        *)
 
         Singleton (Predicate (retKeyword, [expressionToTerm exp2 stack]), node_key), []
       | _ -> 
@@ -1663,7 +1664,6 @@ let flowsForTheCycle (re:regularExpr) : relation list =
 
 
 let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
-
   let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
   let (pathConditionsSpec:pure list) = getAllPathConditionsCTL specs in 
@@ -1750,9 +1750,17 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
 
           let pathConstrint' = 
             match p with 
-            | Predicate (s, _) -> if String.compare s joinKeyword == 0 then [] else pathConstrint
+            | Predicate (s, _) -> 
+              (if String.compare s evenKeyWord ==0 ||  String.compare s oddKeyWord ==0 then 
+                predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
+              else if String.compare s retKeyword ==0 then 
+                predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
+              else ());
+              if String.compare s joinKeyword == 0 then [] else pathConstrint
             | _ -> pathConstrint
           in 
+
+          
 
 
           let (reAcc'', ruAcc'') = ietrater derivitives (Some state) pathConstrint' currentValuation' in 
@@ -1833,8 +1841,8 @@ let createNecessaryDisjunction (re:regularExpr ) (specs:ctl list) : regularExpr 
   in 
   let segemants = partitionRE re in 
 
-  print_endline ("\nsegemants:\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_regularExpr p) segemants)) ^ "\n");
-  
+  (*print_endline ("\nsegemants:\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_regularExpr p) segemants)) ^ "\n");
+  *)
   let rec iteraterSegemnst reInLi : regularExpr = 
     match reInLi with 
     | Disjunction(es1, es2) :: xs -> 

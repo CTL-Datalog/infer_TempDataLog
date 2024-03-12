@@ -1566,7 +1566,6 @@ let rec translation (ctl:ctl) : string * datalog =
   in
   let defaultDecs = [
     (entryKeyWord,     [ ("x", Number)]);  
-    (*(retKeyword,            [ ("n", Number); ("x", Number);]);*) (* currently only return integers *)
     (stateKeyWord,          [ ("x", Number)]);
     (flowKeyword,           [ ("x", Number); ("y", Number) ]);
     (controlFlowKeyword,    [ ("x", Number); ("y", Number) ]);
@@ -1583,7 +1582,7 @@ let rec translation (ctl:ctl) : string * datalog =
       | [] -> [] 
       | typ::rest -> 
         (if String.compare typ "Number" == 0 then ("n"^string_of_int n, Number)
-        else ("x"^string_of_int n, Number))
+        else ("x"^string_of_int n, Symbol))
         :: attribute rest (n+1)
     in 
     (predName, attribute strLi 0)
@@ -1718,11 +1717,6 @@ and translation_inner (ctl:ctl) : string * datalog =
           pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
         else 
           pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
-      (* *********************************************************************
-      The above the pattern matching is needed for checking variables' values, for example, 
-      "x" > 1 will be written as GT("x", loc, 1). 
-      --- Yahui Song
-      ********************************************************************* *)
       | _ ->  pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       )
     
