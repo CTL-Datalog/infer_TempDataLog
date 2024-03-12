@@ -466,6 +466,85 @@ let removeRedundant (fset:('a list)) (f:'a -> 'a -> bool) : ('a list) =
   in helper fset
 
 
+let rec derivitives_2 (f:fstElem) (eff:regularExpr) : regularExpr = 
+  match eff with 
+  | Bot        
+  | Emp -> Bot    
+  | Singleton (p1, s1) -> 
+    (match f with 
+    | PureEv (p2, s2) -> if comparePure p1 p2  then Emp else Bot
+    | Delimiter s2 -> if comparePure p1 (Predicate(skipKeyword, [])) && s1 == s2 then Emp else Bot
+    | _  -> Bot 
+    )
+  | Guard (p1, s1) -> 
+    (match f with 
+    | GuardEv (p2, s2) 
+    | PureEv (p2, s2) -> if comparePure p1 p2  then Emp else Bot
+    | _ -> Bot 
+    )
+  | Concate (eff1, eff2) -> 
+    let forsure = Concate (derivitives_2 f eff1, eff2) in 
+    if nullable eff1 then  Disjunction (forsure, derivitives_2 f eff2)
+    else forsure
+  | Disjunction (eff1, eff2) -> 
+    Disjunction (derivitives_2 f eff1, derivitives_2 f eff2)
+  | Omega effIn | Kleene effIn      -> 
+    (match f with 
+    | KleeneEv (effIn1) -> if compareRE effIn effIn1 then Emp else Bot
+    | _ -> Bot 
+    )
+
+
+let rec lookforExistingMapping li (n:int) : int option  = None 
+    (*match li with 
+    | [] -> None 
+    | (n1, n2):: xs  -> if n1 == n then Some n2 else lookforExistingMapping xs n 
+*)
+
+let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regularExpr * ((int * int )list )= 
+  match reIn with 
+  | Bot           
+  | Emp   -> reIn, record
+  | Guard (p, state) -> 
+    (match lookforExistingMapping record state with
+    | None -> 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let stateNew = !allTheUniqueIDs in 
+      let record' = (state, stateNew) :: record in 
+      Guard (p, stateNew) , record' 
+
+    | Some stateNew -> Guard (p, stateNew) , record 
+    ) 
+    
+
+  | Singleton (p, state)  -> 
+    (match lookforExistingMapping record state with
+    | None -> 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let stateNew = !allTheUniqueIDs in 
+      let record' = (state, stateNew) :: record in 
+      Singleton (p, stateNew) , record' 
+
+    | Some stateNew -> Singleton (p, stateNew) , record 
+    ) 
+  | Concate (eff1, eff2) -> 
+    let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
+    let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
+    Concate (re1, re2), record2
+    
+  | Disjunction (eff1, eff2) ->
+    let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
+    let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
+    Disjunction (re1, re2), record2
+  | Kleene effIn          ->
+     let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
+     Kleene re1, record1
+     
+  | Omega effIn          ->
+    let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
+    Omega re1, record1
+
+
 let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr = 
   match eff with 
   | Bot        

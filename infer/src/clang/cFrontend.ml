@@ -575,8 +575,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate("Even", [Basic(BSTR var )])) 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate("Odd", [Basic(BSTR var )])) 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
   | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
@@ -584,8 +584,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate("Odd", [Basic(BSTR var )])) 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate("Even", [Basic(BSTR var )])) 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
 
@@ -1265,25 +1265,55 @@ let rec fstEleList2regularExpr (record:fstElem list) : regularExpr  =
   | [x] -> eventToRe x
   | x::xs -> Concate (eventToRe x, fstEleList2regularExpr xs)
 
+let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
+  match record with 
+  | [] -> None 
+  | [x] -> Some ([], x) 
+  | x :: xs  -> 
+    (match getLast xs with
+    | None -> None 
+    | Some (hd, tail) -> Some (x::hd, tail)
+    )
+
+  
+    
+
 
 let infiniteLoopSummaryCalculus (re:regularExpr) =  
-  let reoccur (his:fstElem list)  f =
+  let rec reoccur (his:fstElem list)  f =     
     match his with 
     | [] -> false 
-    | hd::_ -> relaxed_compareEvent hd f 
+    | hd::tail -> 
+      
+      let temp = relaxed_compareEvent hd f in 
+      (*print_endline ("comparing " ^ string_of_fst_event hd ^ " and " ^ string_of_fst_event f);
+      print_endline (string_of_bool temp); 
+      *)
+      if temp then true else  reoccur tail f 
+      
+
+      
   in 
-  let rec helper (f:fstElem option) (reIn:regularExpr) (his:fstElem list) : (fstElem list) list = 
+  let rec helper (reIn:regularExpr) (his:fstElem list) : (fstElem list) list = 
+    print_endline ("his: " ^ string_of_regularExpr (fstEleList2regularExpr his));
+
     let (fstSet:(fstElem list)) = fst reIn in 
-    if List.length fstSet == 0 then [his]
+    if List.length fstSet == 0 && List.length his == 0 then [his]
     else 
-
-      let his' = his@(match f with | None -> [] | Some f -> [f]) in 
-
-     
+    let fstSet, reIn, his =
+      if List.length fstSet == 0 then 
+        match getLast his with 
+        | None -> raise (Failure "getLast his error ")
+        | Some (prefix, l) -> [l], re, prefix
+      else fstSet, reIn, his
+    in 
       flattenList(List.map ~f:(fun f -> 
         if reoccur his f then [his] 
         else 
-          let deriv = normalise_es (derivitives f reIn) in 
+          (print_endline ("f: " ^ string_of_fst_event (f));
+          print_endline ("reIn: " ^ string_of_regularExpr (reIn));
+
+          let deriv = normalise_es (derivitives_2 f reIn) in 
           let f' = 
             match f with 
             | GuardEv (p, loc) -> PureEv (p, loc) 
@@ -1293,9 +1323,10 @@ let infiniteLoopSummaryCalculus (re:regularExpr) =
               | Eq(Basic (BVAR v1), Plus (Basic (BVAR v2), Basic (BINT 1))) -> 
                 if String.compare v1 v2 == 0 
                 then 
-                  if reoccur his' (PureEv (Predicate("Even", [Basic (BVAR v1)]), loc)) 
-                  then (PureEv (Predicate("Odd", [Basic (BVAR v1)]), loc))
-                  else (PureEv (Predicate("Even", [Basic (BVAR v1)]), loc))
+                  let revserHis = List.rev his in 
+                  if reoccur revserHis (PureEv (Predicate(evenKeyWord, [Basic (BSTR v1)]), loc)) 
+                  then (PureEv (Predicate(oddKeyWord, [Basic (BSTR v1)]), loc))
+                  else (PureEv (Predicate(evenKeyWord, [Basic (BSTR v1)]), loc))
                 else PureEv (p, loc) 
               | _ -> PureEv (p, loc) 
               )
@@ -1304,13 +1335,19 @@ let infiniteLoopSummaryCalculus (re:regularExpr) =
             | _ -> raise (Failure "loop summary with a nested loop")
 
           in 
-          helper ( Some f') deriv his'  
+          let his' = his@([f']) in 
+          helper deriv his' ) 
 
       ) fstSet)
 
   in 
-  let (pathes: (fstElem list) list) =  helper None re [] in 
-  let (res:regularExpr list) = List.map ~f:(fun a -> fstEleList2regularExpr a) pathes in 
+  let (pathes: (fstElem list) list) =  helper re [] in 
+  let (res:regularExpr list) = List.map ~f:(fun a -> 
+    let temp =  (fstEleList2regularExpr a) in 
+    let temp', _ = instantiateREStatesWithFreshNum temp [] in 
+    Omega temp' 
+    
+    ) pathes in 
   disjunctRE res
   
 
@@ -1340,14 +1377,14 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
   let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
   let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
   let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-  let stateWhenNonTerminate = match pi with | TRUE -> deriv | _ -> re in 
+  let stateWhenNonTerminate = deriv in 
   let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus stateWhenNonTerminate in 
   print_endline("stateWhenNonTerminate_fixpoint:\n" ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
   (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
   | FALSE -> 
     (match pi with 
-    | TRUE  -> Omega (stateWhenNonTerminate)
-    | _ -> Disjunction (Omega (stateWhenNonTerminate), defaultTerminating)
+    | TRUE  ->  (stateWhenNonTerminate_fixpoint)
+    | _ -> Disjunction ( (stateWhenNonTerminate_fixpoint), defaultTerminating)
     )
   | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
   | weakestPre -> 
@@ -1355,7 +1392,7 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
     let terminating = eventToRe (GuardEv (PureAnd(pi, conjunctPure path weakestPre), !allTheUniqueIDs))  in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, conjunctPure path (normalise_pure (Neg weakestPre))), !allTheUniqueIDs)) in 
-    let non_terminating = Omega (Concate(non_termination_guard, stateWhenNonTerminate )) in 
+    let non_terminating = (Concate(non_termination_guard, stateWhenNonTerminate_fixpoint )) in 
     disjunctRE [
       Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
   )
@@ -1620,55 +1657,6 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     print_endline ("flowsForTheCycle " ^ string_of_int s ^"\n");
     (stateKeyWord, [Basic (BINT s)])))
     *)
-
-let rec lookforExistingMapping li (n:int) : int option  = None 
-    (*match li with 
-    | [] -> None 
-    | (n1, n2):: xs  -> if n1 == n then Some n2 else lookforExistingMapping xs n 
-*)
-
-let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regularExpr * ((int * int )list )= 
-  match reIn with 
-  | Bot           
-  | Emp   -> reIn, record
-  | Guard (p, state) -> 
-    (match lookforExistingMapping record state with
-    | None -> 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let stateNew = !allTheUniqueIDs in 
-      let record' = (state, stateNew) :: record in 
-      Guard (p, stateNew) , record' 
-
-    | Some stateNew -> Guard (p, stateNew) , record 
-    ) 
-    
-
-  | Singleton (p, state)  -> 
-    (match lookforExistingMapping record state with
-    | None -> 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let stateNew = !allTheUniqueIDs in 
-      let record' = (state, stateNew) :: record in 
-      Singleton (p, stateNew) , record' 
-
-    | Some stateNew -> Singleton (p, stateNew) , record 
-    ) 
-  | Concate (eff1, eff2) -> 
-    let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
-    let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
-    Concate (re1, re2), record2
-    
-  | Disjunction (eff1, eff2) ->
-    let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
-    let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
-    Disjunction (re1, re2), record2
-  | Kleene effIn          ->
-     let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
-     Kleene re1, record1
-     
-  | Omega effIn          ->
-    let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
-    Omega re1, record1
 
 
 
