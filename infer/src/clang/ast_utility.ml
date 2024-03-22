@@ -1712,7 +1712,7 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Predicate (str, _) -> 
-        if String.compare str "EXIT" == 0 then 
+        if String.compare str "EXIT" == 0 || String.compare str retKeyword == 0 then 
           (predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
           pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
         else 
