@@ -635,6 +635,7 @@ let rec normalise_pure (pi:pure) : pure =
   | PureAnd (TRUE, pi1) -> normalise_pure pi1
 
   | PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | Neg (TRUE) -> FALSE
   | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
   | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
   | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
@@ -687,7 +688,11 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     Omega (effIn')
 
 
-  | Guard (p, state) ->  Guard (normalise_pure p, state)
+  | Guard (p, state) ->  
+    let t = normalise_pure p in 
+    (match t with 
+    | FALSE -> Bot 
+    | _ -> Guard (t, state))
 
   | Singleton (p, state) ->  Singleton (normalise_pure p, state)
 

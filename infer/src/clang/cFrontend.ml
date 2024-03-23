@@ -770,7 +770,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   in 
   match node_kind with
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
-  | Exit_node ->  Emp(* Singleton (Predicate ("Exit", []), node_key) *), []
+  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
   | Join_node ->  Singleton(Predicate (joinKeyword, []), node_key) , []
   | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
   | Prune_node (f,_,_) ->  
@@ -1125,48 +1125,93 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
     | _ -> raise (Failure "more successors")
   )
 
-let rec existCycleHelper stack (currentState:Procdesc.Node.t) (history:state list) (id:state) : (regularExpr * stack) option  = 
-  let rec recoccurInHis (li:int list) (n) : bool = 
+let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regularExpr * stack * bool)  = 
+  (*let rec recoccurInHis (li:Procdesc.Node.t list) (n) : (Procdesc.Node.t list * Procdesc.Node.t list) option  = 
     match li with 
-    | [] -> false 
-    | hd:: tail -> if n ==hd then true else recoccurInHis tail n
-  in 
-  let currentID = getNodeID currentState in
-  let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-  let stack'' = (stack@stack') in 
-  let history' = (history@[currentID]) in 
-  let nextStates = Procdesc.Node.get_succs currentState in 
+    | [] -> None  
+    | hd:: tail -> 
 
-  if currentID == id then Some (reExtension, stack')
-  else if recoccurInHis history currentID then None 
-  else 
+      if n == (getNodeID hd) then Some ([], li) 
+      else 
+        match recoccurInHis tail n with 
+        | None -> None 
+        | Some (stem, cycle) -> Some (hd::stem, cycle)
+  in 
+  *)
+  let node_kind = Procdesc.Node.get_kind currentState in
+  let currentID = getNodeID currentState in
+
+
+  let moveForward_aux (nodeIn:Procdesc.Node.t): (regularExpr * stack * bool)  =
+    let reExtensionIn, stackIn = recordToRegularExpr ([nodeIn]) stack in  
+    let nextStates = Procdesc.Node.get_succs nodeIn in 
     match nextStates with 
-    | [] -> None 
+    | [] -> 
+      (reExtensionIn, stack@stackIn, false)
+    
+   
     | [succ] -> 
-      (match existCycleHelper stack'' succ history' id with 
-      | None -> None 
-      | Some (re, stackSucc) -> Some (Concate(reExtension, re), stackSucc)
+      (match existCycleHelper stack succ id with 
+      | (re, stackSucc, false) -> (Concate(reExtensionIn, re), stack@stackSucc, false) 
+      | (re, stackSucc, true) -> (Concate(reExtensionIn, re), stack@stackSucc, true)
       )
     | succ1::succ2::_ -> 
-       (match existCycleHelper stack'' succ1 history' id, existCycleHelper stack'' succ2 history' id with 
-      | None, None -> None 
-      | Some (re, stackSucc), None 
-      | None, Some (re, stackSucc) -> Some (Concate(reExtension, re), stackSucc)
-      | Some (re1, stackSucc1), Some (re2, stackSucc2) -> Some (Disjunction(re1, re2), stackSucc1@stackSucc2)
+      (match existCycleHelper stack succ1 id, existCycleHelper stack succ2 id with 
+      | (re1, stackSucc1, false), (re2, stackSucc2, false) -> (Disjunction(re1, re2), stack@stackSucc1@stackSucc2, false) 
+      | (re1, stackSucc1, false), (re2, stackSucc2, true)
+      | (re1, stackSucc1, true), (re2, stackSucc2, false)
+      | (re1, stackSucc1, true), (re2, stackSucc2, true) -> (Disjunction(re1, re2), stack@stackSucc1@stackSucc2, true)
       )
 
+  in 
+
+  if currentID == id then (Emp, stack, true)
+  else 
+    match node_kind with 
+    | Join_node -> 
+      (match existCycle stack currentState currentID with 
+      | Some (non_cycle_succ, loop_body, stack1) -> 
+        let re1Succ, stackSucc, flag = moveForward_aux non_cycle_succ in  
+       (Disjunction(re1Succ, Kleene(loop_body)), stack1@stackSucc, flag)
+      | None -> moveForward_aux currentState
+      )
+    | _ -> moveForward_aux currentState
+
+
+
+
+
+ (*
+    match recoccurInHis history currentID with 
+    | Some(stem, cycle) -> 
+        let reStem, stack1 = recordToRegularExpr stem stack in 
+        let reCycle, stack2 = recordToRegularExpr cycle (stack@stack1) in 
+        (Concate(reStem, Kleene reCycle), stack@stack1@stack2, false)
+
+        (*
+        (print_endline ("recoccurInHis " ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_int p) history)));
+        print_endline (string_of_int currentID);   
+        *)
+      
+    | None ->  
      
+ *)
 
-;; 
 
-let rec existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.Node.t * regularExpr * stack) option = 
+and existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.Node.t * regularExpr * stack) option = 
+  print_endline ("existCycle:\n" ^ string_of_int (getNodeID currentState)); 
+  print_endline ("id:\n" ^ string_of_int (id)); 
+
   let nextStates = Procdesc.Node.get_succs currentState in 
   match nextStates with 
   | [succ] -> 
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
+    if List.length (Procdesc.Node.get_succs succ) == 1 then None 
+    else 
+
     (match existCycle stack' succ id with 
     | None -> None 
-    | Some (node, re, stack'') -> Some (node, Concate(reExtension, re), stack'')
+    | Some (node, re, stack'') -> Some (node, Concate(reExtension, re), stack@stack'@stack'')
     
     )
   | [succ1;succ2] -> 
@@ -1180,9 +1225,9 @@ let rec existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.N
     (match  trueNodefalseNode with 
     | None -> None 
     | Some (trueNode, falseNode) -> 
-      (match existCycleHelper stack trueNode [] id with 
-      | None -> None 
-      | Some (re, stack') -> Some (falseNode, re, stack@stack')
+      (match existCycleHelper stack trueNode id with 
+      | (_, _, false) -> None 
+      | (re, stack', true) -> Some (falseNode, re, stack@stack')
       )
   )
     
@@ -1190,28 +1235,26 @@ let rec existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.N
   
 
 
-
 let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (regularExpr * stack) = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
   print_endline ("getRegularExprFromCFG_helper_new:\n" ^ string_of_int currentID); 
 
-
   let moveForward (nodeIn:Procdesc.Node.t): (regularExpr * stack)  = 
-    let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-    let stack'' = (stack@stack') in 
+    let reExtensionIn, stackIn = recordToRegularExpr ([nodeIn]) stack in 
+
+    let stack'' = (stack@stackIn) in 
     let nextStates = Procdesc.Node.get_succs nodeIn in 
     match nextStates with 
-    | [] -> (reExtension , stack'')
+    | [] -> (reExtensionIn , stack'')
     | [succ] ->  
       let re1Succ, stackSucc= getRegularExprFromCFG_helper_new stack'' succ in 
-      Concate (reExtension, re1Succ), stackSucc
+      Concate (reExtensionIn, re1Succ), stackSucc
 
     | succ1::succ2::_ -> 
       let re1Succ1, stackSucc1 = getRegularExprFromCFG_helper_new stack'' succ1 in 
       let re1Succ2, stackSucc2 = getRegularExprFromCFG_helper_new stack'' succ2 in 
-      Concate (reExtension, Disjunction(re1Succ1, re1Succ2)), stackSucc1@stackSucc2
-
+      Concate (reExtensionIn, Disjunction(re1Succ1, re1Succ2)), stackSucc1@stackSucc2
   in 
 
   (match node_kind with 
