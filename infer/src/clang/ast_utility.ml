@@ -1419,6 +1419,9 @@ let string_of_bodies (bodies:body list) =
   ) bodies)
 
 
+let string_of_stack (stack:stack): string = 
+  (String.concat ~sep:",\n" (List.map ~f:(fun (a, b) -> Exp.to_string a ^ " -> " ^ IR.Ident.to_string b) stack))
+
 let string_of_decl (decl:decl) =
   match decl with
   name,args -> ".decl "^ name ^ "(" ^ (expand_args "," (List.map ~f:string_of_param args ))  ^ ")"
