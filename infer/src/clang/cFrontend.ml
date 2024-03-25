@@ -1848,9 +1848,12 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
   let (decomposedpathConditionsSpec:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsSpec) )) comparePure in 
 (* decomposedPathConditions are the precicates derived from the program, whereas the 
    decomposedpathConditionsSpec are the precicates derived from the specifiction, 
+    print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions@decomposedpathConditionsSpec))));   
+
 *)
   
-  print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions@decomposedpathConditionsSpec))));   
+  print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpec))));   
+  print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
 
 
   let rec mergeResults li (acca, accb) = 
@@ -1919,8 +1922,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec pathConstrint currentValuation in 
+          (*
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-
+*)
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
           in 

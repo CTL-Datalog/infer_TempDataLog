@@ -1517,6 +1517,7 @@ let negatedPredicate str: string =
   else str 
 
 let reachablibilyrules head = 
+  print_endline ("reachablibilyrules: " ^ head) ; 
   let base = ((String.sub head (0) (String.length head -1))) in 
   let negBase = negatedPredicate base in 
   updateRuleDeclearation ruleDeclearation (negBase);
@@ -1597,7 +1598,7 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!ruleDeclearation) ~f:(fun predefinedPred -> 
-      print_endline ("ruleDeclearation " ^ predefinedPred); 
+      (*print_endline ("ruleDeclearation " ^ predefinedPred); *)
 
       if nameContainsVar predefinedPred 3 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
@@ -1609,7 +1610,7 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!bodyDeclearation) ~f:(fun predefinedPred -> 
-      print_endline ("bodyDeclearation " ^ predefinedPred); 
+      (*print_endline ("bodyDeclearation " ^ predefinedPred); *)
 
       if nameContainsVar predefinedPred 4 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
@@ -1759,12 +1760,16 @@ and translation_inner (ctl:ctl) : string * datalog =
 
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
-        let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        updateRuleDeclearation ruleDeclearation (assignKeyWord);
+        updateRuleDeclearation bodyDeclearation (assignKeyWord^"D");
+
+        let cond = Pos (assignKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Eq(Basic (BSTR x), Basic (BSTR y) ) -> 
         updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
-        let cond = Pos (assignKeyWordVar, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        updateRuleDeclearation bodyDeclearation (assignKeyWordVar^"D");
+        let cond = Pos (assignKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
@@ -1783,10 +1788,10 @@ and translation_inner (ctl:ctl) : string * datalog =
     
     | Neg f -> 
       let fName,(declarations,rules) = translation_inner f in
-        let newName = "NOT_" ^ fName in
-        let fParams = get_params declarations in
-        let fArgs = get_args rules in
-        newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ;Neg (fName,fArgs) ]):: rules)
+      let newName = "NOT_" ^ fName in
+      let fParams = get_params declarations in
+      let fArgs = get_args rules in
+      newName,(  (newName,fParams) :: declarations, ( (newName,fArgs), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ;Neg (fName,fArgs) ]):: rules)
 
     | Conj (f1 , f2) -> 
         processPair f1 f2 
