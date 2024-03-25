@@ -2,8 +2,8 @@
 // -domain polyhedra
 // -precondition "x >= y"
 
-/*@ AU(x >= y, x=y) @*/
- 
+/*@ AU(x > y, x<=y) @*/
+
 int main() {
     // assume x > y
     int x;

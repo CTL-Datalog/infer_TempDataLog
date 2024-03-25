@@ -14,7 +14,6 @@ let outputShellKeyWord = "_Final"
 let joinNodeKeyWord ="Join"
 let existFiniteTrace ="NotTotal"
 
-
 let assignKeyWord = "Eq"
 let notEQKeyWord = "NotEq"
 let leqKeyWord = "LtEq"
@@ -1155,7 +1154,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     (
     (if String.compare s evenKeyWord == 0 || String.compare s oddKeyWord == 0 then 
     updateRuleDeclearation ruleDeclearation s
-    else ());
+    else ()    );
     [(s, terms@[loc])])
 
   | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
@@ -1585,6 +1584,7 @@ let rec translation (ctl:ctl) : string * datalog =
     @
     List.map (sort_uniq (fun (a, _) (c, _) -> String.compare a c) !predicateDeclearation) 
     ~f:(fun (predName, strLi) -> 
+    (*print_endline ("predicateDeclearation " ^ predName); *)
     let rec attribute typLi n = 
       match typLi with 
       | [] -> [] 
@@ -1597,6 +1597,8 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!ruleDeclearation) ~f:(fun predefinedPred -> 
+      print_endline ("ruleDeclearation " ^ predefinedPred); 
+
       if nameContainsVar predefinedPred 3 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
       else 
@@ -1607,6 +1609,8 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!bodyDeclearation) ~f:(fun predefinedPred -> 
+      print_endline ("bodyDeclearation " ^ predefinedPred); 
+
       if nameContainsVar predefinedPred 4 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
       else 
@@ -1671,6 +1675,22 @@ and process_args (args:terms list) =
     (List.filter ~f:(fun x -> match x with  Basic (BVAR x) -> true | _ -> false ) args ) 
 
 
+and makeNegationPostiveWhenPosible (ctl:ctl) : ctl = 
+  match ctl with 
+  | Atom (pName, pure) -> 
+
+        (match pure with  
+        | (TRUE) -> Atom (pName, FALSE) 
+        |  (Gt (t1, t2)) -> Atom (pName, LtEq (t1, t2))
+        |  (Lt (t1, t2)) -> Atom (pName, GtEq (t1, t2))
+        |  (GtEq (t1, t2)) -> Atom (pName, Lt (t1, t2))
+        |  (LtEq (t1, t2)) -> Atom (pName, Gt (t1, t2))
+        | _ -> Neg ctl
+)
+      
+  | _ -> Neg ctl
+
+
 and translation_inner (ctl:ctl) : string * datalog =
 
     let processPair f1 f2 name (construct_rules: relation -> relation -> relation -> rule list) =
@@ -1680,7 +1700,7 @@ and translation_inner (ctl:ctl) : string * datalog =
       let f2Params = get_params f2Declarations in
       let f1Args = get_args f1Rules in
       let f2Args = get_args f2Rules in
-      let decs = List.append f1Declarations f2Declarations in
+      let decs = removeRedundant (List.append f1Declarations f2Declarations) (fun (a, _) (b, _) -> if String.compare a b ==0 then true else false) in
       let ruls = List.append f1Rules f2Rules in
       let newParams = (sort_uniq param_compare (List.append f1Params f2Params)) in
       let newArgs = process_args (List.append f1Args f2Args) in
@@ -1696,17 +1716,45 @@ and translation_inner (ctl:ctl) : string * datalog =
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (gtKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-      
+
+      | Gt(Basic (BSTR x), Basic (BSTR y) )  -> 
+        updateRuleDeclearation ruleDeclearation (gtKeyWordVar);
+        updateRuleDeclearation bodyDeclearation (gtKeyWordVar^"D");
+        let cond = Pos (gtKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (geqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
+      | GtEq(Basic (BSTR x), Basic (BSTR y) ) -> 
+        updateRuleDeclearation ruleDeclearation (geqKeyWordVar);
+        updateRuleDeclearation bodyDeclearation (geqKeyWordVar^"D");
+
+        let cond = Pos (geqKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (ltKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
         
+      | Lt(Basic (BSTR x), Basic (BSTR y) )  -> 
+        updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
+        updateRuleDeclearation bodyDeclearation (ltKeyWordVar^"D");
+
+        let cond = Pos (ltKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
       | LtEq(Basic (BSTR x), Basic (BINT n) ) -> 
         let cond = Pos (leqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
+      | LtEq(Basic (BSTR x), Basic (BSTR y) ) -> 
+        updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
+        updateRuleDeclearation bodyDeclearation (leqKeyWordVar^"D");
+
+        let cond = Pos (leqKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
 
@@ -1714,9 +1762,13 @@ and translation_inner (ctl:ctl) : string * datalog =
         let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
+      | Eq(Basic (BSTR x), Basic (BSTR y) ) -> 
+        updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
+        let cond = Pos (assignKeyWordVar, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
         let cond = Pos (notEQKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Predicate (str, _) -> 
@@ -1724,7 +1776,8 @@ and translation_inner (ctl:ctl) : string * datalog =
           (predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
           pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
         else 
-          pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
+          (predicateDeclearation:= (pName, ["Number"]) :: !predicateDeclearation ;
+          pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ]))
       | _ ->  pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       )
     
@@ -1892,7 +1945,9 @@ and translation_inner (ctl:ctl) : string * datalog =
       (* f1 AU f2 = not (!f2 EU (!f1 and !f2) ) and AF f2 *)
       let x1,_ = translation_inner f1 in
       let x2,_ = translation_inner f2 in
-      let eu = EU((Neg f2),(Conj((Neg f1),(Neg f2)))) in
+      let negF1 = makeNegationPostiveWhenPosible f1 in 
+      let negF2 = makeNegationPostiveWhenPosible f2 in 
+      let eu = EU((negF2),(Conj((negF1),(negF2)))) in
       let fName,(declarations,rules) = translation_inner (Conj((AF f2),(Neg eu))) in
       let newName = x1 ^ "_AU_" ^ x2 in
       let fParams = get_params declarations in

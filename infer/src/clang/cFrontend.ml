@@ -1919,8 +1919,8 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec pathConstrint currentValuation in 
-          (*print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-*)
+          print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
+
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
           in 
@@ -1932,13 +1932,13 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
                 predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
               else if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
-              else ());
+              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword; retKeyword] then ()
+              else 
+                predicateDeclearation:= (s, ["Number"]) :: !predicateDeclearation ;
+              );
               if String.compare s joinKeyword == 0 then [] else pathConstrint
             | _ -> pathConstrint
           in 
-
-          
-
 
           let (reAcc'', ruAcc'') = ietrater derivitives (Some state) pathConstrint' currentValuation' in 
           mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])

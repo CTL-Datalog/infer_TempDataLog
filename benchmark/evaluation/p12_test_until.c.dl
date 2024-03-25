@@ -1,0 +1,93 @@
+/*(Start())@8 · (([x<=y]@9 · (Exit())@10) \/ ([x>y]@11 · (x=y)@12))*/
+
+flow(10,10).
+flow(12,12).
+Start(8).
+LtEqVar("x",8,"y"). // delete this fact 
+GtVar("x",8,"y").
+State(9).
+Exit(10).
+State(10).
+State(8).
+State(11).
+LtEqVar("x",12,"y").
+State(12).
+control_flow(8,9) :- LtEqVarD("x",8,"y").
+control_flow(9,10) :- LtEqVarD("x",9,"y").
+control_flow(8,11) :- GtVarD("x",8,"y").
+control_flow(11,12) :- GtVarD("x",11,"y").
+//AU("x">"y","x"<="y")
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Exit(n0:number)
+.decl GtVar(x:symbol,loc:number,y:symbol)
+.decl LtEqVar(x:symbol,loc:number,y:symbol)
+.decl GtVarD(x:symbol,loc:number,y:symbol)
+.decl LtEqVarD(x:symbol,loc:number,y:symbol)
+.decl x_lteq_y(loc:number)
+.decl x_gt_y(loc:number)
+.decl x_gt_y_AND_x_lteq_y(loc:number)
+.decl x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc:number)
+.decl NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc:number)
+.decl AF_x_lteq_y_T(interm_state:number,loc:number)
+.decl AF_x_lteq_y_S(loc:number)
+.decl AF_x_lteq_y(loc:number)
+.decl AF_x_lteq_y_AND_NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc:number)
+.decl x_gt_y_AU_x_lteq_y(loc:number)
+.decl x_gt_y_AU_x_lteq_y_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+GtVarD(x,loc,n) :- GtVar(x,loc,n).
+GtVarD(x,loc,n) :- GtVarD(x,locI,n), control_flow(locI,loc), !GtVar(x,loc,_), !LtEqVar(x,loc,_).
+LtEqVarD(x,loc,n) :- LtEqVar(x,loc,n).
+LtEqVarD(x,loc,n) :- LtEqVarD(x,locI,n), control_flow(locI,loc), !LtEqVar(x,loc,_), !GtVar(x,loc,_).
+x_lteq_y(loc) :- State(loc), GtVarD("x",loc,"y").
+x_gt_y(loc) :- State(loc), LtEqVarD("x",loc,"y").
+x_gt_y_AND_x_lteq_y(loc) :- x_gt_y(loc), x_lteq_y(loc).
+x_lteq_y(loc) :- State(loc), GtVarD("x",loc,"y").
+x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_lteq_y(loc), control_flow(tempOne,loc), x_lteq_y_EU_x_gt_y_AND_x_lteq_y(tempOne).
+x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_gt_y_AND_x_lteq_y(loc).
+NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- State(loc), !x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
+x_lteq_y(loc) :- State(loc), LtEqVarD("x",loc,"y").
+AF_x_lteq_y_T(interm_state,loc) :- AF_x_lteq_y_T(tempOne,loc), !x_lteq_y(tempOne), control_flow(tempOne,interm_state).
+AF_x_lteq_y_T(interm_state,loc) :- !x_lteq_y(loc), control_flow(loc,interm_state).
+AF_x_lteq_y_S(loc) :- !x_lteq_y(loc), control_flow(loc,tempOne), AF_x_lteq_y_S(tempOne).
+AF_x_lteq_y_S(loc) :- AF_x_lteq_y_T(loc,loc).
+AF_x_lteq_y(loc) :- State(loc), !AF_x_lteq_y_S(loc).
+AF_x_lteq_y_AND_NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- AF_x_lteq_y(loc), NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
+x_gt_y_AU_x_lteq_y(loc) :- AF_x_lteq_y_AND_NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
+x_gt_y_AU_x_lteq_y_Final(loc) :- Start(loc), x_gt_y_AU_x_lteq_y(loc), !NotTotal(loc).
+.output GtVar
+.output LtEqVar
+.output Start
+.output State
+.output flow
+.output Exit
+.output x_gt_y_AU_x_lteq_y_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(0,1). //@7:1-11:5
+Flow(1,2). //@11:5-11:12
+Flow(2,5). //@11:12-11:12
+Flow(2,3). //@11:12-11:12
+Flow(3,4). //@11:12-12:9
+Flow(5,6). //@11:12-15:1
+Flow(4,1). //@12:9-11:5
+Stmt_BinaryOperatorStmt(4,Assign,[ILoad(&x,n$2),IStore(&x,(n$2 - 1))]). // @12:9
+PruneNode(5,false,[Prune(!(n$0 > n$1), false)]). // @11:12
+PruneNode(3,true,[Prune((n$0 > n$1), true)]). // @11:12
+Stmt_BinaryOperatorStmt(2,GT,[ILoad(&x,n$0),ILoad(&y,n$1)]). // @11:12
+Join(1,[]).  // @11:5
+Exit(6).  // @15:1
+Start(0). // @7:1
+*/
+
