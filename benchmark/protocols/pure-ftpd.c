@@ -8,6 +8,12 @@
 
 /*@ AG((temp<0) => AF(overflow>0)) @*/
 
+
+//#Unsafe
+//@ ltl invariant positive: [](AP(temp <0) ==> <>(AP(overflow>0)));
+
+int temp;
+int overflow;
 int _nondet_int(void);
 int addreply (int);
 
@@ -40,6 +46,3 @@ int main () {
     }
     return -1;
 }
-
-
-

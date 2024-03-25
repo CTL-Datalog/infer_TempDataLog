@@ -1,7 +1,7 @@
 /*
 Commit Number: e6801c90311679fc0854af73da95fe58079c59f4
 URL: https://github.com/FreeRADIUS/freeradius-server/commit/e6801c90311679fc0854af73da95fe58079c59f4
-Project Name: freeradius-serve
+Project Name: freeradius-serve(e6801c903)
 License: GPL2
 termination: false
 

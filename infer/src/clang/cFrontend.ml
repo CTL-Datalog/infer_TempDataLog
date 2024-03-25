@@ -770,8 +770,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   in 
   match node_kind with
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
-  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
-  | Join_node ->  Singleton(Predicate (joinKeyword, []), node_key) , []
+  | Exit_node ->  (*Singleton (Predicate ("Exit", []), node_key)*) Emp, []
+  | Join_node ->  (*Singleton(Predicate (joinKeyword, []), node_key)*)Emp , []
   | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
   | Prune_node (f,_,_) ->  
     (match instrs with 
@@ -1177,7 +1177,7 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
 
 
 and existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.Node.t * regularExpr * stack) option = 
-  (*print_endline ("existCycle:\n" ^ string_of_int (getNodeID currentState)); 
+  (*print_endline ("existCycl:\n" ^ string_of_int (getNodeID currentState)); 
   print_endline ("id:\n" ^ string_of_int (id)); 
   *)
   let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
@@ -1221,7 +1221,7 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
   (*print_endline ("getRegularExprFromCFG_helper_new:\n" ^ string_of_int currentID); 
 *)
   let moveForward stackCtx (nodeIn:Procdesc.Node.t): (regularExpr * stack)  = 
-    let reExtensionIn, stackIn = recordToRegularExpr ([nodeIn]) stack in 
+    let reExtensionIn, stackIn = recordToRegularExpr ([nodeIn]) stackCtx in 
 
     let stack'' = (stackIn@stackCtx) in 
     let nextStates = Procdesc.Node.get_succs nodeIn in 
@@ -1408,8 +1408,8 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
     
 
 
-let infiniteLoopSummaryCalculus (re:regularExpr) =  
-  let rec reoccur (his:fstElem list)  f =     
+let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  Omega (Concate (Guard(guard),  re))
+  (*let rec reoccur (his:fstElem list)  f =     
     match his with 
     | [] -> false 
     | hd::tail -> 
@@ -1478,12 +1478,12 @@ let infiniteLoopSummaryCalculus (re:regularExpr) =
     
     ) pathes in 
   disjunctRE res
-  
+  *)
 
 
 let getLoopSummary (re:regularExpr) (path:pure): regularExpr =  
   let re = normalise_es re in
-  print_endline ("getLoopSummary:\n" ^ string_of_regularExpr (re));
+  print_endline ("loop body:\n" ^ string_of_regularExpr (re));
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
   let pi, deriv, rankingFun, loc =  (match fstSet' with 
@@ -1508,14 +1508,14 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
   let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
   let stateWhenNonTerminate = deriv in 
   
-  let stateWhenNonTerminate_fixpoint = (*infiniteLoopSummaryCalculus*) stateWhenNonTerminate in 
+  let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
   print_endline("stateWhenNonTerminate_fixpoint:\n" ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
   (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
-  | FALSE -> 
-    (match pi with 
+  | FALSE -> (stateWhenNonTerminate_fixpoint)
+    (*match pi with 
     | TRUE  ->  (stateWhenNonTerminate_fixpoint)
     | _ -> Disjunction ( (stateWhenNonTerminate_fixpoint), defaultTerminating)
-    )
+    *)
   | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
   | weakestPre -> 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
@@ -1533,11 +1533,10 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
 let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * pure = 
   match re with 
   | Kleene (reIn) -> 
-    (*let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in 
-    let loopsummary = getLoopSummary normalForm (normalise_pure path) in 
-    *)
-    print_endline ("loop body: " ^ string_of_regularExpr  (Kleene (reIn)));
-    re, path
+    (*let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in *)
+    let loopsummary = getLoopSummary reIn (normalise_pure path) in  
+    print_endline ("loopsummary: " ^ string_of_regularExpr  loopsummary);
+    loopsummary, path
   | Disjunction(r1, r2) -> 
     let re1, path1 = convertAllTheKleeneToOmega r1 path in 
     let re2, path2 = convertAllTheKleeneToOmega r2 path in 
@@ -1573,9 +1572,12 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
 
   let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
   let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
-  print_endline ("\n"^string_of_regularExpr (pass4)^ "\n------------"); 
+  print_endline ("\nPASS4:\n"^string_of_regularExpr (pass4)^ "\n------------"); 
+  let pass5, _ = instantiateREStatesWithFreshNum (pass4) [] in  (*this is the step for renaming the states *)
+  print_endline ("\nPASS5:\n"^string_of_regularExpr (pass5)^ "\n------------"); 
 
-  pass4
+
+  pass5
   ;;
 
 
@@ -2037,17 +2039,14 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   in
 
 
-  let (factPrinting: string list) = [] in 
-    
-  (*flattenList (List.map summaries ~f: (fun summary -> 
-      let summary' = createNecessaryDisjunction summary specifications in
-      let (facts, rules) = convertRE2Datalog (summary') specifications in 
+  let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
+      (*let summary' = createNecessaryDisjunction summary specifications in*)
+      let (facts, rules) = convertRE2Datalog (summary) specifications in 
       ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
-      ("/*" ^ string_of_regularExpr summary' ^ "*/") :: 
       string_of_facts (sortFacts facts) :: 
       string_of_rules (sortRules rules) :: []
   )) in 
-  *)
+  
 
   
   let (specPrinting:string list) = List.map specifications ~f:(fun ctl -> "//" ^ string_of_ctl ctl) in 

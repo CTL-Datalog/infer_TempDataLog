@@ -4,7 +4,7 @@
  * -ctl "EF{exit: true}"
  */
 
-/*@ AF(return()) @*/
+/*@ AF(EXIT()) @*/
 
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
