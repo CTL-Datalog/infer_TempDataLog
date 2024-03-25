@@ -12,10 +12,10 @@ flow(28,28).
 flow(31,31).
 flow(32,32).
 Start(20).
-Gt("i",20,10).  // delete this 
+Gt("i",20,10).
 NotEqVar("x",20,"y").
 LtEq("i",20,10).
-EqVar("x",20,"y"). // and delete this 
+EqVar("x",20,"y").
 State(20).
 State(21).
 State(22).

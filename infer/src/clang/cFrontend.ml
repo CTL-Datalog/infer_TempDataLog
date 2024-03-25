@@ -770,7 +770,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   in 
   match node_kind with
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
-  | Exit_node ->  (*Singleton (Predicate ("Exit", []), node_key)*) Emp, []
+  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
   | Join_node ->  (*Singleton(Predicate (joinKeyword, []), node_key)*)Emp , []
   | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
   | Prune_node (f,_,_) ->  
@@ -1030,7 +1030,7 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
   match node_kind with 
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-    (stack@stack'), Omega(reExtension), None 
+    (stack@stack'), (reExtension), None 
 
   | Skip_node _ -> stack, Emp, Some currentState
 
@@ -1057,7 +1057,7 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
 
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-    (Concate (history, Omega(reExtension)), (stack@stack'))
+    (Concate (history, (reExtension)), (stack@stack'))
 
   | _ -> 
     if existAux (==) loopJoins currentID then 
@@ -1241,7 +1241,7 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
 
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
-    (Omega(reExtension), (stack@stack'))
+    ((reExtension), (stack@stack'))
   | Join_node -> 
     (match existCycle stack currentState currentID with 
     | Some (non_cycle_succ, loop_body, stack1) -> 
@@ -1288,6 +1288,7 @@ let rec makeAGuess (pi:pure) : terms option =
   | Lt (t, Basic (BINT 0)) -> Some (Minus(Basic (BINT 0), t))
   | GtEq (t, Basic (BINT 0)) 
   | Gt (t, Basic (BINT 0)) -> Some t 
+  | Gt (t1, t2) -> Some (Minus(t1, t2))
   | PureAnd (p1, p2) 
   | PureOr (p1, p2) -> 
     (match makeAGuess p1, makeAGuess p2 with 
@@ -1310,6 +1311,17 @@ let rec findStateRecord (t:terms) (s:((terms * terms)list)) =
         )   
 ;;
   
+let rec computePostRankingFunctionFromTransitionSUmmary (t:terms) (s:((terms * terms)list)) :  terms= 
+  match t with 
+  | Minus(t1, t2) -> Minus(computePostRankingFunctionFromTransitionSUmmary t1 s, computePostRankingFunctionFromTransitionSUmmary t2 s)
+  | Plus (t1, t2) -> Plus(computePostRankingFunctionFromTransitionSUmmary t1 s, computePostRankingFunctionFromTransitionSUmmary t2 s)
+  | Basic _ -> 
+    (match findStateRecord t s with 
+    | None  -> t 
+    | Some (t', _) -> t')
+   
+ 
+;;
 
 let updateStateBasedOnCurrentValues (state:((terms * terms)list)) (target:terms) (newValue:terms) : ((terms * terms)list) = 
   let rec subsititude (t:terms) : terms = 
@@ -1363,15 +1375,37 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
   | Some rankingTerm -> 
     let (transitionSummary:transitionSummary) = transitionSummary re in 
     print_endline ("current ranking function is " ^ string_of_terms rankingTerm); 
-    let (precondition: pure option) = List.fold_left transitionSummary ~init:None 
+
+    let (precondition: pure option) = List.fold_left transitionSummary ~init:None  
       ~f:(fun acc (path, stateLi) -> 
       print_endline (string_of_transitionSummary [(path, stateLi)]);
+
       let (pureIter:pure option) = 
+
+        let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
+        let left_hand_side = PureAnd (guard, path) in 
+        let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in 
+        print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
+  
+        let res = entailConstrains left_hand_side right_hand_side in 
+        if res then None 
+        else Some right_hand_side
+      in 
+
+      match acc, pureIter with 
+      | Some a, None 
+      | None, Some a -> Some a 
+      | None , None -> None 
+      | Some a, Some b -> Some (PureAnd(a, b))
+
+
+      (*let (pureIter:pure option) = 
         match findStateRecord rankingTerm stateLi with 
         | None -> Some (Ast_utility.FALSE) (*print_endline("the rancking function did not decreace at all")*)
         | Some (rankingTerm', _) -> 
           let left_hand_side = PureAnd (guard, path) in 
           let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in 
+          print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
           let res = entailConstrains left_hand_side right_hand_side in 
           if res then None 
           else Some right_hand_side
@@ -1381,11 +1415,12 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
       | None, Some a -> Some a 
       | None , None -> None 
       | Some a, Some b -> Some (PureAnd(a, b))
+      *)
     ) 
     in 
     match precondition with 
-    | None -> TRUE 
-    | Some pre -> pre 
+    | None -> print_endline("wp4Termination " ^ string_of_pure (TRUE)); TRUE 
+    | Some pre -> print_endline("wp4Termination " ^ string_of_pure (pre));  pre 
 
 
 let rec fstEleList2regularExpr (record:fstElem list) : regularExpr  =
@@ -1408,7 +1443,7 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
     
 
 
-let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  Omega (Concate (Guard(guard),  re))
+let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  Omega (Concate (Guard(guard),  Concate(Singleton(guard), re)))
   (*let rec reoccur (his:fstElem list)  f =     
     match his with 
     | [] -> false 
@@ -1500,31 +1535,37 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
   in 
 
 
-
   print_endline ("loop guard: " ^ string_of_pure pi );
+
   let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
-  let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-  let stateAfterTerminate = Singleton(Neg (pi), !allTheUniqueIDs) in 
-  let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+  let stateAfterTerminate pi = 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    Singleton(pi, !allTheUniqueIDs) in 
   let stateWhenNonTerminate = deriv in 
   
-  let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
-  print_endline("stateWhenNonTerminate_fixpoint:\n" ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
   (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
-  | FALSE -> (stateWhenNonTerminate_fixpoint)
-    (*match pi with 
-    | TRUE  ->  (stateWhenNonTerminate_fixpoint)
-    | _ -> Disjunction ( (stateWhenNonTerminate_fixpoint), defaultTerminating)
-    *)
-  | TRUE -> Concate (defaultTerminating, stateAfterTerminate)
+  | FALSE -> 
+    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
+    (stateWhenNonTerminate_fixpoint)
+  | TRUE -> 
+    let pureAfterTerminate = 
+      (match rankingFun with 
+      | None -> raise (Failure "wp4Termination true but no rankingFun")
+      | Some (Basic rf) -> Eq(Basic rf, Basic(BINT 0))
+      | Some (Minus (t1, t2)) 
+      | Some (Plus (t1, t2))  -> Eq(t1, t2)
+      )
+    in Concate(Guard(pi, loc), stateAfterTerminate pureAfterTerminate)
+
   | weakestPre -> 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let terminating = eventToRe (GuardEv (PureAnd(pi, conjunctPure path weakestPre), !allTheUniqueIDs))  in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, conjunctPure path (normalise_pure (Neg weakestPre))), !allTheUniqueIDs)) in 
+    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
     let non_terminating = (Concate(non_termination_guard, stateWhenNonTerminate_fixpoint )) in 
     disjunctRE [
-      Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate); non_terminating]
+      Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate (Neg (pi))); non_terminating]
   )
 
 
@@ -1828,7 +1869,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
       (match previousState with 
       | Some previousState -> 
         let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
-        ([stateFact], [])
+        let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState)]) in 
+
+        ([fact;stateFact], [])
       | _ -> ([], [])
       )
     | li -> 
@@ -2084,10 +2127,11 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"] );
 
 
-  print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s"); 
+  let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 
+  print_endline ("<==\n Runing Datalog $ " ^ command  ^ " \n==>");
+  let _ = Sys.command command in 
 
-  print_endline ("\n========================================================================="); 
-  print_endline ("<== Run$ souffle -F. -D. " ^ source_Address ^ ".dl" ^ " ==>");
+  print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s"); 
 
   L.(debug Capture Verbose) "@\n End buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 

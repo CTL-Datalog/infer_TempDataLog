@@ -231,8 +231,8 @@ let argumentsTerms2basic_types (t: (terms option) list): (basic_type list) =
 let rec string_of_terms (t:terms):string = 
   match t with
   | Basic v -> string_of_basic_t v 
-  | Plus (t1, t2) -> (string_of_terms t1) ^ ("+") ^ (string_of_terms t2)
-  | Minus (t1, t2) -> (string_of_terms t1) ^ ("-") ^ (string_of_terms t2)
+  | Plus (t1, t2) -> "(" ^ (string_of_terms t1) ^ ("+") ^ (string_of_terms t2) ^ ")" 
+  | Minus (t1, t2) -> "(" ^  (string_of_terms t1) ^ ("-") ^ (string_of_terms t2) ^ ")" 
 
 
 let string_of_termOption t : string option  = 
