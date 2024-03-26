@@ -27,7 +27,7 @@ flow(69,69).
 flow(73,73).
 flow(76,76).
 Start(31).
-Lt("temp",31,0).
+Lt("temp",31,0). // delete this fact 
 GtEq("max_filesize",31,0).
 GtEq("temp",31,0).
 Gt("overflow",31,0).
@@ -36,7 +36,7 @@ Lt("max_filesize",31,0).
 LtEq("overflow",31,0).
 NotEq("ret",31,0).
 State(31).
-LtEq("overflow",32,0).
+LtEq("overflow",32,0). // and change to Gt("overflow",32,0).
 State(32).
 State(33).
 State(34).
