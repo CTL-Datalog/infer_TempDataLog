@@ -40,16 +40,16 @@ State(29).
 EqVar("x",30,"y").
 State(30).
 control_flow(19,20) :- GtD("i",19,10).
-control_flow(20,21) :- GtD("i",20,10).
-control_flow(21,22) :- GtD("i",21,10), NotEqVarD("x",21,"y").
-control_flow(22,23) :- GtD("i",22,10), NotEqVarD("x",22,"y").
-control_flow(21,24) :- GtD("i",21,10), EqVarD("x",21,"y").
-control_flow(24,25) :- GtD("i",24,10), EqVarD("x",24,"y").
+control_flow(20,21) :- GtD("i",19,10).
+control_flow(21,22) :- GtD("i",19,10), NotEqVarD("x",21,"y").
+control_flow(22,23) :- GtD("i",19,10), NotEqVarD("x",21,"y").
+control_flow(21,24) :- GtD("i",19,10), EqVarD("x",21,"y").
+control_flow(24,25) :- GtD("i",19,10), EqVarD("x",21,"y").
 control_flow(19,26) :- LtEqD("i",19,10).
-control_flow(26,27) :- LtEqD("i",26,10), NotEqVarD("x",26,"y").
-control_flow(27,28) :- LtEqD("i",27,10), NotEqVarD("x",27,"y").
-control_flow(26,29) :- LtEqD("i",26,10), EqVarD("x",26,"y").
-control_flow(29,30) :- LtEqD("i",29,10), EqVarD("x",29,"y").
+control_flow(26,27) :- LtEqD("i",19,10), NotEqVarD("x",26,"y").
+control_flow(27,28) :- LtEqD("i",19,10), NotEqVarD("x",26,"y").
+control_flow(26,29) :- LtEqD("i",19,10), EqVarD("x",26,"y").
+control_flow(29,30) :- LtEqD("i",19,10), EqVarD("x",26,"y").
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)

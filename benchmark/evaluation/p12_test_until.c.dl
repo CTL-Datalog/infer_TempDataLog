@@ -13,9 +13,9 @@ State(11).
 LtEqVar("x",12,"y").
 State(12).
 control_flow(8,9) :- LtEqVarD("x",8,"y").
-control_flow(9,10) :- LtEqVarD("x",9,"y").
+control_flow(9,10) :- LtEqVarD("x",8,"y").
 control_flow(8,11) :- GtVarD("x",8,"y").
-control_flow(11,12) :- GtVarD("x",11,"y").
+control_flow(11,12) :- GtVarD("x",8,"y").
 //AU("x">"y","x"<="y")
 .decl Start(x:number)
 .decl State(x:number)
