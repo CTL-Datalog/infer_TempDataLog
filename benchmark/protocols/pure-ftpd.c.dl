@@ -1,83 +1,146 @@
-/*(Join())@0*/
-/*(Join())@0*/
+/*(Join())@1*/
 
-State(0).
-
-/*(Join())@0*/
-/*(Join())@0*/
-
-State(0).
-
-/*(Start())@1 · (overflow=0)@2 · (activated=_)@3 · (user_quota_size=_)@4 · (quota_size=_)@5 · (max_filesize=-1)@6 · (temp=_)@7 · (ret=-1)@8 · (([max_filesize>=0]@10 · (([temp<0]@12 · (overflow=1)@13) \/ ([temp>=0]@28))) \/ ([max_filesize<0]@30)) · (Join())@14 · (([overflow>0]@16 · (addreply(552))@17) \/ ([overflow<=0]@21 · (([ret=0]@23 · (addreply(226))@24) \/ ([(ret!=0)]@26 · (addreply(451))@27)))) · (Join())@18 · ((Return(-1))@19)^w*/
-/*(Start())@1 · (overflow=0)@2 · (activated=_)@3 · (user_quota_size=_)@4 · (quota_size=_)@5 · (max_filesize=-1)@6 · (temp=_)@7 · (ret=-1)@8 · (([max_filesize>=0]@31 · (([temp<0]@32 · (overflow=1)@33) \/ ([temp>=0]@34))) \/ ([max_filesize<0]@35)) · (Join())@36 · (([overflow>0]@37 · (addreply(552))@38) \/ ([overflow<=0]@39 · (([ret=0]@40 · (addreply(226))@41) \/ ([(ret!=0)]@42 · (addreply(451))@43)))) · (Join())@44 · ((Return(-1))@45)^w*/
-
-flow(1,2).
-flow(2,3).
-flow(3,4).
-flow(4,5).
-flow(5,6).
-flow(6,7).
-flow(7,8).
-flow(44,45).
-flow(45,45).
-Start(1).
-Lt("temp",1,0).
-GtEq("max_filesize",1,0).
-GtEq("temp",1,0).
-Gt("overflow",1,0).
-Eq("ret",1,0).
-Lt("max_filesize",1,0).
-LtEq("overflow",1,0).
-NotEq("ret",1,0).
+flow(1,1).
 State(1).
-LtEq("overflow",2,0).
+
+/*(Join())@2*/
+
+flow(2,2).
 State(2).
-State(3).
-State(4).
-State(5).
-Lt("max_filesize",6,0).
-State(6).
-State(7).
-NotEq("ret",8,0).
+
+/*(Start())@31 · (overflow=0)@32 · (activated=_)@33 · (user_quota_size=_)@34 · (quota_size=_)@35 · (max_filesize=-1)@36 · (temp=(user_quota_size-quota_size))@37 · (ret=-1)@38 · (([max_filesize>=0]@39 · (([temp<0]@40 · (overflow=1)@41 · (Join())@42 · (([overflow>0]@43 · (addreply(552))@44 · (Return(-1))@45) \/ ([overflow<=0]@46 · (([ret=0]@47 · (addreply(226))@48 · (Return(-1))@49) \/ ([(ret!=0)]@50 · (addreply(451))@51 · (Return(-1))@52))))) \/ ([temp>=0]@53 · (Join())@54 · (([overflow>0]@55 · (addreply(552))@56 · (Return(-1))@57) \/ ([overflow<=0]@58 · (([ret=0]@59 · (addreply(226))@60 · (Return(-1))@61) \/ ([(ret!=0)]@62 · (addreply(451))@63 · (Return(-1))@64))))))) \/ ([max_filesize<0]@65 · (Join())@66 · (([overflow>0]@67 · (addreply(552))@68 · (Return(-1))@69) \/ ([overflow<=0]@70 · (([ret=0]@71 · (addreply(226))@72 · (Return(-1))@73) \/ ([(ret!=0)]@74 · (addreply(451))@75 · (Return(-1))@76))))))*/
+
+flow(31,32).
+flow(32,33).
+flow(33,34).
+flow(34,35).
+flow(35,36).
+flow(36,37).
+flow(37,38).
+flow(45,45).
+flow(49,49).
+flow(52,52).
+flow(57,57).
+flow(61,61).
+flow(64,64).
+flow(69,69).
+flow(73,73).
+flow(76,76).
+Start(31).
+Lt("temp",31,0).
+GtEq("max_filesize",31,0).
+GtEq("temp",31,0).
+Gt("overflow",31,0).
+Eq("ret",31,0).
+Lt("max_filesize",31,0).
+LtEq("overflow",31,0).
+NotEq("ret",31,0).
+State(31).
+LtEq("overflow",32,0).
 State(32).
-Gt("overflow",33,0).
 State(33).
+State(34).
+State(35).
+Lt("max_filesize",36,0).
+State(36).
 State(37).
-addreply(552,38).
-State(38).
+NotEq("ret",38,0).
+State(40).
+Gt("overflow",41,0).
+State(41).
+State(43).
+addreply(552,44).
 State(44).
 Return(-1,45).
 State(45).
-State(36).
-State(40).
-addreply(226,41).
-State(41).
-State(39).
 State(42).
-addreply(451,43).
-State(43).
-State(31).
-State(34).
-State(8).
-State(35).
-control_flow(8,31) :- GtEqD("max_filesize",8,0).
-control_flow(31,32) :- GtEqD("max_filesize",31,0), LtD("temp",31,0).
-control_flow(32,33) :- GtEqD("max_filesize",32,0), LtD("temp",32,0).
-control_flow(33,36) :- GtEqD("max_filesize",33,0), LtD("temp",33,0).
-control_flow(36,37) :- GtD("overflow",36,0).
-control_flow(37,38) :- GtD("overflow",37,0).
-control_flow(38,44) :- GtD("overflow",38,0).
-control_flow(36,39) :- LtEqD("overflow",36,0).
-control_flow(39,40) :- LtEqD("overflow",39,0), EqD("ret",39,0).
-control_flow(40,41) :- LtEqD("overflow",40,0), EqD("ret",40,0).
-control_flow(41,44) :- LtEqD("overflow",41,0), EqD("ret",41,0).
-control_flow(39,42) :- LtEqD("overflow",39,0), NotEqD("ret",39,0).
-control_flow(42,43) :- LtEqD("overflow",42,0), NotEqD("ret",42,0).
-control_flow(43,44) :- LtEqD("overflow",43,0), NotEqD("ret",43,0).
-control_flow(31,34) :- GtEqD("max_filesize",31,0), GtEqD("temp",31,0).
-control_flow(34,36) :- GtEqD("max_filesize",34,0), GtEqD("temp",34,0).
-control_flow(8,35) :- LtD("max_filesize",8,0).
-control_flow(35,36) :- LtD("max_filesize",35,0).
+State(47).
+addreply(226,48).
+State(48).
+Return(-1,49).
+State(49).
+State(46).
+State(50).
+addreply(451,51).
+State(51).
+Return(-1,52).
+State(52).
+State(39).
+State(53).
+State(55).
+addreply(552,56).
+State(56).
+Return(-1,57).
+State(57).
+State(54).
+State(59).
+addreply(226,60).
+State(60).
+Return(-1,61).
+State(61).
+State(58).
+State(62).
+addreply(451,63).
+State(63).
+Return(-1,64).
+State(64).
+State(38).
+State(65).
+State(67).
+addreply(552,68).
+State(68).
+Return(-1,69).
+State(69).
+State(66).
+State(71).
+addreply(226,72).
+State(72).
+Return(-1,73).
+State(73).
+State(70).
+State(74).
+addreply(451,75).
+State(75).
+Return(-1,76).
+State(76).
+control_flow(38,39) :- GtEqD("max_filesize",38,0).
+control_flow(39,40) :- GtEqD("max_filesize",38,0), LtD("temp",39,0).
+control_flow(40,41) :- GtEqD("max_filesize",38,0), LtD("temp",39,0).
+control_flow(41,42) :- GtEqD("max_filesize",38,0), LtD("temp",39,0).
+control_flow(42,43) :- GtD("overflow",42,0).
+control_flow(43,44) :- GtD("overflow",42,0).
+control_flow(44,45) :- GtD("overflow",42,0).
+control_flow(42,46) :- LtEqD("overflow",42,0).
+control_flow(46,47) :- LtEqD("overflow",42,0), EqD("ret",46,0).
+control_flow(47,48) :- LtEqD("overflow",42,0), EqD("ret",46,0).
+control_flow(48,49) :- LtEqD("overflow",42,0), EqD("ret",46,0).
+control_flow(46,50) :- LtEqD("overflow",42,0), NotEqD("ret",46,0).
+control_flow(50,51) :- LtEqD("overflow",42,0), NotEqD("ret",46,0).
+control_flow(51,52) :- LtEqD("overflow",42,0), NotEqD("ret",46,0).
+control_flow(39,53) :- GtEqD("max_filesize",38,0), GtEqD("temp",39,0).
+control_flow(53,54) :- GtEqD("max_filesize",38,0), GtEqD("temp",39,0).
+control_flow(54,55) :- GtD("overflow",54,0).
+control_flow(55,56) :- GtD("overflow",54,0).
+control_flow(56,57) :- GtD("overflow",54,0).
+control_flow(54,58) :- LtEqD("overflow",54,0).
+control_flow(58,59) :- LtEqD("overflow",54,0), EqD("ret",58,0).
+control_flow(59,60) :- LtEqD("overflow",54,0), EqD("ret",58,0).
+control_flow(60,61) :- LtEqD("overflow",54,0), EqD("ret",58,0).
+control_flow(58,62) :- LtEqD("overflow",54,0), NotEqD("ret",58,0).
+control_flow(62,63) :- LtEqD("overflow",54,0), NotEqD("ret",58,0).
+control_flow(63,64) :- LtEqD("overflow",54,0), NotEqD("ret",58,0).
+control_flow(38,65) :- LtD("max_filesize",38,0).
+control_flow(65,66) :- LtD("max_filesize",38,0).
+control_flow(66,67) :- GtD("overflow",66,0).
+control_flow(67,68) :- GtD("overflow",66,0).
+control_flow(68,69) :- GtD("overflow",66,0).
+control_flow(66,70) :- LtEqD("overflow",66,0).
+control_flow(70,71) :- LtEqD("overflow",66,0), EqD("ret",70,0).
+control_flow(71,72) :- LtEqD("overflow",66,0), EqD("ret",70,0).
+control_flow(72,73) :- LtEqD("overflow",66,0), EqD("ret",70,0).
+control_flow(70,74) :- LtEqD("overflow",66,0), NotEqD("ret",70,0).
+control_flow(74,75) :- LtEqD("overflow",66,0), NotEqD("ret",70,0).
+control_flow(75,76) :- LtEqD("overflow",66,0), NotEqD("ret",70,0).
 //AG(("temp"<0 => AF("overflow">0)))
 .decl Start(x:number)
 .decl State(x:number)
@@ -160,68 +223,68 @@ AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final(loc) :- Start(loc), AG_temp_lt_0_IMPLY
 
 //-- Facts for Procedure <main> 
 
-Flow(1,2). //@14:1-15:5
-Flow(19,20). //@41:5-42:1
-Flow(18,19). //@32:5-41:5
-Flow(15,21). //@32:9-32:9
-Flow(15,16). //@32:9-32:9
-Flow(16,17). //@32:9-33:9
-Flow(21,22). //@32:9-35:13
-Flow(17,18). //@33:9-32:5
-Flow(25,18). //@35:9-32:5
-Flow(22,26). //@35:13-35:13
-Flow(22,23). //@35:13-35:13
-Flow(23,24). //@35:13-36:13
-Flow(26,27). //@35:13-38:13
-Flow(24,25). //@36:13-35:9
-Flow(27,25). //@38:13-35:9
-Flow(14,15). //@31:5-32:9
-Flow(29,14). //@23:5-31:5
-Flow(9,30). //@26:9-26:9
-Flow(9,10). //@26:9-26:9
-Flow(10,11). //@26:9-26:31
-Flow(30,29). //@26:9-23:5
-Flow(11,28). //@26:31-26:31
-Flow(11,12). //@26:31-26:31
-Flow(12,13). //@26:31-27:9
-Flow(28,29). //@26:31-23:5
-Flow(13,14). //@27:9-31:5
-Flow(8,9). //@21:5-26:9
-Flow(7,8). //@20:5-21:5
-Flow(6,7). //@19:5-20:5
-Flow(5,6). //@18:5-19:5
-Flow(4,5). //@17:5-18:5
-Flow(3,4). //@16:5-17:5
-Flow(2,3). //@15:5-16:5
-Stmt_Decl(2,[IStore(&overflow,0)]). // @15:5
-Stmt_Decl(3,[ICall(_fun__nondet_int,,n$16),IStore(&activated,n$16)]). // @16:5
-Stmt_Decl(4,[ICall(_fun__nondet_int,,n$15),IStore(&user_quota_size,n$15)]). // @17:5
-Stmt_Decl(5,[ICall(_fun__nondet_int,,n$14),IStore(&quota_size,n$14)]). // @18:5
-Stmt_Decl(6,[IStore(&max_filesize,-1)]). // @19:5
-Stmt_Decl(7,[ICall(_fun__nondet_int,,n$13),IStore(&temp,n$13)]). // @20:5
-Stmt_Decl(8,[IStore(&ret,-1)]). // @21:5
-Stmt_BinaryOperatorStmt(13,Assign,[IStore(&overflow,1)]). // @27:9
-PruneNode(28,false,[Prune(!(n$9 < 0), false)]). // @26:31
-PruneNode(12,true,[Prune((n$9 < 0), true)]). // @26:31
-Stmt_BinaryOperatorStmt(11,LT,[ILoad(&temp,n$9)]). // @26:31
-PruneNode(30,false,[Prune(!(n$8 >= 0), false)]). // @26:9
-PruneNode(10,true,[Prune((n$8 >= 0), true)]). // @26:9
-Stmt_BinaryOperatorStmt(9,GE,[ILoad(&max_filesize,n$8)]). // @26:9
-Join(29,[]).  // @23:5
-Skip(14,GotoLabel_afterquota,[]).  // @31:5
-Stmt_Call(27,_fun_addreply,[ICall(_fun_addreply,451,n$4)]). // @38:13
-Stmt_Call(24,_fun_addreply,[ICall(_fun_addreply,226,n$3)]). // @36:13
-PruneNode(26,false,[Prune(!(n$2 == 0), false)]). // @35:13
-PruneNode(23,true,[Prune((n$2 == 0), true)]). // @35:13
-Stmt_BinaryOperatorStmt(22,EQ,[ILoad(&ret,n$2)]). // @35:13
-Join(25,[]).  // @35:9
-Stmt_Call(17,_fun_addreply,[ICall(_fun_addreply,552,n$1)]). // @33:9
-PruneNode(21,false,[Prune(!(n$0 > 0), false)]). // @32:9
-PruneNode(16,true,[Prune((n$0 > 0), true)]). // @32:9
-Stmt_BinaryOperatorStmt(15,GT,[ILoad(&overflow,n$0)]). // @32:9
-Join(18,[]).  // @32:5
-Stmt_Return(19,[IStore(&return,-1)]). // @41:5
-Exit(20).  // @42:1
-Start(1). // @14:1
+Flow(1,2). //@20:1-21:5
+Flow(19,20). //@47:5-48:1
+Flow(18,19). //@38:5-47:5
+Flow(15,21). //@38:9-38:9
+Flow(15,16). //@38:9-38:9
+Flow(16,17). //@38:9-39:9
+Flow(21,22). //@38:9-41:13
+Flow(17,18). //@39:9-38:5
+Flow(25,18). //@41:9-38:5
+Flow(22,26). //@41:13-41:13
+Flow(22,23). //@41:13-41:13
+Flow(23,24). //@41:13-42:13
+Flow(26,27). //@41:13-44:13
+Flow(24,25). //@42:13-41:9
+Flow(27,25). //@44:13-41:9
+Flow(14,15). //@37:5-38:9
+Flow(29,14). //@29:5-37:5
+Flow(9,30). //@32:9-32:9
+Flow(9,10). //@32:9-32:9
+Flow(10,11). //@32:9-32:31
+Flow(30,29). //@32:9-29:5
+Flow(11,28). //@32:31-32:31
+Flow(11,12). //@32:31-32:31
+Flow(12,13). //@32:31-33:9
+Flow(28,29). //@32:31-29:5
+Flow(13,14). //@33:9-37:5
+Flow(8,9). //@27:5-32:9
+Flow(7,8). //@26:5-27:5
+Flow(6,7). //@25:5-26:5
+Flow(5,6). //@24:5-25:5
+Flow(4,5). //@23:5-24:5
+Flow(3,4). //@22:5-23:5
+Flow(2,3). //@21:5-22:5
+Stmt_Decl(2,[IStore(&overflow,0)]). // @21:5
+Stmt_Decl(3,[ICall(_fun__nondet_int,,n$17),IStore(&activated,n$17)]). // @22:5
+Stmt_Decl(4,[ICall(_fun__nondet_int,,n$16),IStore(&user_quota_size,n$16)]). // @23:5
+Stmt_Decl(5,[ICall(_fun__nondet_int,,n$15),IStore(&quota_size,n$15)]). // @24:5
+Stmt_Decl(6,[IStore(&max_filesize,-1)]). // @25:5
+Stmt_Decl(7,[ILoad(&user_quota_size,n$13),ILoad(&quota_size,n$14),IStore(&temp,(n$13 - n$14))]). // @26:5
+Stmt_Decl(8,[IStore(&ret,-1)]). // @27:5
+Stmt_BinaryOperatorStmt(13,Assign,[IStore(&overflow,1)]). // @33:9
+PruneNode(28,false,[Prune(!(n$9 < 0), false)]). // @32:31
+PruneNode(12,true,[Prune((n$9 < 0), true)]). // @32:31
+Stmt_BinaryOperatorStmt(11,LT,[ILoad(&temp,n$9)]). // @32:31
+PruneNode(30,false,[Prune(!(n$8 >= 0), false)]). // @32:9
+PruneNode(10,true,[Prune((n$8 >= 0), true)]). // @32:9
+Stmt_BinaryOperatorStmt(9,GE,[ILoad(&max_filesize,n$8)]). // @32:9
+Join(29,[]).  // @29:5
+Skip(14,GotoLabel_afterquota,[]).  // @37:5
+Stmt_Call(27,_fun_addreply,[ICall(_fun_addreply,451,n$4)]). // @44:13
+Stmt_Call(24,_fun_addreply,[ICall(_fun_addreply,226,n$3)]). // @42:13
+PruneNode(26,false,[Prune(!(n$2 == 0), false)]). // @41:13
+PruneNode(23,true,[Prune((n$2 == 0), true)]). // @41:13
+Stmt_BinaryOperatorStmt(22,EQ,[ILoad(&ret,n$2)]). // @41:13
+Join(25,[]).  // @41:9
+Stmt_Call(17,_fun_addreply,[ICall(_fun_addreply,552,n$1)]). // @39:9
+PruneNode(21,false,[Prune(!(n$0 > 0), false)]). // @38:9
+PruneNode(16,true,[Prune((n$0 > 0), true)]). // @38:9
+Stmt_BinaryOperatorStmt(15,GT,[ILoad(&overflow,n$0)]). // @38:9
+Join(18,[]).  // @38:5
+Stmt_Return(19,[IStore(&return,-1)]). // @47:5
+Exit(20).  // @48:1
+Start(1). // @20:1
 */
 

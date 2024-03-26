@@ -1517,7 +1517,7 @@ let negatedPredicate str: string =
   else str 
 
 let reachablibilyrules head = 
-  print_endline ("reachablibilyrules: " ^ head) ; 
+  (*print_endline ("reachablibilyrules: " ^ head) ; *)
   let base = ((String.sub head (0) (String.length head -1))) in 
   let negBase = negatedPredicate base in 
   updateRuleDeclearation ruleDeclearation (negBase);
@@ -1983,6 +1983,29 @@ let rec getAllPureFromCTL (ctl:ctl): pure list  =
   | AU (c1, c2)
   | EU (c1, c2) 
   | Imply (c1, c2) -> getAllPureFromCTL c1 @ getAllPureFromCTL c2
+
+let rec getAllPureFromImplicationLeft (ctl:ctl): pure list  = 
+  match ctl with
+  | Atom (_, Predicate _ ) -> []
+  | Atom (_, p) -> 
+    (match p with
+    | Eq (Basic(BSTR v), Basic(BINT n)) -> [Eq (Basic(BVAR v), Basic(BINT n))]
+    | _ -> [p]
+    )
+  | AX c 
+  | EX c 
+  | AF c
+  | EF c 
+  | AG c 
+  | EG c 
+  | Neg c -> getAllPureFromImplicationLeft c
+  | Conj (c1, c2) 
+  | Disj (c1, c2) 
+  | AU (c1, c2)
+  | EU (c1, c2) 
+  | Imply (c1, c2) -> getAllPureFromCTL c1 
+
+  
 
 let rec containRelevantPureRE (re:regularExpr) (allVarSpec:pure list): bool  = 
   match re with 

@@ -1601,11 +1601,12 @@ let rec recordTheMaxValue4RE (re:regularExpr): unit =
   | Bot | Emp -> ()
 
 
-let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr = 
-  (*
-  let localVariables = Procdesc.get_locals procedure in 
-  let _ = List.map ~f:(fun var -> print_endline (Mangled.to_string var.name ^"\n") ) localVariables in  
-  *)
+let getAllImplicationLeft (ctls:ctl list): pure list = 
+  List.fold_left ~init:[] ~f:(fun acc ctl -> acc @ getAllPureFromImplicationLeft  ctl) ctls 
+
+
+let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr = 
+
   let pass1 =  normalise_es (getRegularExprFromCFG procedure) in 
   let pass3 =  ( ( pass1)) in 
   recordTheMaxValue4RE pass3; 
@@ -1616,6 +1617,10 @@ let computeSummaryFromCGF (procedure:Procdesc.t) : regularExpr =
   print_endline ("\nPASS4:\n"^string_of_regularExpr (pass4)^ "\n------------"); 
   let pass5, _ = instantiateREStatesWithFreshNum (pass4) [] in  (*this is the step for renaming the states *)
   print_endline ("\nPASS5:\n"^string_of_regularExpr (pass5)^ "\n------------"); 
+
+  let (pathConditionsSpecOnTheLeft:pure list) = getAllImplicationLeft specs in 
+  print_endline ("pathConditionsSpecOnTheLeft \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpecOnTheLeft))));   
+ 
 
 
   pass5
@@ -1679,8 +1684,14 @@ let rec getAllPathConditions (re:regularExpr): pure list =
   | Omega re -> getAllPathConditions re 
   | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
 
-let rec getAllPathConditionsCTL (ctls:ctl list): pure list = 
+
+
+
+let getAllPathConditionsCTL (ctls:ctl list): pure list = 
   List.fold_left ~init:[] ~f:(fun acc ctl -> acc @ getAllPureFromCTL ctl) ctls 
+
+  
+
 
 let rec getUnknownVars (re:regularExpr): string list = 
   match re with 
@@ -1933,9 +1944,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
                 predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
               else if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
-              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword; retKeyword] then ()
+              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword] then ()
               else 
-                predicateDeclearation:= (s, ["Number"]) :: !predicateDeclearation ;
+                predicateDeclearation:=  !predicateDeclearation@ [(s, ["Number"])] ;
               );
               if String.compare s joinKeyword == 0 then [] else pathConstrint
             | _ -> pathConstrint
@@ -2081,7 +2092,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
-      let summary = computeSummaryFromCGF procedure in 
+      let summary = computeSummaryFromCGF procedure specifications in 
       List.append accs [summary] )) 
   in
 
