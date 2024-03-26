@@ -5,22 +5,19 @@ Project Name: FFmpeg
 License: LGPL-2.1
 termination: false
 */
-int flag = 0;
-int ff_subtitles_next_line()
-{
-    int i = __VERIFIER_nondet_int();
-    i = i % 1000;
-    if( flag == 1 )
-        return 0;
-    if( i == 0 )
-    {
-        flag = 1;
-        return 0;
-    }
-    else if( i < 0 )
-        return -i;
-    else
-        return i;
+
+/*@ AF(EXIT()) @*/
+
+
+int ff_subtitles_next_line(char *ptr){
+  int n = __VERIFIER_nondet_int(); // strcspn(ptr,"\r\n");
+  ptr = ptr + n; 
+  if (*ptr == '\r') { 
+     ptr++; 
+     n++; }
+  if (*ptr == '\n') 
+    n++;
+  return n; 
 }
 
 int main()
@@ -31,7 +28,7 @@ int main()
         return 0;
     while( b < end )
     {
-        b += ff_subtitles_next_line();  // SYH: this line needs to to positive to terminate: end - b - 4 is decreasing. 
+        b += ff_subtitles_next_line(b);  // SYH: this line needs to to positive to terminate: end - b - 4 is decreasing. 
         if( b >= end - 4 )
         return 0;
     }

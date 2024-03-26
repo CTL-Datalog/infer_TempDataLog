@@ -514,21 +514,26 @@ let get_facts procedure =
   let finalFlow, finialFacts = (Procdesc.fold_nodes procedure ~init:([], []) ~f:process) in 
   header:: (List.rev finalFlow) @ finialFacts
 
-let rec existStack stack t : Exp.t option = 
-  match stack with 
+let rec existStack stack stackIn (t:string) : Exp.t option = 
+  match stackIn with 
   | [] -> None 
   | (exp, ident) :: xs  -> 
-    if String.compare (Ident.to_string t)  (Ident.to_string ident) == 0 
-    then Some exp
-    else  existStack xs t
+    if String.compare t (Ident.to_string ident) == 0 
+    then 
+      let eName = (Exp.to_string exp ) in 
+      if String.compare "n$" (String.sub eName 0 2 ) == 0 
+      then existStack stack stack eName
+      else Some exp
+    else  existStack stack xs t
 
 let rec expressionToTerm (exp:Exp.t) stack : terms  = 
   match exp with 
   | Var t -> 
-    (match existStack stack t with 
+    let tName = (Ident.to_string t) in 
+    (match existStack stack stack tName with 
     | Some (Lvar t) -> Basic (BVAR (Pvar.to_string t )) (** Pure variable: it is not an lvalue *)
     | Some exp -> Basic (BVAR (Exp.to_string exp ))
-    | None  ->  Basic (BVAR (Ident.to_string t)) (** Pure variable: it is not an lvalue *)
+    | None  ->  Basic (BVAR tName) (** Pure variable: it is not an lvalue *)
     )
   | Lvar t -> Basic (BVAR (Pvar.to_string t))  (** The address of a program variable *)
 
@@ -1255,8 +1260,9 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
 
 let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr = 
   let startState = Procdesc.get_start_node procedure in 
-  let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in 
-  (*let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in  *)
+  (*
+  let reoccurs = sort_uniq (-) (findReoccurrenceJoinNodes [] startState) in    
+  let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in  *)
   (*let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in *)
   let r, _ = getRegularExprFromCFG_helper_new [] startState in 
   r
@@ -1631,6 +1637,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   print_endline ("\nPASS5:\n"^string_of_regularExpr (pass5)^ "\n------------"); 
 
   let (pathConditionsSpecOnTheLeft:pure list) = getAllImplicationLeft specs in 
+  
   print_endline ("pathConditionsSpecOnTheLeft \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpecOnTheLeft))));   
  
 
@@ -1872,9 +1879,10 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
 
 *)
   
+  (*
   print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpec))));   
   print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
-
+*)
 
   let rec mergeResults li (acca, accb) = 
     match li with 
