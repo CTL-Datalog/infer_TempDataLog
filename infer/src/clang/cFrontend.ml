@@ -877,7 +877,7 @@ let rec disjunctRE (li:regularExpr list): regularExpr =
 
 
     (match x, rest with 
-    | Kleene(re1, s), Kleene(re2, _) -> 
+    | Kleene(re1), Kleene(re2) -> 
         (*
         print_endline (string_of_regularExpr re1);
         print_endline (string_of_regularExpr re2);
@@ -893,7 +893,7 @@ let rec disjunctRE (li:regularExpr list): regularExpr =
         print_endline ("~~~~~");   
         *)
 
-        if compareEvent f1 f2 then Kleene(normalise_es(Disjunction(re1, re2)), s)
+        if compareEvent f1 f2 then Kleene(normalise_es(Disjunction(re1, re2)))
         else Disjunction (x, disjunctRE xs)
       | _ -> Disjunction (x, disjunctRE xs)
       )
@@ -1182,7 +1182,7 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
       (match existCycle stack currentState currentID with 
       | Some (non_cycle_succ, loop_body, stack1) -> 
         let re1Succ, stackSucc, flag = moveForward_aux (stack@stack1) non_cycle_succ in  
-       (Disjunction(re1Succ, Kleene(loop_body, getNodeID non_cycle_succ)), stack@stack1@stackSucc, flag)
+       (Disjunction(re1Succ, Kleene(loop_body)), stack@stack1@stackSucc, flag)
       | None -> moveForward_aux stack currentState
       )
     | _ -> moveForward_aux stack currentState
@@ -1261,7 +1261,7 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
     (match existCycle stack currentState currentID with 
     | Some (non_cycle_succ, loop_body, stack1) -> 
       let re1Succ, stackSucc = moveForward (stack@stack1) non_cycle_succ in  
-      Disjunction(re1Succ, Kleene(loop_body, getNodeID non_cycle_succ)), (stack@stack1@stackSucc)
+      Disjunction(re1Succ, Kleene(loop_body)), (stack@stack1@stackSucc)
     | None -> moveForward stack currentState
     )
   | _ -> moveForward stack currentState
@@ -1602,8 +1602,8 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
   match re with 
 
   
-  | Disjunction(rFalse, Kleene (reIn, exitState)) 
-  | Disjunction(Kleene (reIn, exitState), rFalse) -> 
+  | Disjunction(rFalse, Kleene (reIn)) 
+  | Disjunction(Kleene (reIn), rFalse) -> 
     let re1, path1 = convertAllTheKleeneToOmega rFalse path in 
     let re2, path2 =  
       let loopsummary = getLoopSummary reIn (normalise_pure path) re1 in  
@@ -1612,7 +1612,7 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
     in 
     Disjunction(re1, re2), PureOr(path1, path2)
 
-  | Kleene (reIn, exitState) -> 
+  | Kleene (reIn) -> 
     (*let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in *)
     let loopsummary = getLoopSummary reIn (normalise_pure path) Emp in  
     print_endline ("loopsummary: " ^ string_of_regularExpr  loopsummary);
@@ -1636,7 +1636,7 @@ let rec recordTheMaxValue4RE (re:regularExpr): unit =
   | Singleton (_, loc) -> if loc > !allTheUniqueIDs then allTheUniqueIDs:=loc else ()
   | Concate (re1, re2) 
   | Disjunction (re1, re2) -> recordTheMaxValue4RE re1; recordTheMaxValue4RE re2
-  | Omega reIn | Kleene (reIn, _) -> recordTheMaxValue4RE reIn 
+  | Omega reIn | Kleene (reIn) -> recordTheMaxValue4RE reIn 
   | Bot | Emp -> ()
 
 
@@ -1700,7 +1700,7 @@ let rec findRelaventValueSet (re:regularExpr) (var:string) : int list =
   | Singleton (p, _) | Guard(p, _) -> findRelaventValueSetFromPure p var 
   | Disjunction(r1, r2) 
   | Concate (r1, r2) -> findRelaventValueSet r1 var @ findRelaventValueSet r2 var 
-  | Omega (reIn) | Kleene (reIn, _) -> findRelaventValueSet reIn var
+  | Omega (reIn) | Kleene (reIn) -> findRelaventValueSet reIn var
   ;;
 
 let rec getAllPathConditions (re:regularExpr): pure list = 
