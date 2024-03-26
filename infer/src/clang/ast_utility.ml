@@ -1626,8 +1626,6 @@ let rec translation (ctl:ctl) : string * datalog =
     
 
     
-
-    
   in
 
 

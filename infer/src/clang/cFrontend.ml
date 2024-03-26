@@ -1420,7 +1420,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
     in 
     match precondition with 
     | None -> print_endline("wp4Termination " ^ string_of_pure (TRUE)); TRUE 
-    | Some pre -> print_endline("wp4Termination " ^ string_of_pure (pre));  pre 
+    | Some pre -> pre 
 
 
 let rec fstEleList2regularExpr (record:fstElem list) : regularExpr  =
@@ -1443,7 +1443,12 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
     
 
 
-let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  Omega (Concate (Guard(guard),  Concate(Singleton(guard), re)))
+let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  
+  match re with 
+  | Disjunction _ -> Omega (Concate (Guard(guard), Singleton(guard)))
+  | _ -> 
+    Omega (Concate (Guard(guard),  Concate(Singleton(guard), re)))
+
   (*let rec reoccur (his:fstElem list)  f =     
     match his with 
     | [] -> false 
@@ -1515,6 +1520,14 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  Omega (
   disjunctRE res
   *)
 
+let terminatingFinalState rankingFun = 
+  (match rankingFun with 
+  | None -> raise (Failure "wp4Termination true but no rankingFun")
+  | Some (Basic rf) -> Eq(Basic rf, Basic(BINT 0))
+  | Some (Minus (t1, t2)) 
+  | Some (Plus (t1, t2))  -> Eq(t1, t2)
+  )
+
 
 let getLoopSummary (re:regularExpr) (path:pure): regularExpr =  
   let re = normalise_es re in
@@ -1537,7 +1550,6 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
 
   print_endline ("loop guard: " ^ string_of_pure pi );
 
-  let defaultTerminating = eventToRe (GuardEv (Neg (pi), loc)) in 
   let stateAfterTerminate pi = 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     Singleton(pi, !allTheUniqueIDs) in 
@@ -1548,24 +1560,24 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
     let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
     (stateWhenNonTerminate_fixpoint)
   | TRUE -> 
-    let pureAfterTerminate = 
-      (match rankingFun with 
-      | None -> raise (Failure "wp4Termination true but no rankingFun")
-      | Some (Basic rf) -> Eq(Basic rf, Basic(BINT 0))
-      | Some (Minus (t1, t2)) 
-      | Some (Plus (t1, t2))  -> Eq(t1, t2)
-      )
-    in Concate(Guard(pi, loc), stateAfterTerminate pureAfterTerminate)
+    let pureAfterTerminate = terminatingFinalState rankingFun in 
+    Concate(Guard(pi, loc), stateAfterTerminate pureAfterTerminate)
 
   | weakestPre -> 
+    print_endline("wp4Termination weakestPre: " ^ string_of_pure (weakestPre));  
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let terminating = eventToRe (GuardEv (PureAnd(pi, conjunctPure path weakestPre), !allTheUniqueIDs))  in 
+    let g1 = Guard (path, !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let non_termination_guard = eventToRe (GuardEv (PureAnd(pi, conjunctPure path (normalise_pure (Neg weakestPre))), !allTheUniqueIDs)) in 
+    let g2 = Guard (weakestPre, !allTheUniqueIDs) in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let g3 = Guard (pi, !allTheUniqueIDs) in 
+    let terminating = 
+      Concate (g1, Concate(g2, g3) )  in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let pureAfterTerminate = terminatingFinalState rankingFun in 
     let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
-    let non_terminating = (Concate(non_termination_guard, stateWhenNonTerminate_fixpoint )) in 
     disjunctRE [
-      Concate (Disjunction(defaultTerminating, terminating), stateAfterTerminate (Neg (pi))); non_terminating]
+      Concate (terminating, stateAfterTerminate pureAfterTerminate); stateWhenNonTerminate_fixpoint]
   )
 
 
