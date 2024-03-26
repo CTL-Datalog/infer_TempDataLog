@@ -90,7 +90,7 @@ type regularExpr =
   | Singleton of (pure * state)
   | Disjunction of (regularExpr * regularExpr)
   | Concate of (regularExpr * regularExpr)
-  | Kleene of regularExpr
+  | Kleene of (regularExpr * state)
   | Omega of regularExpr 
   | Guard of (pure * state)
 
@@ -98,7 +98,7 @@ type fstElem =
     PureEv of (pure * state) 
   | Delimiter of state
   | GuardEv of (pure * state) 
-  | KleeneEv of regularExpr
+  | KleeneEv of (regularExpr * state)
   | OmegaEv of regularExpr
 
 type reCFG  = (Procdesc.Node.t list * stack)
@@ -298,7 +298,7 @@ let rec string_of_regularExpr re =
   | Concate (eff1, eff2) -> string_of_regularExpr eff1 ^ " · " ^ string_of_regularExpr eff2 
   | Disjunction (eff1, eff2) ->
       "((" ^ string_of_regularExpr eff1 ^ ") \\/ (" ^ string_of_regularExpr eff2 ^ "))"
-  | Kleene effIn          ->
+  | Kleene (effIn, _)          ->
       "(" ^ string_of_regularExpr effIn ^ ")^*"
      
   | Omega effIn          ->
@@ -366,7 +366,7 @@ let string_of_fst_event (ele:fstElem) : string =
   | PureEv (p, s) -> string_of_pure p ^ string_of_loc s 
   | Delimiter (s) -> skipKeyword ^ string_of_loc s 
   | GuardEv (p, s) -> "[" ^string_of_pure p ^ "]" ^ string_of_loc s 
-  | KleeneEv re -> "(" ^ string_of_regularExpr re ^ ")^*"
+  | KleeneEv (re, _) -> "(" ^ string_of_regularExpr re ^ ")^*"
   | OmegaEv re -> "(" ^ string_of_regularExpr re ^ ")^w"
 
 let rec fst (eff:regularExpr) : (fstElem list) = 
@@ -391,7 +391,7 @@ let rec cycleTrace (eff:regularExpr) : bool =
   match eff with 
   | Concate (eff1, eff2) -> cycleTrace eff2
   | Disjunction (eff1, eff2) -> raise(Failure "cycleTrace has a dijunction")
-  | Kleene effIn      
+  | Kleene (effIn, _)      
   | Omega effIn -> true
   | _ -> false 
 
@@ -404,7 +404,7 @@ let rec reverse (eff:regularExpr) :regularExpr =
   | Guard _ -> eff
   | Concate (eff1, eff2) -> Concate (reverse eff2, reverse eff1)    
   | Disjunction (eff1, eff2) -> Disjunction (reverse eff1, reverse eff2)    
-  | Kleene effIn      -> Kleene (reverse effIn)
+  | Kleene (effIn, state)      -> Kleene (reverse effIn, state)
   | Omega effIn  -> Omega (reverse effIn)
 
 let rec getStatesFromFstEle (li:fstElem list): int list  = 
@@ -429,7 +429,7 @@ let rec compareRE re1 re2 : bool =
   | (Concate (eff1, eff2), Concate (eff3, eff4)) ->  
     compareRE eff1 eff3 && compareRE eff2 eff4
   | (Omega effIn, Omega effIn2)
-  | (Kleene effIn, Kleene effIn2) -> compareRE effIn effIn2
+  | (Kleene (effIn, _), Kleene (effIn2, _)) -> compareRE effIn effIn2
   | _ -> false  
 
 let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
@@ -438,7 +438,7 @@ let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   | (PureEv (p1, s1), PureEv(p2, s2))
   | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2 && s1 == s2 
   | (OmegaEv re1, OmegaEv re2)
-  | (KleeneEv re1, KleeneEv re2) -> compareRE re1 re2
+  | (KleeneEv (re1, _), KleeneEv (re2, _)) -> compareRE re1 re2
   | _ -> false 
 
 let relaxed_compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
@@ -447,7 +447,7 @@ let relaxed_compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   | (PureEv (p1, s1), PureEv(p2, s2))
   | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2  
   | (OmegaEv re1, OmegaEv re2)
-  | (KleeneEv re1, KleeneEv re2) -> compareRE re1 re2
+  | (KleeneEv (re1, _), KleeneEv (re2, _)) -> compareRE re1 re2
   | _ -> false 
   
 
@@ -487,9 +487,9 @@ let rec derivitives_2 (f:fstElem) (eff:regularExpr) : regularExpr =
     else forsure
   | Disjunction (eff1, eff2) -> 
     Disjunction (derivitives_2 f eff1, derivitives_2 f eff2)
-  | Omega effIn | Kleene effIn      -> 
+  | Omega effIn | Kleene (effIn, _)      -> 
     (match f with 
-    | KleeneEv (effIn1) -> if compareRE effIn effIn1 then Emp else Bot
+    | KleeneEv (effIn1, _) -> if compareRE effIn effIn1 then Emp else Bot
     | _ -> Bot 
     )
 
@@ -535,9 +535,9 @@ let rec instantiateREStatesWithFreshNum reIn (record:((int * int )list)): regula
     let re1, record1 = instantiateREStatesWithFreshNum eff1 record in 
     let re2, record2 = instantiateREStatesWithFreshNum eff2 record1 in 
     Disjunction (re1, re2), record2
-  | Kleene effIn          ->
+  | Kleene (effIn, s)          ->
      let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
-     Kleene re1, record1
+     (Kleene (re1, s)), record1
      
   | Omega effIn          ->
     let re1, record1 = instantiateREStatesWithFreshNum effIn record in 
@@ -565,9 +565,9 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
     else forsure
   | Disjunction (eff1, eff2) -> 
     Disjunction (derivitives f eff1, derivitives f eff2)
-  | Omega effIn | Kleene effIn      -> 
+  | Omega effIn | Kleene (effIn, _)      -> 
     (match f with 
-    | KleeneEv (effIn1) -> if compareRE effIn effIn1 then Emp else Bot
+    | KleeneEv (effIn1, _) -> if compareRE effIn effIn1 then Emp else Bot
     | _ -> Bot 
     )
 
@@ -605,7 +605,7 @@ let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr =
   match re with 
   | Singleton (Predicate (s, _), state) -> 
     if String.compare s joinNodeKeyWord == 0  || String.compare s skipKeyword == 0  then Emp else re 
-  | Kleene (reIn) -> Kleene (deleteAllTheJoinNodes reIn)
+  | Kleene (reIn, s) -> Kleene (deleteAllTheJoinNodes reIn, s)
   | Disjunction(r1, r2) -> Disjunction(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
   | Concate (r1, r2) -> Concate(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
   | _ -> re
@@ -616,6 +616,9 @@ let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr =
 
 let normalise_terms (t:terms) : terms = 
   match t with 
+  | Minus (Minus(_end, b), Minus(_end1, Plus(b1, inc))) -> 
+    if stricTcompareTerm _end _end1 && stricTcompareTerm b b1 then inc 
+    else t 
   | Minus (t1, Minus (t2, t3)) -> 
     if stricTcompareTerm t1 t2 then t3 
     else t 
@@ -676,12 +679,12 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
     | (Concate (es11, es12), es3) -> (Concate (es11, normalise_es (Concate (es12, es3))))
     | _ -> (Concate (es1, es2))
     )
-  | Kleene effIn -> 
+  | Kleene (effIn, s) -> 
     let effIn' = normalise_es effIn in 
     (match effIn' with 
     | Emp -> Emp 
     | _ ->  
-    Kleene (effIn'))
+    Kleene (effIn', s))
   | Omega effIn -> 
     let effIn' = normalise_es effIn in 
     Omega (effIn')
@@ -963,7 +966,7 @@ let rec getProgramValues (re:regularExpr) : int list =
   | Singleton (p, _) | Guard(p, _) -> getAllNumFromPure p 
   | Disjunction(r1, r2) 
   | Concate (r1, r2) -> getProgramValues r1 @ getProgramValues r2
-  | Omega (reIn) | Kleene (reIn) -> getProgramValues reIn
+  | Omega (reIn) | Kleene (reIn, _) -> getProgramValues reIn
   ;;
 
 

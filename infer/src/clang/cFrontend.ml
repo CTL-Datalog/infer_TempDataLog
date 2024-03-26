@@ -599,6 +599,10 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
 
     let t1 = expressionToTerm e1 stack in 
     let t2 = expressionToTerm e2 stack in 
+    let t2 = match t2 with 
+    | Minus(t2, _ ) -> t2 
+    | _ -> t2 
+    in 
     (match bop with 
     | Eq  -> Some (Eq (t1, t2))
     | Lt -> Some (Lt (t1, t2))
@@ -684,13 +688,14 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     None 
   
 let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store s):IR.Sil.instr) stack =
+  let exp1 = s.e1 in 
   let funName = (Exp.to_string e_fun) in 
   if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall funName then 
-    let exp1 = s.e1 in 
     Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
   else 
     let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in 
-    Some (Predicate(funName, argumentTerms))
+    (* Predicate(funName, argumentTerms) *)
+    Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
 
 
 
@@ -706,7 +711,7 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
     | Load l :: tail ->
       let stack' = (l.e, l.id):: stack in 
-      getPureFromBinaryOperatorStmtInstructions "Assign" tail stack'
+      getPureFromBinaryOperatorStmtInstructions "Assign" tail stack'    
     | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: Store s :: _ -> 
       (*print_endline (Exp.to_string e_fun) ;   *)
       getPureFromFunctionCall e_fun arg_ts (Store s) stack
@@ -824,7 +829,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
 
         Singleton (Predicate (retKeyword, [expressionToTerm exp2 stack]), node_key), []
       | _ -> 
-        Singleton (Predicate (retKeyword, []), node_key), []
+        Singleton (Predicate (retKeyword, [Basic(BINT 0)]), node_key), []
       )
     | Call x  -> 
       (match instrs with 
@@ -872,7 +877,7 @@ let rec disjunctRE (li:regularExpr list): regularExpr =
 
 
     (match x, rest with 
-    | Kleene(re1), Kleene(re2) -> 
+    | Kleene(re1, s), Kleene(re2, _) -> 
         (*
         print_endline (string_of_regularExpr re1);
         print_endline (string_of_regularExpr re2);
@@ -888,7 +893,7 @@ let rec disjunctRE (li:regularExpr list): regularExpr =
         print_endline ("~~~~~");   
         *)
 
-        if compareEvent f1 f2 then Kleene(normalise_es(Disjunction(re1, re2)))
+        if compareEvent f1 f2 then Kleene(normalise_es(Disjunction(re1, re2)), s)
         else Disjunction (x, disjunctRE xs)
       | _ -> Disjunction (x, disjunctRE xs)
       )
@@ -906,6 +911,7 @@ let rec recordToRegularExpr (li:Procdesc.Node.t list) stack : (regularExpr * sta
 
 
 (* the old version of producing the regular expressions *)
+(*
 let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr = 
   let (history, stack) = env in 
   let node_key = getNodeID currentState in
@@ -926,6 +932,8 @@ let rec iterateProc (env:reCFG) (currentState:Procdesc.Node.t): regularExpr =
       let residues = List.map succLi ~f:(fun next -> iterateProc env' next) in 
       let eventTail = disjunctRE residues in 
       eventTail 
+   
+
 
 let rec findReoccurrenceJoinNodes (history:Procdesc.Node.t list) (currentState:Procdesc.Node.t): int list = 
   let node_key = getNodeID currentState in
@@ -1054,8 +1062,9 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
   | _ -> helper disjunStack 
   
 ;;
+*)
 
-let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) stack (currentState:Procdesc.Node.t): (regularExpr * stack) = 
+(*let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) stack (currentState:Procdesc.Node.t): (regularExpr * stack) = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
   (match node_kind with 
@@ -1131,6 +1140,7 @@ let rec getRegularExprFromCFG_helper (loopJoins:int list) (history:regularExpr) 
 
     | _ -> raise (Failure "more successors")
   )
+  *)
 
 let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regularExpr * stack * bool)  = 
   let node_kind = Procdesc.Node.get_kind currentState in
@@ -1172,7 +1182,7 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
       (match existCycle stack currentState currentID with 
       | Some (non_cycle_succ, loop_body, stack1) -> 
         let re1Succ, stackSucc, flag = moveForward_aux (stack@stack1) non_cycle_succ in  
-       (Disjunction(re1Succ, Kleene(loop_body)), stack@stack1@stackSucc, flag)
+       (Disjunction(re1Succ, Kleene(loop_body, getNodeID non_cycle_succ)), stack@stack1@stackSucc, flag)
       | None -> moveForward_aux stack currentState
       )
     | _ -> moveForward_aux stack currentState
@@ -1251,7 +1261,7 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
     (match existCycle stack currentState currentID with 
     | Some (non_cycle_succ, loop_body, stack1) -> 
       let re1Succ, stackSucc = moveForward (stack@stack1) non_cycle_succ in  
-      Disjunction(re1Succ, Kleene(loop_body)), (stack@stack1@stackSucc)
+      Disjunction(re1Succ, Kleene(loop_body, getNodeID non_cycle_succ)), (stack@stack1@stackSucc)
     | None -> moveForward stack currentState
     )
   | _ -> moveForward stack currentState
@@ -1292,6 +1302,7 @@ let rec makeAGuess (pi:pure) : terms option =
   match pi with 
   | LtEq (t, Basic (BINT 0)) 
   | Lt (t, Basic (BINT 0)) -> Some (Minus(Basic (BINT 0), t))
+  | Lt (t1, t2) -> Some (Minus(t2, t1))
   | GtEq (t, Basic (BINT 0)) 
   | Gt (t, Basic (BINT 0)) -> Some t 
   | Gt (t1, t2) -> Some (Minus(t1, t2))
@@ -1332,6 +1343,7 @@ let rec computePostRankingFunctionFromTransitionSUmmary (t:terms) (s:((terms * t
 let updateStateBasedOnCurrentValues (state:((terms * terms)list)) (target:terms) (newValue:terms) : ((terms * terms)list) = 
   let rec subsititude (t:terms) : terms = 
     match findStateRecord t state with 
+    | Some (Basic ANY, _) -> t 
     | Some (t', _) -> t' 
     | None  -> 
       (match t with 
@@ -1348,6 +1360,7 @@ let updateStateBasedOnCurrentValues (state:((terms * terms)list)) (target:terms)
   ;;
 
 let transitionSummary (re:regularExpr) : transitionSummary = 
+  print_endline ("transitionSummary: " ^ string_of_regularExpr re);
   let updateTransitionPath acc pi = List.map acc ~f:(fun (pAcc, state) -> (PureAnd(pAcc, pi), state)) in 
   let updateTransitionStates acc pi = 
     match pi with 
@@ -1376,6 +1389,8 @@ let transitionSummary (re:regularExpr) : transitionSummary =
   ;;
 
 let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
+  print_endline ("wp4Termination"); 
+
   match rankingFun with 
   | None -> FALSE
   | Some rankingTerm -> 
@@ -1384,7 +1399,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
 
     let (precondition: pure option) = List.fold_left transitionSummary ~init:None  
       ~f:(fun acc (path, stateLi) -> 
-      print_endline (string_of_transitionSummary [(path, stateLi)]);
+      print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
 
       let (pureIter:pure option) = 
 
@@ -1403,25 +1418,6 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
       | None, Some a -> Some a 
       | None , None -> None 
       | Some a, Some b -> Some (PureAnd(a, b))
-
-
-      (*let (pureIter:pure option) = 
-        match findStateRecord rankingTerm stateLi with 
-        | None -> Some (Ast_utility.FALSE) (*print_endline("the rancking function did not decreace at all")*)
-        | Some (rankingTerm', _) -> 
-          let left_hand_side = PureAnd (guard, path) in 
-          let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in 
-          print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
-          let res = entailConstrains left_hand_side right_hand_side in 
-          if res then None 
-          else Some right_hand_side
-      in 
-      match acc, pureIter with 
-      | Some a, None 
-      | None, Some a -> Some a 
-      | None , None -> None 
-      | Some a, Some b -> Some (PureAnd(a, b))
-      *)
     ) 
     in 
     match precondition with 
@@ -1446,14 +1442,24 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
     )
 
   
-    
+let stateAfterTerminate pi = 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      Singleton(pi, !allTheUniqueIDs) 
+   
 
 
-let infiniteLoopSummaryCalculus (guard:(pure*state)) (re:regularExpr) =  
-  match re with 
+let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms option) (re:regularExpr) =  
+  match rankingFun with 
+  | None ->   Omega (Concate (Guard(guard), Singleton guard))
+  | Some rankingFun -> 
+  Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
+  (*
+    match re with 
+
   | Disjunction _ -> Omega (Concate (Guard(guard), Singleton(guard)))
   | _ -> 
     Omega (Concate (Guard(guard),  Concate(Singleton(guard), re)))
+    *)
 
   (*let rec reoccur (his:fstElem list)  f =     
     match his with 
@@ -1535,7 +1541,7 @@ let terminatingFinalState rankingFun =
   )
 
 
-let getLoopSummary (re:regularExpr) (path:pure): regularExpr =  
+let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularExpr =  
   let re = normalise_es re in
   print_endline ("loop body:\n" ^ string_of_regularExpr (re));
   let (fstSet:(fstElem list)) = fst re in 
@@ -1556,34 +1562,37 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
 
   print_endline ("loop guard: " ^ string_of_pure pi );
 
-  let stateAfterTerminate pi = 
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    Singleton(pi, !allTheUniqueIDs) in 
   let stateWhenNonTerminate = deriv in 
   
   (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
   | FALSE -> 
-    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
+    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFun stateWhenNonTerminate in 
     (stateWhenNonTerminate_fixpoint)
   | TRUE -> 
     let pureAfterTerminate = terminatingFinalState rankingFun in 
     Concate(Guard(pi, loc), stateAfterTerminate pureAfterTerminate)
 
   | weakestPre -> 
+    let weakestPre = normalise_pure weakestPre in 
     print_endline("wp4Termination weakestPre: " ^ string_of_pure (weakestPre));  
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    (*let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let g1 = Guard (path, !allTheUniqueIDs) in 
+    *)
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let g2 = Guard (weakestPre, !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let negg2 = Guard (normalise_pure(Neg weakestPre), !allTheUniqueIDs) in 
+
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let g3 = Guard (pi, !allTheUniqueIDs) in 
     let terminating = 
-      Concate (g1, Concate(g2, g3) )  in 
+      (*Concate (g1, Concate(g2, g3) ) *) Concate(g2, g3) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let pureAfterTerminate = terminatingFinalState rankingFun in 
-    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) stateWhenNonTerminate in 
+    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFun stateWhenNonTerminate in 
+    let non_terminating = Concate (negg2 , stateWhenNonTerminate_fixpoint) in 
     disjunctRE [
-      Concate (terminating, stateAfterTerminate pureAfterTerminate); stateWhenNonTerminate_fixpoint]
+      Concate (terminating, Concate (stateAfterTerminate pureAfterTerminate, reFalse)); non_terminating]
   )
 
 
@@ -1591,9 +1600,21 @@ let getLoopSummary (re:regularExpr) (path:pure): regularExpr =
   
 let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * pure = 
   match re with 
-  | Kleene (reIn) -> 
+
+  
+  | Disjunction(rFalse, Kleene (reIn, exitState)) 
+  | Disjunction(Kleene (reIn, exitState), rFalse) -> 
+    let re1, path1 = convertAllTheKleeneToOmega rFalse path in 
+    let re2, path2 =  
+      let loopsummary = getLoopSummary reIn (normalise_pure path) re1 in  
+      print_endline ("loopsummary: " ^ string_of_regularExpr  loopsummary);
+      loopsummary, path
+    in 
+    Disjunction(re1, re2), PureOr(path1, path2)
+
+  | Kleene (reIn, exitState) -> 
     (*let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in *)
-    let loopsummary = getLoopSummary reIn (normalise_pure path) in  
+    let loopsummary = getLoopSummary reIn (normalise_pure path) Emp in  
     print_endline ("loopsummary: " ^ string_of_regularExpr  loopsummary);
     loopsummary, path
   | Disjunction(r1, r2) -> 
@@ -1615,7 +1636,7 @@ let rec recordTheMaxValue4RE (re:regularExpr): unit =
   | Singleton (_, loc) -> if loc > !allTheUniqueIDs then allTheUniqueIDs:=loc else ()
   | Concate (re1, re2) 
   | Disjunction (re1, re2) -> recordTheMaxValue4RE re1; recordTheMaxValue4RE re2
-  | Omega reIn | Kleene reIn -> recordTheMaxValue4RE reIn 
+  | Omega reIn | Kleene (reIn, _) -> recordTheMaxValue4RE reIn 
   | Bot | Emp -> ()
 
 
@@ -1679,7 +1700,7 @@ let rec findRelaventValueSet (re:regularExpr) (var:string) : int list =
   | Singleton (p, _) | Guard(p, _) -> findRelaventValueSetFromPure p var 
   | Disjunction(r1, r2) 
   | Concate (r1, r2) -> findRelaventValueSet r1 var @ findRelaventValueSet r2 var 
-  | Omega (reIn) | Kleene (reIn) -> findRelaventValueSet reIn var
+  | Omega (reIn) | Kleene (reIn, _) -> findRelaventValueSet reIn var
   ;;
 
 let rec getAllPathConditions (re:regularExpr): pure list = 
@@ -1844,6 +1865,12 @@ let rec pureToBodies (p:pure) (state:int ): body list =
     let relations = getFactFromPure p state in 
     List.map ~f:(fun ((str, args)) -> 
       updateRuleDeclearation bodyDeclearation (str^"D");
+      (*let args' = List.map ~f:(fun a -> 
+        match a with 
+        | Basic _ -> a 
+        | Minus (t1, _) -> t1 
+        | _ -> Basic ANY) args in 
+        *)
       Pos (str^"D",args) ) relations 
 
 

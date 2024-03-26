@@ -22,13 +22,15 @@ int ff_subtitles_next_line(char *ptr){
 
 int main()
 {
+    int inc;
     int b = __VERIFIER_nondet_int();
     int end = __VERIFIER_nondet_int();
     if( b < 0 || end < 0 )
         return 0;
     while( b < end )
     {
-        b += ff_subtitles_next_line(b);  // SYH: this line needs to to positive to terminate: end - b - 4 is decreasing. 
+        inc = ff_subtitles_next_line(b); 
+        b = b + inc;  // SYH: this line needs to to positive to terminate: end - b - 4 is decreasing. 
         if( b >= end - 4 )
         return 0;
     }
