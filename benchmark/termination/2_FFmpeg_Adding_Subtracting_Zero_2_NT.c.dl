@@ -51,21 +51,20 @@ control_flow(30,31) :- NotEqD("ptr",20,13), EqD("ptr",29,10).
 control_flow(31,32) :- NotEqD("ptr",20,13), EqD("ptr",29,10).
 control_flow(29,33) :- NotEqD("ptr",20,13), NotEqD("ptr",29,10).
 control_flow(33,34) :- NotEqD("ptr",20,13), NotEqD("ptr",29,10).
-/*(Start())@41 · (b=_)@42 · (end=_)@43 · (([b<0]@44 · (Return(0))@45) \/ ([b>=0]@46 · (([end<0]@47 · (Return(0))@48) \/ ([end>=0]@49 · (([b>=end]@50 · (Return(0))@51) \/ ((([inc>0]@52 · [b<end]@53 · (end=b)@54 · [b>=end]@55 · (Return(0))@56) \/ ([inc<=0]@57 · ([b<end]@58 · ((end-b)>0)@59)^w))))))))*/
+/*(Start())@41 · (b=_)@42 · (end=_)@43 · (([b<0]@44 · (Return(0))@45) \/ ([b>=0]@46 · (([end<0]@47 · (Return(0))@48) \/ ([end>=0]@49 · (((Return(0))@50) \/ ((([inc>0]@51 · [b<end]@52 · (end=b)@53 · (Return(0))@54) \/ ([inc<=0]@55 · ([b<end]@56 · ((end-b)>0)@57)^w))))))))*/
 
 flow(41,42).
 flow(42,43).
 flow(45,45).
 flow(48,48).
-flow(51,51).
-flow(56,56).
-flow(59,59).
-flow(59,58).
+flow(50,50).
+flow(54,54).
+flow(57,57).
+flow(57,56).
 Start(41).
 Lt("b",41,0).
 Lt("end",41,0).
 Gt("inc",41,0).
-GtEqVar("b",41,"end").
 GtEq("b",41,0).
 GtEq("end",41,0).
 LtEq("inc",41,0). // delete this line 
@@ -80,37 +79,32 @@ State(47).
 Return(0,48).
 State(48).
 State(46).
+Return(0,50).
 State(50).
-Return(0,51).
 State(51).
 State(52).
+GtEq("end",53,0).
 State(53).
-GtEqVar("b",54,"end").
-GtEq("end",54,0).
+Return(0,54).
 State(54).
-State(55).
-Return(0,56).
-State(56).
 State(49).
+State(55).
+State(56).
 State(57).
-State(58).
-State(59).
 control_flow(43,44) :- LtD("b",43,0).
 control_flow(44,45) :- LtD("b",43,0).
 control_flow(43,46) :- GtEqD("b",43,0).
 control_flow(46,47) :- GtEqD("b",43,0), LtD("end",46,0).
 control_flow(47,48) :- GtEqD("b",43,0), LtD("end",46,0).
 control_flow(46,49) :- GtEqD("b",43,0), GtEqD("end",46,0).
-control_flow(49,50) :- GtEqD("b",43,0), GtEqD("end",46,0), GtEqVarD("b",49,"end").
-control_flow(50,51) :- GtEqD("b",43,0), GtEqD("end",46,0), GtEqVarD("b",49,"end").
-control_flow(49,52) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0).
-control_flow(52,53) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",52,"end").
-control_flow(53,54) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",52,"end").
-control_flow(54,55) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",52,"end"), GtEqVarD("b",54,"end").
-control_flow(55,56) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",52,"end"), GtEqVarD("b",54,"end").
-control_flow(49,57) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0).
-control_flow(57,58) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0), LtVarD("b",57,"end").
-control_flow(58,59) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0), LtVarD("b",57,"end").
+control_flow(49,50) :- GtEqD("b",43,0), GtEqD("end",46,0).
+control_flow(49,51) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0).
+control_flow(51,52) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",51,"end").
+control_flow(52,53) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",51,"end").
+control_flow(53,54) :- GtEqD("b",43,0), GtEqD("end",46,0), GtD("inc",49,0), LtVarD("b",51,"end").
+control_flow(49,55) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0).
+control_flow(55,56) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0), LtVarD("b",55,"end").
+control_flow(56,57) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0), LtVarD("b",55,"end").
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -119,10 +113,10 @@ control_flow(58,59) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0), Lt
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
+.decl GtEqVar(x:symbol,loc:number,y:symbol)
 .decl LtVar(x:symbol,loc:number,y:symbol)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl GtEq(x:symbol,loc:number,n:number)
-.decl GtEqVar(x:symbol,loc:number,y:symbol)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
 .decl NotEq(x:symbol,loc:number,n:number)
@@ -130,7 +124,6 @@ control_flow(58,59) :- GtEqD("b",43,0), GtEqD("end",46,0), LtEqD("inc",49,0), Lt
 .decl LtEqD(x:symbol,loc:number,n:number)
 .decl LtVarD(x:symbol,loc:number,y:symbol)
 .decl GtD(x:symbol,loc:number,n:number)
-.decl GtEqVarD(x:symbol,loc:number,y:symbol)
 .decl GtEqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
 .decl NotEqD(x:symbol,loc:number,n:number)
@@ -150,8 +143,6 @@ LtVarD(x,loc,n) :- LtVar(x,loc,n).
 LtVarD(x,loc,n) :- LtVarD(x,locI,n), control_flow(locI,loc), !LtVar(x,loc,_), !GtEqVar(x,loc,_).
 GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
-GtEqVarD(x,loc,n) :- GtEqVar(x,loc,n).
-GtEqVarD(x,loc,n) :- GtEqVarD(x,locI,n), control_flow(locI,loc), !GtEqVar(x,loc,_), !LtVar(x,loc,_).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
@@ -167,10 +158,10 @@ AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
 AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
 AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
 AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output GtEqVar
 .output LtVar
 .output LtEq
 .output GtEq
-.output GtEqVar
 .output Gt
 .output Lt
 .output NotEq
