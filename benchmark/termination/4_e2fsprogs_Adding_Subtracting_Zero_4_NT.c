@@ -5,6 +5,10 @@ Project Name: e2fsprogs
 License: GPL-2.0
 termination: false
 */
+
+/*@ AF(EXIT()) @*/
+
+
 int flag = 0;
 int read( int loc , int len )
 {
