@@ -1,7 +1,7 @@
 /*
 Commit Number: fa741cd4fffbbaa5d4ba9a15f53550ac7817cc92
 URL: https://github.com/behdad/fontconfig/commit/fa741cd4fffbbaa5d4ba9a15f53550ac7817cc92
-Project Name: fontconfig
+Project Name: fontconfig(fa741cd4)
 License: MIT
 termination: FALSE
 */

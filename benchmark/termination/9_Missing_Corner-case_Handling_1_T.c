@@ -1,7 +1,7 @@
 /*
 Commit Number: cd64eeac116d3bb4871d114b105440b4dd11b8e0
 URL: https://github.com/DPDK/dpdk/commit/cd64eeac116d3bb4871d114b105440b4dd11b8e0
-Project Name: dpdk
+Project Name: dpdk(cd64eeac)
 License: BSD-3-Clause
 termination: TRUE
 */

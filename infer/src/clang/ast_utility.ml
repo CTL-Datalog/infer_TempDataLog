@@ -616,12 +616,21 @@ let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr =
 
 let normalise_terms (t:terms) : terms = 
   match t with 
+
   | Minus (Minus(_end, b), Minus(_end1, Plus(b1, inc))) -> 
     if stricTcompareTerm _end _end1 && stricTcompareTerm b b1 then inc 
     else t 
-  | Minus (t1, Minus (t2, t3)) -> 
-    if stricTcompareTerm t1 t2 then t3 
-    else t 
+  
+  | Minus (t1, t2) -> 
+    if stricTcompareTerm t1 t2 then Basic(BINT 0)
+    else 
+
+    (match t2 with
+    | Minus (t21, t3) -> 
+      if stricTcompareTerm t1 t21 then t3 
+      else t 
+    | _ -> t )
+    
   | _ -> t 
 
 let rec normalise_pure (pi:pure) : pure = 
@@ -636,7 +645,11 @@ let rec normalise_pure (pi:pure) : pure =
   | PureAnd (pi1,TRUE) 
   | PureAnd (TRUE, pi1) -> normalise_pure pi1
 
-  | PureAnd (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | PureAnd (pi1,pi2) -> 
+    let p1 = normalise_pure pi1 in 
+    let p2 = normalise_pure pi2 in 
+    if comparePure p1 p2 then p1
+    else PureAnd (p1, p2)
   | Neg (TRUE) -> FALSE
   | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
   | Neg (Lt (t1, t2)) -> GtEq (t1, t2)

@@ -3,7 +3,7 @@
 flow(10,10).
 flow(12,12).
 Start(8).
-LtEqVar("x",8,"y"). // delete this fact 
+//LtEqVar("x",8,"y"). // delete this fact 
 GtVar("x",8,"y").
 State(9).
 Exit(10).

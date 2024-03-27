@@ -526,52 +526,58 @@ let rec existStack stack stackIn (t:string) : Exp.t option =
       else Some exp
     else  existStack stack xs t
 
-let rec expressionToTerm (exp:Exp.t) stack : terms  = 
+let rec expressionToTerm (exp:Exp.t) stack : terms option  = 
   match exp with 
   | Var t -> 
     let tName = (Ident.to_string t) in 
     (match existStack stack stack tName with 
-    | Some (Lvar t) -> Basic (BVAR (Pvar.to_string t )) (** Pure variable: it is not an lvalue *)
-    | Some exp -> Basic (BVAR (Exp.to_string exp ))
-    | None  ->  Basic (BVAR tName) (** Pure variable: it is not an lvalue *)
+    | Some (Lvar t) -> Some(Basic (BVAR (Pvar.to_string t ))) (** Pure variable: it is not an lvalue *)
+    | Some exp -> Some(Basic (BVAR (Exp.to_string exp )))
+    | None  ->  Some (Basic (BVAR tName)) (** Pure variable: it is not an lvalue *)
     )
-  | Lvar t -> Basic (BVAR (Pvar.to_string t))  (** The address of a program variable *)
+  | Lvar t -> Some (Basic (BVAR (Pvar.to_string t)))  (** The address of a program variable *)
 
   | Const t ->  (** Constants *)
     (match t with 
-    | Cint i -> Basic (BINT (IntLit.to_int_exn i ))  (** integer constants *)
-    | _ -> Basic BNULL
+    | Cint i -> Some(Basic (BINT (IntLit.to_int_exn i )))  (** integer constants *)
+    | _ -> (*Basic BNULL*) None 
     )
 
   | UnOp (Neg, t, _) -> 
     (match expressionToTerm t stack with 
-    | Basic (BINT n) -> Basic (BINT ((-1) * n))
-    | _ -> Basic (BVAR ("UnOp1"))
+    | Some (Basic (BINT n)) -> Some(Basic (BINT ((-1) * n)))
+    | _ -> None (*Basic (BVAR ("UnOp1"))*)
     )
     
     (** Unary minus *)
-  | UnOp _ -> Basic (BVAR ("UnOp"))
+  | UnOp _ -> None (*Basic (BVAR ("UnOp"))*)
 
   | BinOp (MinusA _, e1, e2)
   | BinOp (MinusPI, e1, e2)
   | BinOp (MinusPP, e1, e2) -> 
     let t1 = expressionToTerm e1 stack in 
     let t2 = expressionToTerm e2 stack in 
-    Minus (t1, t2)
+    (match t1, t2 with 
+    | Some t1 , Some t2 -> Some (Minus (t1, t2))
+    | _, _  -> None )
 
   | BinOp (PlusA _, e1, e2)
   | BinOp (PlusPI, e1, e2) -> 
     let t1 = expressionToTerm e1 stack in 
     let t2 = expressionToTerm e2 stack in 
-    Plus (t1, t2)
+    (match t1, t2 with 
+    | Some t1 , Some t2 -> Some (Plus (t1, t2))
+    | _, _  -> None )
 
-  | BinOp _ -> Basic (BVAR ("BinOp"))
-  | Exn _ -> Basic (BVAR ("Exn"))
-  | Closure _ -> Basic (BVAR ("Closure"))
-  | Cast _ -> Basic (BVAR ("Cast"))
-  | Lfield _ -> Basic (BVAR ("Lfield"))
-  | Lindex _ -> Basic (BVAR ("Lindex"))
-  | Sizeof _ -> Basic (BVAR ("Sizeof"))
+
+
+  | BinOp _ (*_ -> Basic (BVAR ("BinOp"))*)
+  | Exn _ (*-> Basic (BVAR ("Exn"))*)
+  | Closure _ (*-> Basic (BVAR ("Closure"))*)
+  | Cast _ (*-> Basic (BVAR ("Cast"))*)
+  | Lfield _ (*-> Basic (BVAR ("Lfield"))*)
+  | Lindex _ (*-> Basic (BVAR ("Lindex"))*)
+  | Sizeof _ -> None (*Basic (BVAR ("Sizeof"))*)
 
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
   match exp with 
@@ -580,8 +586,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Some (Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
   | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
@@ -589,8 +595,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 0) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
-    | Basic(BVAR var ), Basic (BINT 2), Basic (BINT 1) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
 
@@ -599,51 +605,39 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
 
     let t1 = expressionToTerm e1 stack in 
     let t2 = expressionToTerm e2 stack in 
-    let t2 = match t2 with 
-    | Minus(t2, _ ) -> t2 
-    | _ -> t2 
-    in 
-    (match bop with 
-    | Eq  -> Some (Eq (t1, t2))
-    | Lt -> Some (Lt (t1, t2))
-    | Gt -> Some (Gt (t1, t2))
-    | Le -> Some (LtEq (t1, t2))
-    | Ge -> Some (GtEq (t1, t2))
-    | Ne -> Some (Neg (Eq (t1, t2)))
-    | LAnd | BAnd -> 
-      (match expressionToPure e1 stack, expressionToPure e2 stack with 
-      | Some p1, Some p2 -> Some (PureAnd (p1, p2))
-      | Some p, None | None, Some p -> Some p 
-      | _ -> None 
-      )
-    | LOr | BOr | BXor -> 
-      (match expressionToPure e1 stack, expressionToPure e2 stack with 
-      | Some p1, Some p2 -> Some (PureOr (p1, p2))
-      | Some p, None | None, Some p -> Some p 
-      | _ -> None 
-      )
-    | _ -> 
-      (*print_endline ("expressionToPure None : " ^ Exp.to_string exp); *)
-      None
-    )
-    (*
-    | LAnd  (** logical and. Does not always evaluate both operands. *)
-    | LOr  (** logical or. Does not always evaluate both operands. *)  
-    | PlusA of Typ.ikind option  (** arithmetic + *)
-    | PlusPI  (** pointer + integer *)
-    | MinusA of Typ.ikind option  (** arithmetic - *)
-    | MinusPI  (** pointer - integer *)
-    | MinusPP  (** pointer - pointer *)
-    | Mult of Typ.ikind option  (** * *)
-    | DivI  (** / for integers *)
-    | DivF  (** / for floats *)
-    | Mod  (** % *)
-    | Shiftlt  (** shift left *)
-    | Shiftrt  (** shift right *)
-    | BAnd  (** bitwise and *)
-    | BXor  (** exclusive-or *)
-    | BOr  (** inclusive-or *)
-    *)
+    (match t1, t2 with 
+    | None, _
+    | _, None -> None 
+    | Some t1 , Some t2 -> 
+      let t2 = 
+      match t2 with 
+      | (Minus(t2, _ )) -> t2 
+      | (t2) -> t2 
+      in 
+      (match bop with 
+      | Eq  -> Some (Eq (t1, t2))
+      | Lt -> Some (Lt (t1, t2))
+      | Gt -> Some (Gt (t1, t2))
+      | Le -> Some (LtEq (t1, t2))
+      | Ge -> Some (GtEq (t1, t2))
+      | Ne -> Some (Neg (Eq (t1, t2)))
+      | LAnd | BAnd -> 
+        (match expressionToPure e1 stack, expressionToPure e2 stack with 
+        | Some p1, Some p2 -> Some (PureAnd (p1, p2))
+        | Some p, None | None, Some p -> Some p 
+        | _ -> None 
+        )
+      | LOr | BOr | BXor -> 
+        (match expressionToPure e1 stack, expressionToPure e2 stack with 
+        | Some p1, Some p2 -> Some (PureOr (p1, p2))
+        | Some p, None | None, Some p -> Some p 
+        | _ -> None 
+        )
+      | _ -> 
+        (*print_endline ("expressionToPure None : " ^ Exp.to_string exp); *)
+        None
+      ))
+
   
 
   | UnOp (_, e, _) -> 
@@ -687,15 +681,19 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
   | _ -> 
     None 
   
-let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store s):IR.Sil.instr) stack =
+let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store s):IR.Sil.instr) stack : pure option =
   let exp1 = s.e1 in 
-  let funName = (Exp.to_string e_fun) in 
-  if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall funName then 
-    Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
-  else 
-    let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in 
-    (* Predicate(funName, argumentTerms) *)
-    Some (Eq (expressionToTerm exp1 stack, Basic(ANY)))
+  let temp = expressionToTerm exp1 stack in 
+  match temp with 
+  | None -> None 
+  | Some temp -> 
+    let funName = (Exp.to_string e_fun) in 
+    if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall funName then 
+      Some (Eq (temp, Basic(ANY)))
+    else 
+      (*let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in *)
+      (* Predicate(funName, argumentTerms) *)
+      Some (Eq (temp, Basic(ANY)))
 
 
 
@@ -708,7 +706,12 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
       let exp1 = s.e1 in 
       let exp2 = s.e2 in 
-      Some (Eq (expressionToTerm exp1 stack, expressionToTerm exp2 stack))
+      (match expressionToTerm exp1 stack, expressionToTerm exp2 stack with 
+      | Some e1, Some e2 -> Some (Eq (e1, e2))
+      | _, _ -> None 
+      
+      )
+      
     | Load l :: tail ->
       let stack' = (l.e, l.id):: stack in 
       getPureFromBinaryOperatorStmtInstructions "Assign" tail stack'    
@@ -750,12 +753,13 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     let t1 = expressionToTerm exp1 stack in 
     let t2 = expressionToTerm exp2 stack in 
     (match t1, t2 with 
-    | Basic(BSTR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
-    | Basic(BVAR _ ) , Basic(BINT _ ) -> Some (Eq (t1, t2))
+    | Some (Basic(BSTR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BSTR a ), Basic(BINT b )))
+    | Some (Basic(BVAR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BVAR a ), Basic(BINT b )))
     (*
     | _ -> Some (Eq (t1, Basic ANY))  *)
     (* if it is temp=user_quota_size-quota_size, temp will be ANY *)
-    | _ -> Some (Eq (t1, t2)) 
+    | Some t1, Some t2 -> Some (Eq (t1, t2)) 
+    | _, _ -> None 
 
     )  
     
@@ -826,16 +830,29 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         let exp2 = s.e2 in 
         (*predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
         *)
+        (match expressionToTerm exp2 stack with
+        | Some t -> Singleton (Predicate (retKeyword, [t]), node_key), []
+        | _ ->  Singleton (Predicate (retKeyword, []), node_key), []
+        )
 
-        Singleton (Predicate (retKeyword, [expressionToTerm exp2 stack]), node_key), []
       | _ -> 
         Singleton (Predicate (retKeyword, [Basic(BINT 0)]), node_key), []
       )
     | Call x  -> 
       (match instrs with 
       | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
-        let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in 
-        let argumentTermsType = List.map argumentTerms ~f:(fun a -> match a with | Basic(BINT _ ) ->"Number" | Basic(BVAR _ ) -> "Symbol" | Basic(BSTR _ ) -> "Symbol" | _ -> "")  in 
+        let (argumentTerms:terms list) =  List.fold_left arg_ts ~init:[] ~f:(fun acc (eA, _) -> 
+          match expressionToTerm eA stack with 
+          | Some t -> acc@[t] 
+          | None -> acc 
+        ) in 
+        let argumentTermsType = List.map argumentTerms 
+          ~f:(fun a -> 
+          match a with 
+          |  (Basic(BINT _ )) ->"Number" 
+          |  (Basic(BVAR _ )) -> "Symbol" 
+          |  (Basic(BSTR _ )) -> "Symbol" 
+          | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
         let funName = String.sub funName 5 (String.length funName - 5) in 
         predicateDeclearation:= (funName, argumentTermsType@["Number"]) :: !predicateDeclearation ;
@@ -1422,7 +1439,9 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
     in 
     match precondition with 
     | None -> print_endline("wp4Termination " ^ string_of_pure (TRUE)); TRUE 
-    | Some pre -> pre 
+    | Some pre -> 
+      if entailConstrains pre FALSE then FALSE 
+      else pre 
 
 
 let rec fstEleList2regularExpr (record:fstElem list) : regularExpr  =

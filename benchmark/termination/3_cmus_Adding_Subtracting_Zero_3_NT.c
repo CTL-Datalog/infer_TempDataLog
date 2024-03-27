@@ -29,6 +29,8 @@ flag: When the end of the file is reached, flag is 1; otherwise flag is 0.
 This program is non-terminating because when the end of the file is reached and flag is 1, read function will always return 0, which is infinite.
 */
 
+/*@ AF(EXIT()) @*/
+
 int flag = 0;
 int read( int loc , int len )
 {
@@ -45,7 +47,7 @@ int read( int loc , int len )
         else
         {
             if( num < 0 )
-                num =  -num;
+                num = -num;
             num = num % 1000;
             count++;
             if( num < 995 ) //read a char
@@ -62,6 +64,8 @@ int read( int loc , int len )
     }
     return count;
 }
+
+
 int main()
 {
     int pos = 0;
@@ -80,7 +84,7 @@ int main()
                 return 0;
             continue;
         }
-        pos += rc;
+        pos = pos +  rc;
     }
     return 0;
 }
