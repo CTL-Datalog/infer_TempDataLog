@@ -5,6 +5,10 @@ Project Name: csound-android(7a611ab)
 License: GPL-2.0
 termination: false
 */
+
+/*@ AF(EXIT()) @*/
+
+
 typedef struct NNode{
     struct NNode * nxtact;
 }INSDS;

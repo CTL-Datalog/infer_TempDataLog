@@ -5,6 +5,9 @@ Project Name: fontconfig(fa741cd4)
 License: MIT
 termination: FALSE
 */
+
+/*@ AF(EXIT()) @*/
+
 int main()
 {
     int h = __VERIFIER_nondet_int();
@@ -16,8 +19,8 @@ int main()
     int r;
     while( i < hash )
     {
-        if( !r ) r = h % rehash;
-        i += r;
+        //if( !r ) r = h % rehash;
+        i = i + r;
     }
     return 0;
 }

@@ -8,6 +8,9 @@
 // -joinbwd 5
 // -precondition "x==2"
 //
+
+/*@ AF(r=1) @*/
+
 int main() {
     int r = 0;
     int x;

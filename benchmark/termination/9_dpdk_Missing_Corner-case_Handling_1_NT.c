@@ -6,6 +6,9 @@ License: BSD-3-Clause
 termination: FALSE
 */
 
+/*@ AF(EXIT()) @*/
+
+
 int flag = 0;
 int count = 0;
 int read()
@@ -37,7 +40,8 @@ int main()
 {
     while(1)
     {
-        if( read() < 0 )
+        int res = read() ; 
+        if( res < 0 )
             break;
     }
     return 0;

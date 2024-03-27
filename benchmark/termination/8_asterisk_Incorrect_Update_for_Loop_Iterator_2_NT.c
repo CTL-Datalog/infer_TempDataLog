@@ -6,6 +6,9 @@ License: GPL2
 termination: FALSE
 
 */
+/*@ AF(EXIT()) @*/
+
+
 int main()
 {
     unsigned char l = __VERIFIER_nondet_uchar();

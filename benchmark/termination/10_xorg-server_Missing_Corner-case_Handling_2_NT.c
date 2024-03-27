@@ -6,6 +6,9 @@ License: MIT
 termination: FALSE
 
 */
+
+/*@ AF(EXIT()) @*/
+
 int main()
 {
     int val = __VERIFIER_nondet_int();
