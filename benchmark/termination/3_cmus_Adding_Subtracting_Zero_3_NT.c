@@ -84,7 +84,7 @@ int main()
                 return 0;
             continue;
         }
-        pos = pos +  rc;
+        pos = pos + rc;
     }
     return 0;
 }

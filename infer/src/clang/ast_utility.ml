@@ -644,6 +644,9 @@ let rec normalise_pure (pi:pure) : pure =
   | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
   | PureAnd (pi1,TRUE) 
   | PureAnd (TRUE, pi1) -> normalise_pure pi1
+  | PureAnd (_,FALSE) 
+  | PureAnd (FALSE, _) -> FALSE
+
 
   | PureAnd (pi1,pi2) -> 
     let p1 = normalise_pure pi1 in 

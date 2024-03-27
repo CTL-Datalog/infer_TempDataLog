@@ -1315,22 +1315,75 @@ let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr =
     ) in 
     disjunctRE disjunctions
 
-let rec makeAGuess (pi:pure) : terms option = 
+let rec getAllPathConditions (re:regularExpr): pure list = 
+  match re with 
+  | Emp | Bot | Singleton _ -> [TRUE]
+  | Guard (p, _) -> [(normalise_pure p)]
+  | Concate(re1, re2) ->
+    let pc1 = getAllPathConditions re1 in 
+    let pc2 = getAllPathConditions re2 in 
+    let mix = cartesian_product pc1 pc2 in 
+    List.map mix ~f:(fun (a, b) -> 
+      match a, b with 
+      | Ast_utility.TRUE, _ -> b 
+      | _, Ast_utility.TRUE -> a 
+      | _,  _ -> PureAnd(a, b))
+    
+  | Disjunction (re1, re2) -> 
+    let pc1 = getAllPathConditions re1 in 
+    let pc2 = getAllPathConditions re2 in 
+    pc1 @ pc2
+  | Omega re -> getAllPathConditions re 
+  | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
+
+
+let rec makeAGuessFromPureRelaxed (pi:pure) : terms list = 
   match pi with 
   | LtEq (t, Basic (BINT 0)) 
-  | Lt (t, Basic (BINT 0)) -> Some (Minus(Basic (BINT 0), t))
-  | Lt (t1, t2) -> Some (Minus(t2, t1))
+  | Lt (t, Basic (BINT 0)) -> [(Minus(Basic (BINT 0), t))]
+  | Lt (t1, t2) -> [(Minus(t2, t1))]
+  | Eq (t1, _) -> [(Minus(Basic (BINT 0), t1))]
   | GtEq (t, Basic (BINT 0)) 
-  | Gt (t, Basic (BINT 0)) -> Some t 
-  | Gt (t1, t2) -> Some (Minus(t1, t2))
+  | Gt (t, Basic (BINT 0)) ->[ t ]
+  | Gt (t1, t2) -> [(Minus(t1, t2))]
   | PureAnd (p1, p2) 
   | PureOr (p1, p2) -> 
-    (match makeAGuess p1, makeAGuess p2 with 
-    | Some t1, _ 
-    | _, Some t1 -> Some t1
-    | _, _-> None 
+    (match makeAGuessFromPureRelaxed p1, makeAGuessFromPureRelaxed p2 with 
+    |  t1::_, _ 
+    | _,  t1 :: _ ->  [t1]
+    | _, _-> [] 
     )
-  | _ -> None 
+  | _ -> [] 
+
+let rec makeAGuessFromPure (pi:pure) : terms list = 
+  match pi with 
+  | LtEq (t, Basic (BINT 0)) 
+  | Lt (t, Basic (BINT 0)) -> [(Minus(Basic (BINT 0), t))]
+  | Lt (t1, t2) -> [ (Minus(t2, t1))]
+  | GtEq (t, Basic (BINT 0)) 
+  | Gt (t, Basic (BINT 0)) ->[ t ]
+  | Gt (t1, t2) -> [(Minus(t1, t2))]
+  | PureAnd (p1, p2) 
+  | PureOr (p1, p2) -> 
+    (match makeAGuessFromPure p1, makeAGuessFromPure p2 with 
+    | t1::_, _ 
+    | _,  t1 :: _ ->  [t1]
+    | _, _-> [] 
+    )
+  | _ -> [] 
+
+let makeAGuessFromGuard (re:regularExpr) : terms list = 
+  
+  let pathConditions = getAllPathConditions re in 
+  let pathConditions = flattenList (List.map  pathConditions ~f:decomposePure) in 
+  print_endline ("makeAGuessFromGuard pathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditions))));   
+
+  flattenList (List.map pathConditions ~f:makeAGuessFromPureRelaxed)
+
+let rec makeAGuess (pi:pure) (terminatingCases) : terms list = 
+  let r1 = makeAGuessFromPure pi in 
+  let r2 = makeAGuessFromGuard terminatingCases in 
+  r1@r2
   
 let rec findStateRecord (t:terms) (s:((terms * terms)list)) = 
     match s with 
@@ -1487,18 +1540,30 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
   in
   *) 
 
-let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
+let rec decomposeRE re : regularExpr list = 
+  match re with 
+  | Disjunction (re1, re2) -> 
+    decomposeRE re1 @ decomposeRE re2 
+  | Concate (re1, re2) -> 
+    let li1 = decomposeRE re1 in 
+    let li2 = decomposeRE re2 in 
+    let mix = cartesian_product li1 li2 in 
+    List.map mix ~f:(fun (a, b) -> Concate(a, b)) 
+  | _ -> [re]
+  
+
+
+let rec containUnknown (term:terms) : bool = 
+  match term with 
+  | Basic ANY -> true 
+  | Basic _ -> false 
+  | Minus(t1, t2) | Plus(t1,  t2) -> containUnknown t1 || containUnknown t2
+
+let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : pure = 
   print_endline ("wp4Termination"); 
 
-  match rankingFun with 
-  | None -> FALSE
-  | Some rankingTerm -> 
-    let terminatingBranches, nonTerminatingBranches = devideByExitOrReturn re in 
-
-    print_endline ("terminatingBranches: " ^ string_of_regularExpr terminatingBranches) ; 
-    print_endline ("nonTerminatingBranches: "  ^ string_of_regularExpr nonTerminatingBranches) ; 
-
-    let (transitionSummary:transitionSummary) = transitionSummary nonTerminatingBranches in 
+  let helper rankingTerm reIn : pure  = 
+    let (transitionSummary:transitionSummary) = transitionSummary reIn in 
     print_endline ("current ranking function is " ^ string_of_terms rankingTerm); 
 
     let (precondition: pure option) = List.fold_left transitionSummary ~init:None  
@@ -1512,9 +1577,10 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
         let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in 
         print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
   
-        let res = entailConstrains left_hand_side right_hand_side in 
-        if res then None 
-        else Some right_hand_side
+        if containUnknown rankingTerm' then Some FALSE 
+        else 
+          if entailConstrains left_hand_side right_hand_side then None 
+          else Some right_hand_side
       in 
 
       match acc, pureIter with 
@@ -1529,6 +1595,37 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pur
     | Some pre -> 
       if entailConstrains pre FALSE then FALSE 
       else pre 
+  in 
+
+  let rec aux (rankingTermLi:terms list) reIn : pure = 
+    match rankingTermLi with 
+    | [] -> FALSE
+    | rankingTerm :: tail -> 
+      (match helper rankingTerm reIn  with 
+      | FALSE -> aux tail reIn
+      | cond -> cond 
+      )
+
+  in 
+
+  let rec iterator reLi rankingTermLi : pure  = 
+    match reLi with 
+    | [] -> FALSE
+    | [re] ->  aux rankingTermLi re
+    | re::rest -> 
+      let p1 = aux rankingTermLi re in 
+      let p2 = iterator rest rankingTermLi in 
+      normalise_pure (PureAnd (p1, p2))
+      
+  in 
+
+  match rankingFuns with 
+  | [] -> FALSE
+  | rankingTermLi -> 
+    let (reLi:regularExpr list) = decomposeRE re in 
+    iterator reLi rankingTermLi
+
+    
 
 
 let rec fstEleList2regularExpr (record:fstElem list) : regularExpr  =
@@ -1554,10 +1651,10 @@ let stateAfterTerminate pi =
    
 
 
-let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms option) (re:regularExpr) =  
+let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms list) (re:regularExpr) =  
   match rankingFun with 
-  | None ->   Omega (Concate (Guard(guard), Singleton guard))
-  | Some rankingFun -> 
+  | [] ->   Omega (Concate (Guard(guard), Singleton guard))
+  | rankingFun:: _ -> 
   Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
   (*
     match re with 
@@ -1640,10 +1737,10 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms option) (
 
 let terminatingFinalState rankingFun = 
   (match rankingFun with 
-  | None -> raise (Failure "wp4Termination true but no rankingFun")
-  | Some (Basic rf) -> Eq(Basic rf, Basic(BINT 0))
-  | Some (Minus (t1, t2)) 
-  | Some (Plus (t1, t2))  -> Eq(t1, t2)
+  | [] -> raise (Failure "wp4Termination true but no rankingFun")
+  | (Basic rf) :: _  -> Eq(Basic rf, Basic(BINT 0))
+  | (Minus (t1, t2)) :: _ 
+  | (Plus (t1, t2))  ::_ -> Eq(t1, t2)
   )
 
 
@@ -1651,32 +1748,46 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
   print_endline ("reFalse:" ^ string_of_regularExpr reFalse) ;
   let re = normalise_es re in
   print_endline ("loop body:\n" ^ string_of_regularExpr (re));
+
+
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
-  let pi, deriv, rankingFun, loc =  (match fstSet' with 
-  | [GuardEv (pi, loc)] ->  
-    let f = GuardEv (pi, loc) in 
-    let (rankingFun:terms option) = makeAGuess pi in 
-    let deriv = normalise_es (derivitives f re) in 
-    pi, deriv, rankingFun, loc
+  let pi, deriv, rankingFuns, loc, nonTerminatingBranches =  
+    (match fstSet' with 
+    | [GuardEv (pi, loc)] ->  
+      let f = GuardEv (pi, loc) in 
+      let deriv = normalise_es (derivitives f re) in 
+      let terminatingBranches, nonTerminatingBranches = devideByExitOrReturn deriv in 
 
-  | [PureEv (_, loc)] -> raise (Failure "loop starting with PureEv") (*Ast_utility.TRUE, re, None, loc *)
-  
-  | _-> raise (Failure "loop starting with more than one fst")
-  )
+      print_endline ("terminatingBranches: " ^ string_of_regularExpr terminatingBranches) ; 
+      print_endline ("nonTerminatingBranches: "  ^ string_of_regularExpr nonTerminatingBranches) ; 
+    
+      let (rankingFuns:terms list) = makeAGuess pi terminatingBranches in 
+      let rankingFuns = removeRedundant rankingFuns stricTcompareTerm in 
+      pi, deriv, rankingFuns, loc, nonTerminatingBranches
+
+    | [PureEv (_, loc)] -> raise (Failure "loop starting with PureEv") (*Ast_utility.TRUE, re, None, loc *)
+    
+    | _-> raise (Failure "loop starting with more than one fst")
+    )
   in 
+
+
+  print_endline ("\nRankingFuns \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_terms p) (rankingFuns))));   
 
 
   print_endline ("loop guard: " ^ string_of_pure pi );
 
+
+
   let stateWhenNonTerminate = deriv in 
   
-  (match wp4Termination deriv (PureAnd(pi, path)) rankingFun with 
+  (match wp4Termination nonTerminatingBranches (PureAnd(pi, path)) rankingFuns with 
   | FALSE -> 
-    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFun stateWhenNonTerminate in 
+    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns stateWhenNonTerminate in 
     (stateWhenNonTerminate_fixpoint)
   | TRUE -> 
-    let pureAfterTerminate = terminatingFinalState rankingFun in 
+    let pureAfterTerminate = terminatingFinalState rankingFuns in 
     Concate(Guard(pi, loc), Concate(stateAfterTerminate pureAfterTerminate, reFalse))
 
   | weakestPre -> 
@@ -1695,8 +1806,8 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
     let terminating = 
       (*Concate (g1, Concate(g2, g3) ) *) Concate(g2, g3) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let pureAfterTerminate = terminatingFinalState rankingFun in 
-    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFun stateWhenNonTerminate in 
+    let pureAfterTerminate = terminatingFinalState rankingFuns in 
+    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns stateWhenNonTerminate in 
     let non_terminating = Concate (negg2 , stateWhenNonTerminate_fixpoint) in 
     disjunctRE [
       Concate (terminating, Concate (stateAfterTerminate pureAfterTerminate, reFalse)); non_terminating]
@@ -1816,26 +1927,6 @@ let rec findRelaventValueSet (re:regularExpr) (var:string) : int list =
   | Omega (reIn) | Kleene (reIn) -> findRelaventValueSet reIn var
   ;;
 
-let rec getAllPathConditions (re:regularExpr): pure list = 
-  match re with 
-  | Emp | Bot | Singleton _ -> [TRUE]
-  | Guard (p, _) -> [(normalise_pure p)]
-  | Concate(re1, re2) ->
-    let pc1 = getAllPathConditions re1 in 
-    let pc2 = getAllPathConditions re2 in 
-    let mix = cartesian_product pc1 pc2 in 
-    List.map mix ~f:(fun (a, b) -> 
-      match a, b with 
-      | Ast_utility.TRUE, _ -> b 
-      | _, Ast_utility.TRUE -> a 
-      | _,  _ -> PureAnd(a, b))
-    
-  | Disjunction (re1, re2) -> 
-    let pc1 = getAllPathConditions re1 in 
-    let pc2 = getAllPathConditions re2 in 
-    pc1 @ pc2
-  | Omega re -> getAllPathConditions re 
-  | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
 
 
 
