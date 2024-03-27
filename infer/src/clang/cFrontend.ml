@@ -784,7 +784,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   in 
   match node_kind with
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
-  | Exit_node ->  Singleton (Predicate ("Exit", []), node_key), []
+  | Exit_node ->  Singleton (Predicate (exitKeyWord, []), node_key), []
   | Join_node ->  (*Singleton(Predicate (joinKeyword, []), node_key)*)Emp , []
   | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
   | Prune_node (f,_,_) ->  
@@ -1377,15 +1377,22 @@ let updateStateBasedOnCurrentValues (state:((terms * terms)list)) (target:terms)
   ;;
 
 let transitionSummary (re:regularExpr) : transitionSummary = 
-  print_endline ("transitionSummary: " ^ string_of_regularExpr re);
+  print_endline ("transitionSummary input : " ^ string_of_regularExpr re);
   let updateTransitionPath acc pi = List.map acc ~f:(fun (pAcc, state) -> (PureAnd(pAcc, pi), state)) in 
   let updateTransitionStates acc pi = 
     match pi with 
     | Eq (t1, t2) -> 
-      List.map acc ~f:(
+      let temp = List.map acc ~f:(
       fun (pAcc, state) -> 
         let state' = updateStateBasedOnCurrentValues state t1 t2 in 
         (pAcc, state')) 
+      in 
+      (*print_endline ("============\n" ^ string_of_transitionSummary acc);
+      print_endline ("updateTransitionStates: " ^ string_of_pure pi);
+      print_endline (string_of_transitionSummary temp);
+      *)
+      temp
+
     | _ -> acc 
   in 
   let rec helper acc reIn : transitionSummary = 
@@ -1405,17 +1412,58 @@ let transitionSummary (re:regularExpr) : transitionSummary =
 
   ;;
 
+let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) = 
+  let re = normalise_es re in 
+  let addElement li (reIn:regularExpr) : regularExpr list = 
+    match li with 
+    | [] -> [reIn]
+    | li -> List.map ~f:(fun a -> Concate (a, reIn)) li
+  in
+
+
+
+  let mergeTermNonTerm ((accT,accNT) : (regularExpr list * regularExpr list)) ((t1,nt1) : (regularExpr list * regularExpr list))  : (regularExpr list * regularExpr list) = 
+    let (newNT:regularExpr list) = flattenList (List.map ~f:(fun t -> addElement accNT t) nt1 ) in 
+    let newT = flattenList (List.map ~f:(fun t -> addElement accNT t) t1 ) in 
+    accT@newT , newNT 
+  in 
+  let rec helper (accT:regularExpr list) (accNT:regularExpr list) reIn : (regularExpr list * regularExpr list) = 
+    match reIn with
+    | Emp | Bot | Omega _ | Kleene _ -> raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
+    | Singleton(Predicate (str, _), _) -> 
+      if String.compare str retKeyword ==0 || String.compare str  exitKeyWord  ==0 
+      then addElement accT reIn,  accNT
+      else accT, addElement accNT reIn 
+    | Guard _
+    | Singleton _ -> accT, addElement accNT reIn 
+    | Disjunction (re1, re2) -> 
+      let t1, nt1 = helper accT accNT re1 in 
+      let t2, nt2 = helper accT accNT re2 in 
+      t1 @t2, nt1@ nt2
+    | Concate(re1, re2) -> 
+      let t1, nt1 = helper [] [] re1 in 
+      let t2, nt2 = helper [] [] re2 in 
+      mergeTermNonTerm (mergeTermNonTerm (accT, accNT) (t1, nt1)) (t2, nt2)
+  in 
+  let term, nonterm =  helper [] [] re in 
+  disjunctRE term, disjunctRE nonterm
+
 let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
   print_endline ("wp4Termination"); 
 
   match rankingFun with 
   | None -> FALSE
   | Some rankingTerm -> 
-    let (transitionSummary:transitionSummary) = transitionSummary re in 
+    let terminatingBranches, nonTerminatingBranches = devideByExitOrReturn re in 
+
+    print_endline ("terminatingBranches: " ^ string_of_regularExpr terminatingBranches) ; 
+    print_endline ("nonTerminatingBranches: "  ^ string_of_regularExpr nonTerminatingBranches) ; 
+
+    let (transitionSummary:transitionSummary) = transitionSummary nonTerminatingBranches in 
     print_endline ("current ranking function is " ^ string_of_terms rankingTerm); 
 
     let (precondition: pure option) = List.fold_left transitionSummary ~init:None  
-      ~f:(fun acc (path, stateLi) -> 
+      ~f:(fun acc (path, stateLi) ->  
       print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
 
       let (pureIter:pure option) = 
@@ -1561,6 +1609,7 @@ let terminatingFinalState rankingFun =
 
 
 let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularExpr =  
+  print_endline ("reFalse:" ^ string_of_regularExpr reFalse) ;
   let re = normalise_es re in
   print_endline ("loop body:\n" ^ string_of_regularExpr (re));
   let (fstSet:(fstElem list)) = fst re in 
@@ -1589,7 +1638,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
     (stateWhenNonTerminate_fixpoint)
   | TRUE -> 
     let pureAfterTerminate = terminatingFinalState rankingFun in 
-    Concate(Guard(pi, loc), stateAfterTerminate pureAfterTerminate)
+    Concate(Guard(pi, loc), Concate(stateAfterTerminate pureAfterTerminate, reFalse))
 
   | weakestPre -> 
     let weakestPre = normalise_pure weakestPre in 
@@ -1623,10 +1672,16 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
   
   | Disjunction(rFalse, Kleene (reIn)) 
   | Disjunction(Kleene (reIn), rFalse) -> 
-    let re1, path1 = convertAllTheKleeneToOmega rFalse path in 
+    let rFalse'  = 
+      let fst = fst rFalse in 
+      match fst with 
+      | f::_ -> normalise_es (derivitives f rFalse)
+      | [] -> rFalse
+    in 
+    let re1, path1 = convertAllTheKleeneToOmega rFalse' path in 
     let re2, path2 =  
       let loopsummary = getLoopSummary reIn (normalise_pure path) re1 in  
-      print_endline ("loopsummary: " ^ string_of_regularExpr  loopsummary);
+      print_endline ("loopsummary1: " ^ string_of_regularExpr  loopsummary);
       loopsummary, path
     in 
     Disjunction(re1, re2), PureOr(path1, path2)
@@ -2010,7 +2065,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
                 predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
               else if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
-              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword] then ()
+              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword;exitKeyWord] then ()
               else 
                 predicateDeclearation:=  !predicateDeclearation@ [(s, ["Number"])] ;
               );
