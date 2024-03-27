@@ -1376,10 +1376,11 @@ let makeAGuessFromGuard (re:regularExpr) : terms list =
   
   let pathConditions = getAllPathConditions re in 
   let pathConditions = flattenList (List.map  pathConditions ~f:decomposePure) in 
-  print_endline ("makeAGuessFromGuard pathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditions))));   
-
+  (*print_endline ("makeAGuessFromGuard pathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditions))));   
+*)
   flattenList (List.map pathConditions ~f:makeAGuessFromPureRelaxed)
 
+(* makeAGuess is to get a list of possible ranking functions *)
 let rec makeAGuess (pi:pure) (terminatingCases) : terms list = 
   let r1 = makeAGuessFromPure pi in 
   let r2 = makeAGuessFromGuard terminatingCases in 
@@ -1465,6 +1466,8 @@ let transitionSummary (re:regularExpr) : transitionSummary =
 
   ;;
 
+(* devideByExitOrReturn returns two results, one is the terminating traces, ends with return or exit, and 
+   the other is non-terminating traces, which needs to decrese with some ranking function  *)
 let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) = 
   let re = normalise_es re in 
 
@@ -1503,43 +1506,9 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
   let term, nonterm =  helper re in 
   normalise_es term, normalise_es nonterm
 
-  (*
-  let addElement li (reIn:regularExpr) : regularExpr list = 
-    match li with 
-    | [] -> [reIn]
-    | li -> List.map ~f:(fun a -> Concate (a, reIn)) li
-  in
 
 
-
-  let mergeTermNonTerm ((accT,accNT) : (regularExpr list * regularExpr list)) ((t1,nt1) : (regularExpr list * regularExpr list))  : (regularExpr list * regularExpr list) = 
-    let (newNT:regularExpr list) = flattenList (List.map ~f:(fun t -> addElement accNT t) nt1 ) in 
-    let newT = flattenList (List.map ~f:(fun t -> addElement accNT t) t1 ) in 
-    accT@newT , newNT 
-  in 
-  let rec helper (accT:regularExpr list) (accNT:regularExpr list) reIn : (regularExpr list * regularExpr list) = 
-    match reIn with
-    | Emp | Bot | Omega _ | Kleene _ -> raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
-    | Singleton(Predicate (str, _), _) -> 
-      if String.compare str retKeyword ==0 || String.compare str  exitKeyWord  ==0 
-      then mergeTermNonTerm (accT,accNT) ([reIn], [])
-      else mergeTermNonTerm (accT,accNT) ([], [reIn])
-    | Guard _
-    | Singleton _ -> 
-      mergeTermNonTerm (accT,accNT) ([], [reIn])
-    
-    | Disjunction (re1, re2) -> 
-      let t1, nt1 = helper accT accNT re1 in 
-      let t2, nt2 = helper accT accNT re2 in 
-      t1 @t2, nt1@ nt2
-    | Concate(re1, re2) -> 
-      let t1, nt1 = helper accNT accNT re1 in 
-      let t2, nt2 = helper t1 nt1 re2 in 
-      t2, nt2
-      (*mergeTermNonTerm (mergeTermNonTerm (accT, accNT) (t1, nt1)) (t2, nt2) *)
-  in
-  *) 
-
+(* decomposeRE is to enumarate all the disjunctive cases *)
 let rec decomposeRE re : regularExpr list = 
   match re with 
   | Disjunction (re1, re2) -> 
@@ -1553,6 +1522,7 @@ let rec decomposeRE re : regularExpr list =
   
 
 
+(* containUnknown is to check is a term contains _, which should not be send to Z3 *)
 let rec containUnknown (term:terms) : bool = 
   match term with 
   | Basic ANY -> true 
@@ -1597,6 +1567,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : pure
       else pre 
   in 
 
+  (* for each path, it is enough that one ranking function is be decresing, so disjunct on the results *)
   let rec aux (rankingTermLi:terms list) reIn : pure = 
     match rankingTermLi with 
     | [] -> FALSE
@@ -1608,6 +1579,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : pure
 
   in 
 
+  (* for each path, we need to try at least one ranking function should be decresing, so conjucntion on the results *)
   let rec iterator reLi rankingTermLi : pure  = 
     match reLi with 
     | [] -> FALSE
