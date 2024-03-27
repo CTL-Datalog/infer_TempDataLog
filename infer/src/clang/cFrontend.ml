@@ -1414,6 +1414,43 @@ let transitionSummary (re:regularExpr) : transitionSummary =
 
 let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) = 
   let re = normalise_es re in 
+
+  let rec helper (reIn:regularExpr) : (regularExpr * regularExpr) = 
+    let fstSet = fst reIn in 
+    match fstSet with 
+    | [] -> (Bot, Emp) 
+    | fLi -> 
+      let (res:(regularExpr * regularExpr)) = 
+        List.fold_left ~init:(Bot, Bot) ~f:(fun (accTerm, accNonTerm) f -> 
+        let (cTerm, cNonTerm) = 
+          match f with 
+          | PureEv (Predicate (str, _), _) -> 
+            if String.compare str retKeyword ==0 || String.compare str  exitKeyWord  ==0 
+            then (eventToRe f, Bot)
+            else (Bot, eventToRe f) 
+
+          | PureEv _
+          | Delimiter _ 
+          | GuardEv _ -> (Bot, eventToRe f) 
+          | _ ->  raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
+        in 
+        let (dTerm, dNonTerm) = helper (normalise_es(derivitives f reIn)) in 
+        let (accTerm', accNonTerm') = 
+          match (cTerm, cNonTerm) with 
+          | (Bot, fEv) -> (Concate(fEv, dTerm), Concate(fEv, dNonTerm))
+          | (fEv, Bot) -> (fEv, Bot)
+          | _ , _ -> raise (Failure "devideByExitOrReturn helper no possible  " )
+        in 
+        (Disjunction(accTerm,  accTerm'), Disjunction(accNonTerm, accNonTerm')) 
+
+      
+        ) fLi 
+      in res 
+  in 
+  let term, nonterm =  helper re in 
+  normalise_es term, normalise_es nonterm
+
+  (*
   let addElement li (reIn:regularExpr) : regularExpr list = 
     match li with 
     | [] -> [reIn]
@@ -1432,21 +1469,23 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
     | Emp | Bot | Omega _ | Kleene _ -> raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
     | Singleton(Predicate (str, _), _) -> 
       if String.compare str retKeyword ==0 || String.compare str  exitKeyWord  ==0 
-      then addElement accT reIn,  accNT
-      else accT, addElement accNT reIn 
+      then mergeTermNonTerm (accT,accNT) ([reIn], [])
+      else mergeTermNonTerm (accT,accNT) ([], [reIn])
     | Guard _
-    | Singleton _ -> accT, addElement accNT reIn 
+    | Singleton _ -> 
+      mergeTermNonTerm (accT,accNT) ([], [reIn])
+    
     | Disjunction (re1, re2) -> 
       let t1, nt1 = helper accT accNT re1 in 
       let t2, nt2 = helper accT accNT re2 in 
       t1 @t2, nt1@ nt2
     | Concate(re1, re2) -> 
-      let t1, nt1 = helper [] [] re1 in 
-      let t2, nt2 = helper [] [] re2 in 
-      mergeTermNonTerm (mergeTermNonTerm (accT, accNT) (t1, nt1)) (t2, nt2)
-  in 
-  let term, nonterm =  helper [] [] re in 
-  disjunctRE term, disjunctRE nonterm
+      let t1, nt1 = helper accNT accNT re1 in 
+      let t2, nt2 = helper t1 nt1 re2 in 
+      t2, nt2
+      (*mergeTermNonTerm (mergeTermNonTerm (accT, accNT) (t1, nt1)) (t2, nt2) *)
+  in
+  *) 
 
 let wp4Termination (re:regularExpr) (guard:pure) (rankingFun:terms option) : pure = 
   print_endline ("wp4Termination"); 
