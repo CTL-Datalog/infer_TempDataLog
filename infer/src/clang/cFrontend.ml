@@ -2225,9 +2225,10 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               let currentGuardBody = (pureToBodies guard (previousState)) in 
 
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
-              (match pathConstrint with 
-              | [] -> [stateFact], [(fact', currentGuardBody)]
-              | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun (p, l) -> (pureToBodies p l)) bodies) @ currentGuardBody)]
+              (match pathConstrint, currentGuardBody with 
+              | [], [] -> [stateFact;fact'], []
+              | [], _ -> [stateFact], [(fact', currentGuardBody)]
+              | bodies, _ -> [stateFact], [(fact', flattenList(List.map ~f:(fun (p, l) -> (pureToBodies p l)) bodies) @ currentGuardBody)]
               )
             | None -> [], []) 
           in 
@@ -2235,9 +2236,12 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
             match previousState with 
             | None -> pathConstrint
             | Some previousState -> 
-              match pathConstrint with 
-              | [] -> ([(guard, previousState)])
-              | bodies -> (bodies @ [(guard, previousState)])
+              match pathConstrint, guard  with 
+              | [], TRUE -> ([])
+              | bodies, TRUE -> (bodies)
+
+              | [], _ -> ([(guard, previousState)])
+              | bodies, _ -> (bodies @ [(guard, previousState)])
           in 
 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint' currentValuation in 
