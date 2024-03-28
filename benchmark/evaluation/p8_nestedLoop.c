@@ -1,6 +1,6 @@
 
 
-/*@ AF(y=1) @*/
+/*@ AF(EXIT()) @*/
 
 void main () { 
   int m; 

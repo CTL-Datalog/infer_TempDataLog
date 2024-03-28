@@ -1101,14 +1101,28 @@ let askZ3 pi =
   re;;
 
 
-let entailConstrains pi1 pi2 = 
+let entailConstrains p1 p2 = 
+  let p1 = normalise_pure p1 in 
+  let p2 = normalise_pure p2 in 
 
-  let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
+  print_endline (string_of_pure p1 ^  " => " ^ string_of_pure p2);
+
+  let aux pi1 pi2 = 
+    let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
   (*
   print_string (string_of_pure pi1 ^" -> " ^ string_of_pure pi2 ^" == ");
   print_string (string_of_bool (sat) ^ "\n");
   *)
-  sat;;
+    sat 
+  in 
+  match p1, p2 with
+  | Eq(Basic(BVAR var1), Basic (BINT n)), Predicate(pred, [Basic(BVAR var2)]) -> 
+    if String.compare pred evenKeyWord == 0 && String.compare var1 var2 == 0
+    then if n%2==0 then true else false 
+    else aux p1 p2
+  | _, _ -> aux p1 p2
+
+  
   
 (* 
 let askZ3 pi = 
@@ -1169,6 +1183,11 @@ let updateRuleDeclearation reference str : unit =
   if twoStringSetOverlap !reference [str] then ()
   else reference:= (str) :: !reference 
 
+let rec vartoStr (tLi:terms list) : terms list = 
+  match tLi with 
+  | Basic (BVAR a) :: xs -> (Basic (BSTR a)) :: vartoStr xs 
+  | x :: xs  -> x :: vartoStr xs 
+  | [] -> []
 
 let rec getFactFromPure (p:pure) (state:int) : relation list = 
   (*print_endline ("getFactFromPure " ^ string_of_pure p); *)
@@ -1180,7 +1199,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     (if String.compare s evenKeyWord == 0 || String.compare s oddKeyWord == 0 then 
     updateRuleDeclearation ruleDeclearation s
     else ()    );
-    [(s, terms@[loc])])
+    [(s, (vartoStr terms)@[loc])])
 
   | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 

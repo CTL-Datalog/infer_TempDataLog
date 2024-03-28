@@ -601,8 +601,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Some (Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Some (Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BVAR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BVAR var )])) 
     | _ -> None 
     )
   | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
@@ -610,8 +610,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BVAR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BVAR var )])) 
     | _ -> None 
     )
 
@@ -2183,6 +2183,8 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
    where as predicatesSpec only matters to generate facts for PureEv
 *)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
+  print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
+
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2203,6 +2205,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
 
   (* assign concret value *)
   | Eq (Basic(BVAR var), Basic t1) -> 
+    print_endline ("predicates pure \n" ^ string_of_pure p); 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
@@ -2210,14 +2213,15 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
     let currentConstraint = PureAnd(pureOfCurrentState, pathConstrint') in 
-    (*print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
-    *)
+    print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
+    
     
     let predicates' = 
         if entailConstrains currentConstraint FALSE 
         (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
         then List.filter ~f:(fun ele -> relevent ele var && entailConstrains pureOfCurrentState ele) (predicates@predicatesSpec) 
-        else List.filter ~f:(fun ele -> relevent ele var && entailConstrains currentConstraint ele) (predicates@predicatesSpec) in 
+        else List.filter ~f:(fun ele -> 
+        relevent ele var && entailConstrains currentConstraint ele) (predicates@predicatesSpec) in 
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     currentValuation', facts
 
@@ -2279,10 +2283,10 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
 
 *)
   
-  (*
+  
   print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpec))));   
   print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
-*)
+
 
   let rec mergeResults li (acca, accb) = 
     match li with 
