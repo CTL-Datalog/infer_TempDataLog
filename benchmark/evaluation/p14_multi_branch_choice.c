@@ -6,11 +6,15 @@
  * -ctl EF{x==-4}
  *
  */
+/*@ EF(x=4) @*/
+extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
+
 
 int main() {
     int x;
 
-    if (?) {
+    int y = __VERIFIER_nondet_int() ;
+    if (y) {
         x = 1;
     } else {
         x = -1;

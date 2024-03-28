@@ -12,17 +12,20 @@
 
 //void init() { A = R = 0; }
 
- 
+/*@ AG(A=1 => (AF(R=0)))  @*/
+
+
+extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
 void main() {
   int A = 0;
   int R = 0;
 
   int n;
-  while(?) {
+  while(1) {
     A = 1;
     A = 0;
-    n = ?;
+    n = __VERIFIER_nondet_int();
     while(n>0) {
       n--;
     }

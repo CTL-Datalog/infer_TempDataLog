@@ -1724,7 +1724,7 @@ let stateAfterTerminate pi =
 
 let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms list) (re:regularExpr) =  
   match rankingFun with 
-  | [] ->   Omega (Concate (Guard(guard), Singleton guard))
+  | [] ->  Omega (Concate (Guard(guard), Concate(Singleton guard, re)))
   | rankingFun:: _ -> 
   Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
   (*
@@ -1955,6 +1955,12 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
   *)
 
 
+let rec containCycle re : bool = 
+  match re with 
+  | Disjunction (re1, re2)
+  | Concate (re1, re2) -> containCycle re1 || containCycle re2 
+  | Kleene _ -> true 
+  | _ -> false 
 
   
 let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * pure = 
@@ -1963,25 +1969,40 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
   
   | Disjunction(rFalse, Kleene (reIn)) 
   | Disjunction(Kleene (reIn), rFalse) -> 
+    let reIn =
+      if containCycle reIn then 
+        let reIn', _ = convertAllTheKleeneToOmega reIn path in 
+        reIn'
+      else reIn
+    in 
+
     let rFalse'  = 
       let fst = fst rFalse in 
       match fst with 
       | f::_ -> normalise_es (derivitives f rFalse)
       | [] -> rFalse
     in 
-    let re1, path1 = convertAllTheKleeneToOmega rFalse' path in 
+    let re1, path1 = convertAllTheKleeneToOmega rFalse path in 
     let re2, path2 =  
-      let loopsummary = getLoopSummary reIn (normalise_pure path) re1 in  
+      let loopsummary = getLoopSummary reIn (normalise_pure path) rFalse' in  
       print_endline ("loopsummary1: " ^ string_of_regularExpr  loopsummary);
       loopsummary, path
     in 
     Disjunction(re1, re2), PureOr(path1, path2)
 
   | Kleene (reIn) -> 
+    let reIn =
+      if containCycle reIn then 
+        let reIn', _ = convertAllTheKleeneToOmega reIn path in 
+        reIn'
+      else reIn
+    in 
+
     (*let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in *)
     let loopsummary = getLoopSummary reIn (normalise_pure path) Emp in  
     print_endline ("loopsummary: " ^ string_of_regularExpr  loopsummary);
     loopsummary, path
+  
   | Disjunction(r1, r2) -> 
     let re1, path1 = convertAllTheKleeneToOmega r1 path in 
     let re2, path2 = convertAllTheKleeneToOmega r2 path in 
@@ -2237,7 +2258,11 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     *)
 
 
-
+let rec existExitKeyWord (pLi:pure list): bool = 
+  match pLi with
+  | [] -> false 
+  | Predicate(str, _) :: xs -> if String.compare str exitKeyWord == 0 then true else existExitKeyWord xs 
+  | _ :: xs -> existExitKeyWord xs 
 
 
 let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
@@ -2339,7 +2364,8 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
                 predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
               else if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
-              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword;exitKeyWord] then ()
+              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword] then ()
+              else if String.compare s exitKeyWord ==0 && existExitKeyWord pathConditionsSpec then ()
               else 
                 predicateDeclearation:=  !predicateDeclearation@ [(s, ["Number"])] ;
               );

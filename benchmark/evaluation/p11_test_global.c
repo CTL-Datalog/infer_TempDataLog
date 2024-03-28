@@ -1,10 +1,14 @@
 // FuncTion arguments:
 // -ctl "AF{AG{y > 0}}" 
+
+/*@ AF(AG(y>0)) @*/
+
+
 int main() {
     int x=0;
     int y = 0;
 
-    while (true) {
+    while (1) {
         x = x + 1;
         while (x==10) {
             y = y + 1;
