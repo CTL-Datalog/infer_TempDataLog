@@ -1,0 +1,220 @@
+/*(Join())@31*/
+
+flow(31,31).
+State(31).
+
+/*(Start())@38 · (h=_)@39 · (hash=_)@40 · (rehash=_)@41 · (([h<0]@42 · (Return(0))@43) \/ ([h>=0]@44 · (([hash<=0]@45 · (Return(0))@46) \/ ([hash>0]@47 · (([rehash<=0]@48 · (Return(0))@49) \/ ([rehash>0]@50 · (([rehash>hash]@51 · (Return(0))@52) \/ ([rehash<=hash]@53 · (((Return(0))@54) \/ ((([r>0]@55 · [i<hash]@56 · (hash=i)@57 · (Return(0))@58) \/ ([r<=0]@59 · ([i<hash]@60 · ((hash-i)>0)@61)^w))))))))))))*/
+
+flow(38,39).
+flow(39,40).
+flow(40,41).
+flow(43,43).
+flow(46,46).
+flow(49,49).
+flow(52,52).
+flow(54,54).
+flow(58,58).
+flow(61,61).
+flow(61,60).
+Start(38).
+Lt("h",38,0).
+LtEq("hash",38,0).
+LtEq("rehash",38,0).
+GtVar("rehash",38,"hash").
+Gt("r",38,0).
+GtEq("h",38,0).
+Gt("hash",38,0).
+Gt("rehash",38,0).
+LtEqVar("rehash",38,"hash").
+LtEq("r",38,0). // delete this line 
+LtVar("i",38,"hash").
+State(38).
+State(39).
+State(40).
+State(42).
+Return(0,43).
+State(43).
+State(41).
+State(45).
+Return(0,46).
+State(46).
+State(44).
+State(48).
+Return(0,49).
+State(49).
+State(47).
+State(51).
+Return(0,52).
+State(52).
+State(50).
+Return(0,54).
+State(54).
+State(55).
+State(56).
+State(57).
+Return(0,58).
+State(58).
+State(53).
+State(59).
+State(60).
+State(61).
+control_flow(41,42) :- LtD("h",41,0).
+control_flow(42,43) :- LtD("h",41,0).
+control_flow(41,44) :- GtEqD("h",41,0).
+control_flow(44,45) :- GtEqD("h",41,0), LtEqD("hash",44,0).
+control_flow(45,46) :- GtEqD("h",41,0), LtEqD("hash",44,0).
+control_flow(44,47) :- GtEqD("h",41,0), GtD("hash",44,0).
+control_flow(47,48) :- GtEqD("h",41,0), GtD("hash",44,0), LtEqD("rehash",47,0).
+control_flow(48,49) :- GtEqD("h",41,0), GtD("hash",44,0), LtEqD("rehash",47,0).
+control_flow(47,50) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0).
+control_flow(50,51) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), GtVarD("rehash",50,"hash").
+control_flow(51,52) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), GtVarD("rehash",50,"hash").
+control_flow(50,53) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash").
+control_flow(53,54) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash").
+control_flow(53,55) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), GtD("r",53,0).
+control_flow(55,56) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), GtD("r",53,0), LtVarD("i",55,"hash").
+control_flow(56,57) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), GtD("r",53,0), LtVarD("i",55,"hash").
+control_flow(57,58) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), GtD("r",53,0), LtVarD("i",55,"hash").
+control_flow(53,59) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), LtEqD("r",53,0).
+control_flow(59,60) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), LtEqD("r",53,0), LtVarD("i",59,"hash").
+control_flow(60,61) :- GtEqD("h",41,0), GtD("hash",44,0), GtD("rehash",47,0), LtEqVarD("rehash",50,"hash"), LtEqD("r",53,0), LtVarD("i",59,"hash").
+//AF(EXIT())
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl GtEqVar(x:symbol,loc:number,y:symbol)
+.decl LtVar(x:symbol,loc:number,y:symbol)
+.decl LtEqVar(x:symbol,loc:number,y:symbol)
+.decl GtEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl GtVar(x:symbol,loc:number,y:symbol)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl LtVarD(x:symbol,loc:number,y:symbol)
+.decl LtEqVarD(x:symbol,loc:number,y:symbol)
+.decl GtVarD(x:symbol,loc:number,y:symbol)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtEqD(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
+.decl EXIT(loc:number)
+.decl AF_EXIT_T(interm_state:number,loc:number)
+.decl AF_EXIT_S(loc:number)
+.decl AF_EXIT(loc:number)
+.decl AF_EXIT_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+LtVarD(x,loc,n) :- LtVar(x,loc,n).
+LtVarD(x,loc,n) :- LtVarD(x,locI,n), control_flow(locI,loc), !LtVar(x,loc,_), !GtEqVar(x,loc,_).
+LtEqVarD(x,loc,n) :- LtEqVar(x,loc,n).
+LtEqVarD(x,loc,n) :- LtEqVarD(x,locI,n), control_flow(locI,loc), !LtEqVar(x,loc,_), !GtVar(x,loc,_).
+GtVarD(x,loc,n) :- GtVar(x,loc,n).
+GtVarD(x,loc,n) :- GtVarD(x,locI,n), control_flow(locI,loc), !GtVar(x,loc,_), !LtEqVar(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+GtEqD(x,loc,n) :- GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+EXIT(loc) :- Return(_,loc).
+AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
+AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
+AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
+AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
+AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
+AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output GtEqVar
+.output LtVar
+.output LtEqVar
+.output GtEq
+.output Gt
+.output GtVar
+.output LtEq
+.output Lt
+.output Start
+.output State
+.output flow
+.output Return
+.output AF_EXIT_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(29,0). //@11:1-13:5
+Flow(26,5). //@25:5-26:1
+Flow(19,28). //@20:5-20:12
+Flow(28,25). //@20:12-20:12
+Flow(28,27). //@20:12-20:12
+Flow(27,22). //@20:12-22:14
+Flow(27,23). //@20:12-22:14
+Flow(25,26). //@20:12-25:5
+Flow(24,19). //@23:9-20:5
+Flow(21,24). //@22:9-23:9
+Flow(23,20). //@22:14-22:18
+Flow(22,21). //@22:14-22:9
+Flow(20,21). //@22:18-22:9
+Flow(18,19). //@18:5-20:5
+Flow(7,18). //@16:5-18:5
+Flow(3,16). //@16:9-16:9
+Flow(3,17). //@16:9-16:9
+Flow(17,4). //@16:9-17:9
+Flow(16,15). //@16:9-16:18
+Flow(15,13). //@16:18-16:18
+Flow(15,14). //@16:18-16:18
+Flow(14,4). //@16:18-17:9
+Flow(13,12). //@16:18-16:31
+Flow(12,10). //@16:31-16:31
+Flow(12,11). //@16:31-16:31
+Flow(11,4). //@16:31-17:9
+Flow(10,9). //@16:31-16:46
+Flow(9,6). //@16:46-16:46
+Flow(9,8). //@16:46-16:46
+Flow(8,4). //@16:46-17:9
+Flow(6,7). //@16:46-16:5
+Flow(4,5). //@17:9-26:1
+Flow(2,3). //@15:5-16:9
+Flow(1,2). //@14:5-15:5
+Flow(0,1). //@13:5-14:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$21),IStore(&h,n$21)]). // @13:5
+Stmt_Decl(1,[ICall(_fun___VERIFIER_nondet_int,,n$20),IStore(&hash,n$20)]). // @14:5
+Stmt_Decl(2,[ICall(_fun___VERIFIER_nondet_int,,n$19),IStore(&rehash,n$19)]). // @15:5
+Stmt_Return(4,[IStore(&return,0)]). // @17:9
+PruneNode(6,false,[Prune(!(n$15 > n$16), false)]). // @16:46
+PruneNode(8,true,[Prune((n$15 > n$16), true)]). // @16:46
+Stmt_BinaryOperatorStmt(9,GT,[ILoad(&rehash,n$15),ILoad(&hash,n$16)]). // @16:46
+PruneNode(10,false,[Prune(!(n$14 <= 0), false)]). // @16:31
+PruneNode(11,true,[Prune((n$14 <= 0), true)]). // @16:31
+Stmt_BinaryOperatorStmt(12,LE,[ILoad(&rehash,n$14)]). // @16:31
+PruneNode(13,false,[Prune(!(n$13 <= 0), false)]). // @16:18
+PruneNode(14,true,[Prune((n$13 <= 0), true)]). // @16:18
+Stmt_BinaryOperatorStmt(15,LE,[ILoad(&hash,n$13)]). // @16:18
+PruneNode(16,false,[Prune(!(n$12 < 0), false)]). // @16:9
+PruneNode(17,true,[Prune((n$12 < 0), true)]). // @16:9
+Stmt_BinaryOperatorStmt(3,LT,[ILoad(&h,n$12)]). // @16:9
+Join(7,[]).  // @16:5
+Stmt_Decl(18,[ILoad(&h,n$10),ILoad(&hash,n$11),IStore(&i,(n$10 % n$11))]). // @18:5
+Stmt_BinaryOperatorStmt(20,Assign,[ILoad(&h,n$5),ILoad(&rehash,n$6),IStore(&r,(n$5 % n$6))]). // @22:18
+PruneNode(22,false,[ILoad(&r,n$4),Prune(n$4, false)]). // @22:14
+PruneNode(23,true,[ILoad(&r,n$4),Prune(!n$4, true)]). // @22:14
+Join(21,[]).  // @22:9
+Stmt_BinaryOperatorStmt(24,Assign,[ILoad(&i,n$2),ILoad(&r,n$3),IStore(&i,(n$2 + n$3))]). // @23:9
+PruneNode(25,false,[Prune(!(n$0 < n$1), false)]). // @20:12
+PruneNode(27,true,[Prune((n$0 < n$1), true)]). // @20:12
+Stmt_BinaryOperatorStmt(28,LT,[ILoad(&i,n$0),ILoad(&hash,n$1)]). // @20:12
+Join(19,[]).  // @20:5
+Stmt_Return(26,[IStore(&return,0)]). // @25:5
+Exit(5).  // @26:1
+Start(29). // @11:1
+*/
+
