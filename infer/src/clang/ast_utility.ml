@@ -637,6 +637,9 @@ let rec normalise_pure (pi:pure) : pure =
   match pi with 
   | TRUE 
   | FALSE -> pi
+  | Gt (Minus(t1, t2),Basic( BINT 0)) -> Gt (t1, t2)
+  | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
+
   | Gt (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Lt(Basic(BVAR v1), Basic (BINT(n1-n2)))
   | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
 

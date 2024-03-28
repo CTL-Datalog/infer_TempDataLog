@@ -521,9 +521,22 @@ let rec existStack stack stackIn (t:string) : Exp.t option =
     if String.compare t (Ident.to_string ident) == 0 
     then 
       let eName = (Exp.to_string exp ) in 
+      (match exp with 
+      | Lfield (root, field, rest) -> 
+        let eNameRoot = (Exp.to_string root ) in 
+        let fName = Fieldname.to_string field in  
+        if String.compare "n$" (String.sub eNameRoot 0 2 ) == 0 
+        then 
+          (match existStack stack stack eNameRoot with 
+          | None -> Some exp
+          | Some exp1 -> Some (Lfield (exp1, field, rest))
+          )
+          
+        else Some exp
+      | _ -> 
       if String.compare "n$" (String.sub eName 0 2 ) == 0 
       then existStack stack stack eName
-      else Some exp
+      else Some exp)
     else  existStack stack xs t
 
 let rec expressionToTerm (exp:Exp.t) stack : terms option  = 
@@ -806,8 +819,8 @@ let rec partitionFromLast (li:'a list) : ('a list * 'a list) =
 
 let updateStakeUsingLoads intrs = 
   List.fold_left intrs ~init:[] ~f:(fun acc (ins:Sil.instr) -> 
-          match ins with 
-          | Load l -> 
+    match ins with 
+    | Load l -> 
             (*print_endline (Exp.to_string l.e ^ " -> " ^ IR.Ident.to_string l.id); *)
             (l.e, l.id) :: acc 
           | _ -> acc
@@ -828,14 +841,18 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   | Join_node ->  (*Singleton(Predicate (joinKeyword, []), node_key)*)Emp , []
   | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
   | Prune_node (f,_,_) ->  
-    (match instrs with 
+    let loads, last = partitionFromLast instrs in 
+    let stack' = updateStakeUsingLoads loads in 
+
+    
+    (match last with 
     | Prune (e, loc, f, _):: _ ->  
-      (match expressionToPure e stack with 
+      (match expressionToPure e (stack@stack') with 
       | Some p -> 
         Guard(p, node_key)
       | None -> 
 
-        Guard(TRUE, node_key) ), []
+        Guard(TRUE, node_key) ), stack'
     | Load l :: Prune (e, loc, f, _):: _ ->  
       let stack' = (l.e, l.id) :: stack in 
       (match expressionToPure e (stack@stack') with 
@@ -844,7 +861,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         Guard(TRUE, node_key) ), stack'
 
     | _ -> 
-      Singleton(TRUE, node_key) , []
+      Singleton(TRUE, node_key) , stack'
     )
   
 
@@ -887,9 +904,14 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         
     | UnaryOperator 
     | DeclStmt -> 
+      let loads, _ = partitionFromLast instrs in 
+      let stack' = updateStakeUsingLoads loads in 
+
+      print_endline ("DeclStmt: " ^ string_of_stack stack');
       (match getPureFromDeclStmtInstructions instrs stack with 
-      | Some pure -> Singleton (pure, node_key), []
-      | None -> Singleton(TRUE, node_key), [] )
+      | Some pure -> Singleton (pure, node_key), stack'
+      | None -> Singleton(TRUE, node_key), stack' )
+
     | ReturnStmt -> 
       (match instrs with 
       | Store s :: _ -> 
