@@ -1,91 +1,99 @@
-/*(Join())@1*/
+/*(Join())@36*/
 
-flow(1,1).
-State(1).
-
-/*(Start())@4 · (flag=0)@5 · (EXIT())@6*/
-
-flow(4,5).
-flow(5,6).
-flow(6,6).
-Start(4).
-State(4).
-State(5).
-EXIT(6).
-State(6).
-
-/*(Start())@29 · (count=_)@30 · (([count<=0]@31 · (Return(0))@32) \/ ([count>0]@33 · (buf=0)@34 · (((Return(0))@35) \/ ((([ret>0]@36 · [count>0]@37 · (count=0)@38 · (Return(0))@39) \/ ([ret<=0]@40 · ([count>0]@41 · (count>0)@42)^w))))))*/
-
-flow(29,30).
-flow(32,32).
-flow(35,35).
-flow(39,39).
-flow(42,42).
-flow(42,41).
-Start(29).
-LtEq("count",29,0).
-Gt("ret",29,0).
-LtEq("ret",29,0). // delete this line 
-Gt("count",29,0).
-State(29).
-State(31).
-Return(0,32).
-State(32).
-State(30).
-State(33).
-Return(0,35).
-State(35).
+flow(36,36).
 State(36).
-State(37).
-LtEq("count",38,0).
-State(38).
-Return(0,39).
-State(39).
-State(34).
-State(40).
-State(41).
-State(42).
-control_flow(30,31) :- LtEqD("count",30,0).
-control_flow(31,32) :- LtEqD("count",30,0).
-control_flow(30,33) :- GtD("count",30,0).
-control_flow(33,34) :- GtD("count",30,0).
-control_flow(34,35) :- GtD("count",30,0).
-control_flow(34,36) :- GtD("count",30,0), GtD("ret",34,0).
-control_flow(36,37) :- GtD("count",30,0), GtD("ret",34,0), GtD("count",36,0).
-control_flow(37,38) :- GtD("count",30,0), GtD("ret",34,0), GtD("count",36,0).
-control_flow(38,39) :- GtD("count",30,0), GtD("ret",34,0), GtD("count",36,0).
-control_flow(34,40) :- GtD("count",30,0), LtEqD("ret",34,0).
-control_flow(40,41) :- GtD("count",30,0), LtEqD("ret",34,0), GtD("count",40,0).
-control_flow(41,42) :- GtD("count",30,0), LtEqD("ret",34,0), GtD("count",40,0).
-/*(Start())@44 · (count=0)@45 · (([flag=1]@46 · (Return(0))@47) \/ ([(flag!=1)]@48 · (((Return(0))@49) \/ ([loc<len]@50 · (len=loc)@51 · (Return(0))@52))))*/
 
-flow(44,45).
-flow(47,47).
+/*(Start())@37 · (flag=0)@38 · (EXIT())@39*/
+
+flow(37,38).
+flow(38,39).
+flow(39,39).
+Start(37).
+State(37).
+State(38).
+EXIT(39).
+State(39).
+
+/*(Start())@46 · (count=_)@47 · (([count<=0]@48 · (Return(0))@49) \/ ([count>0]@50 · (buf=0)@51 · (((Return(0))@52) \/ ((([ret>0]@53 · [count>0]@54 · (count=0)@55 · (Return(0))@56) \/ ([ret<=0]@57 · ([count>0]@58 · (count>0)@59)^w))))))*/
+
+flow(46,47).
 flow(49,49).
 flow(52,52).
-Start(44).
-Eq("flag",44,1).
-NotEq("flag",44,1).
-LtVar("loc",44,"len").
-State(44).
+flow(56,56).
+flow(59,59).
+flow(59,58).
+Start(46).
+LtEq("count",46,0).
+Gt("ret",46,0).
+LtEq("ret",46,0). // delete this line 
+Gt("count",46,0).
 State(46).
-Return(0,47).
-State(47).
-State(45).
+State(48).
 Return(0,49).
 State(49).
-State(48).
+State(47).
 State(50).
-State(51).
 Return(0,52).
 State(52).
-control_flow(45,46) :- EqD("flag",45,1).
-control_flow(46,47) :- EqD("flag",45,1).
-control_flow(45,48) :- NotEqD("flag",45,1).
-control_flow(48,49) :- NotEqD("flag",45,1).
-control_flow(48,50) :- NotEqD("flag",45,1), LtVarD("loc",48,"len").
-control_flow(50,51) :- NotEqD("flag",45,1), LtVarD("loc",48,"len").
-control_flow(51,52) :- NotEqD("flag",45,1), LtVarD("loc",48,"len").
+State(53).
+State(54).
+LtEq("count",55,0).
+State(55).
+Return(0,56).
+State(56).
+State(51).
+State(57).
+State(58).
+State(59).
+control_flow(47,48) :- LtEqD("count",47,0).
+control_flow(48,49) :- LtEqD("count",47,0).
+control_flow(47,50) :- GtD("count",47,0).
+control_flow(50,51) :- GtD("count",47,0).
+control_flow(51,52) :- GtD("count",47,0).
+control_flow(51,53) :- GtD("count",47,0), GtD("ret",51,0).
+control_flow(53,54) :- GtD("count",47,0), GtD("ret",51,0), GtD("count",53,0).
+control_flow(54,55) :- GtD("count",47,0), GtD("ret",51,0), GtD("count",53,0).
+control_flow(55,56) :- GtD("count",47,0), GtD("ret",51,0), GtD("count",53,0).
+control_flow(51,57) :- GtD("count",47,0), LtEqD("ret",51,0).
+control_flow(57,58) :- GtD("count",47,0), LtEqD("ret",51,0), GtD("count",57,0).
+control_flow(58,59) :- GtD("count",47,0), LtEqD("ret",51,0), GtD("count",57,0).
+/*(Start())@62 · (count=0)@63 · (([flag=1]@64 · (Return(0))@65) \/ ([(flag!=1)]@66 · (((Return(0))@67) \/ ((([loc<len]@68 · (len=loc)@69 · (Return(0))@70) \/ ([loc<len]@71 · (len=loc)@72 · (Return(0))@73))))))*/
+
+flow(62,63).
+flow(65,65).
+flow(67,67).
+flow(70,70).
+flow(73,73).
+Start(62).
+Eq("flag",62,1).
+NotEq("flag",62,1).
+LtVar("loc",62,"len").
+State(62).
+State(64).
+Return(0,65).
+State(65).
+State(63).
+Return(0,67).
+State(67).
+State(68).
+State(69).
+Return(0,70).
+State(70).
+State(66).
+State(71).
+State(72).
+Return(0,73).
+State(73).
+control_flow(63,64) :- EqD("flag",63,1).
+control_flow(64,65) :- EqD("flag",63,1).
+control_flow(63,66) :- NotEqD("flag",63,1).
+control_flow(66,67) :- NotEqD("flag",63,1).
+control_flow(66,68) :- NotEqD("flag",63,1), LtVarD("loc",66,"len").
+control_flow(68,69) :- NotEqD("flag",63,1), LtVarD("loc",66,"len").
+control_flow(69,70) :- NotEqD("flag",63,1), LtVarD("loc",66,"len").
+control_flow(66,71) :- NotEqD("flag",63,1), LtVarD("loc",66,"len").
+control_flow(71,72) :- NotEqD("flag",63,1), LtVarD("loc",66,"len").
+control_flow(72,73) :- NotEqD("flag",63,1), LtVarD("loc",66,"len").
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -149,134 +157,134 @@ AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
 
 //-- Facts for Procedure <__infer_globals_initializer_flag> 
 
-Flow(1,2). //@12:1-12:1
-Flow(2,3). //@12:1-12:12
-Stmt_Decl(2,[IStore(&#GB<benchmark/termination/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c|ice>$flag,0)]). // @12:1
-Exit(3).  // @12:12
-Start(1). // @12:1
+Flow(2,0). //@12:1-12:1
+Flow(0,1). //@12:1-12:12
+Stmt_Decl(0,[IStore(&#GB<benchmark/termination/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c|ice>$flag,0)]). // @12:1
+Exit(1).  // @12:12
+Start(2). // @12:1
 //-- Facts for Procedure <main> 
 
-Flow(1,4). //@45:1-47:5
-Flow(2,3). //@60:5-61:1
-Flow(11,12). //@52:5-52:12
-Flow(12,22). //@52:12-52:12
-Flow(12,13). //@52:12-52:12
-Flow(13,14). //@52:12-54:9
-Flow(22,2). //@52:12-60:5
-Flow(21,11). //@58:9-52:5
-Flow(20,21). //@57:9-58:9
-Flow(19,20). //@55:9-57:9
-Flow(15,18). //@55:13-55:13
-Flow(15,16). //@55:13-55:13
-Flow(16,17). //@55:13-56:13
-Flow(18,19). //@55:13-55:9
-Flow(17,3). //@56:13-61:1
-Flow(14,15). //@54:9-55:13
-Flow(10,11). //@51:5-52:5
-Flow(9,10). //@48:5-51:5
-Flow(5,8). //@48:9-48:9
-Flow(5,6). //@48:9-48:9
-Flow(6,7). //@48:9-49:9
-Flow(8,9). //@48:9-48:5
-Flow(7,3). //@49:9-61:1
-Flow(4,5). //@47:5-48:9
-Stmt_Decl(4,[ICall(_fun___VERIFIER_nondet_int,,n$15),IStore(&count,n$15)]). // @47:5
-Stmt_Return(7,[IStore(&return,0)]). // @49:9
-PruneNode(8,false,[Prune(!(n$12 <= 0), false)]). // @48:9
-PruneNode(6,true,[Prune((n$12 <= 0), true)]). // @48:9
-Stmt_BinaryOperatorStmt(5,LE,[ILoad(&count,n$12)]). // @48:9
-Join(9,[]).  // @48:5
-Stmt_Decl(10,[IStore(&buf,0)]). // @51:5
-Stmt_BinaryOperatorStmt(14,Assign,[ILoad(&buf,n$8),ILoad(&count,n$9),ICall(_fun_read,n$8,n$9,n$10),IStore(&ret,n$10)]). // @54:9
-Stmt_Return(17,[IStore(&return,0)]). // @56:13
-PruneNode(18,false,[Prune(!(n$5 < 0), false)]). // @55:13
+Flow(2,3). //@45:1-47:5
+Flow(0,1). //@60:5-61:1
+Flow(10,21). //@52:5-52:12
+Flow(21,19). //@52:12-52:12
+Flow(21,20). //@52:12-52:12
+Flow(20,11). //@52:12-54:9
+Flow(19,0). //@52:12-60:5
+Flow(18,10). //@58:9-52:5
+Flow(17,18). //@57:9-58:9
+Flow(15,17). //@55:9-57:9
+Flow(12,14). //@55:13-55:13
+Flow(12,16). //@55:13-55:13
+Flow(16,13). //@55:13-56:13
+Flow(14,15). //@55:13-55:9
+Flow(13,1). //@56:13-61:1
+Flow(11,12). //@54:9-55:13
+Flow(9,10). //@51:5-52:5
+Flow(7,9). //@48:5-51:5
+Flow(4,6). //@48:9-48:9
+Flow(4,8). //@48:9-48:9
+Flow(8,5). //@48:9-49:9
+Flow(6,7). //@48:9-48:5
+Flow(5,1). //@49:9-61:1
+Flow(3,4). //@47:5-48:9
+Stmt_Decl(3,[ICall(_fun___VERIFIER_nondet_int,,n$15),IStore(&count,n$15)]). // @47:5
+Stmt_Return(5,[IStore(&return,0)]). // @49:9
+PruneNode(6,false,[Prune(!(n$12 <= 0), false)]). // @48:9
+PruneNode(8,true,[Prune((n$12 <= 0), true)]). // @48:9
+Stmt_BinaryOperatorStmt(4,LE,[ILoad(&count,n$12)]). // @48:9
+Join(7,[]).  // @48:5
+Stmt_Decl(9,[IStore(&buf,0)]). // @51:5
+Stmt_BinaryOperatorStmt(11,Assign,[ILoad(&buf,n$8),ILoad(&count,n$9),ICall(_fun_read,n$8,n$9,n$10),IStore(&ret,n$10)]). // @54:9
+Stmt_Return(13,[IStore(&return,0)]). // @56:13
+PruneNode(14,false,[Prune(!(n$5 < 0), false)]). // @55:13
 PruneNode(16,true,[Prune((n$5 < 0), true)]). // @55:13
-Stmt_BinaryOperatorStmt(15,LT,[ILoad(&ret,n$5)]). // @55:13
-Join(19,[]).  // @55:9
-Stmt_BinaryOperatorStmt(20,SubAssign,[ILoad(&ret,n$3),ILoad(&count,n$4),IStore(&count,(n$4 - n$3))]). // @57:9
-Stmt_BinaryOperatorStmt(21,AddAssign,[ILoad(&ret,n$1),ILoad(&buf,n$2),IStore(&buf,(n$2 + n$1))]). // @58:9
-PruneNode(22,false,[Prune(!(n$0 > 0), false)]). // @52:12
-PruneNode(13,true,[Prune((n$0 > 0), true)]). // @52:12
-Stmt_BinaryOperatorStmt(12,GT,[ILoad(&count,n$0)]). // @52:12
-Join(11,[]).  // @52:5
-Stmt_Return(2,[IStore(&return,0)]). // @60:5
-Exit(3).  // @61:1
-Start(1). // @45:1
+Stmt_BinaryOperatorStmt(12,LT,[ILoad(&ret,n$5)]). // @55:13
+Join(15,[]).  // @55:9
+Stmt_BinaryOperatorStmt(17,SubAssign,[ILoad(&ret,n$3),ILoad(&count,n$4),IStore(&count,(n$4 - n$3))]). // @57:9
+Stmt_BinaryOperatorStmt(18,AddAssign,[ILoad(&ret,n$1),ILoad(&buf,n$2),IStore(&buf,(n$2 + n$1))]). // @58:9
+PruneNode(19,false,[Prune(!(n$0 > 0), false)]). // @52:12
+PruneNode(20,true,[Prune((n$0 > 0), true)]). // @52:12
+Stmt_BinaryOperatorStmt(21,GT,[ILoad(&count,n$0)]). // @52:12
+Join(10,[]).  // @52:5
+Stmt_Return(0,[IStore(&return,0)]). // @60:5
+Exit(1).  // @61:1
+Start(2). // @45:1
 //-- Facts for Procedure <read> 
 
-Flow(1,23). //@13:1-15:5
-Flow(2,11). //@43:5-43:5
-Flow(11,3). //@43:5-44:1
-Flow(12,13). //@18:5-18:12
-Flow(13,21). //@18:12-18:12
-Flow(13,22). //@18:12-18:12
-Flow(22,29). //@18:12-20:9
-Flow(21,2). //@18:12-43:5
-Flow(20,12). //@21:9-18:5
-Flow(19,16). //@21:13-21:13
-Flow(19,15). //@21:13-21:13
-Flow(15,18). //@21:13-23:13
-Flow(16,30). //@21:13-27:17
-Flow(18,3). //@23:13-44:1
-Flow(17,20). //@31:13-21:9
-Flow(14,9). //@31:17-31:17
-Flow(14,10). //@31:17-31:17
-Flow(10,5). //@31:17-33:17
-Flow(9,7). //@31:17-38:17
-Flow(5,12). //@33:17-18:5
-Flow(6,8). //@39:17-39:17
-Flow(8,3). //@39:17-44:1
-Flow(7,6). //@38:17-39:17
-Flow(4,14). //@30:13-31:17
-Flow(34,4). //@29:13-30:13
-Flow(33,34). //@27:13-29:13
-Flow(30,35). //@27:17-27:17
-Flow(30,31). //@27:17-27:17
-Flow(31,32). //@27:17-28:17
-Flow(35,33). //@27:17-27:13
-Flow(32,33). //@28:17-27:13
-Flow(29,19). //@20:9-21:13
-Flow(28,12). //@16:5-18:5
-Flow(24,27). //@16:9-16:9
-Flow(24,25). //@16:9-16:9
-Flow(25,26). //@16:9-17:9
-Flow(27,28). //@16:9-16:5
-Flow(26,3). //@17:9-44:1
-Flow(23,24). //@15:5-16:9
-Stmt_Decl(23,[IStore(&count,0)]). // @15:5
-Stmt_Return(26,[IStore(&return,0)]). // @17:9
-PruneNode(27,false,[Prune(!(n$18 == 1), false)]). // @16:9
-PruneNode(25,true,[Prune((n$18 == 1), true)]). // @16:9
-Stmt_BinaryOperatorStmt(24,EQ,[ILoad(&#GB<benchmark/termination/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c|ice>$flag,n$18)]). // @16:9
-Join(28,[]).  // @16:5
-Stmt_Decl(29,[ICall(_fun___VERIFIER_nondet_int,,n$16),IStore(&num,n$16)]). // @20:9
-Stmt_BinaryOperatorStmt(32,Assign,[ILoad(&num,n$12),IStore(&num,-n$12)]). // @28:17
-PruneNode(35,false,[Prune(!(n$11 < 0), false)]). // @27:17
-PruneNode(31,true,[Prune((n$11 < 0), true)]). // @27:17
-Stmt_BinaryOperatorStmt(30,LT,[ILoad(&num,n$11)]). // @27:17
-Join(33,[]).  // @27:13
+Flow(2,22). //@13:1-15:5
+Flow(0,10). //@43:5-43:5
+Flow(10,1). //@43:5-44:1
+Flow(21,20). //@18:5-18:12
+Flow(20,18). //@18:12-18:12
+Flow(20,19). //@18:12-18:12
+Flow(19,28). //@18:12-20:9
+Flow(18,0). //@18:12-43:5
+Flow(17,21). //@21:9-18:5
+Flow(15,16). //@21:13-21:13
+Flow(15,12). //@21:13-21:13
+Flow(12,14). //@21:13-23:13
+Flow(16,33). //@21:13-27:17
+Flow(14,1). //@23:13-44:1
+Flow(13,17). //@31:13-21:9
+Flow(11,7). //@31:17-31:17
+Flow(11,9). //@31:17-31:17
+Flow(9,4). //@31:17-33:17
+Flow(7,5). //@31:17-38:17
+Flow(4,21). //@33:17-18:5
+Flow(8,6). //@39:17-39:17
+Flow(6,1). //@39:17-44:1
+Flow(5,8). //@38:17-39:17
+Flow(3,11). //@30:13-31:17
+Flow(34,3). //@29:13-30:13
+Flow(30,34). //@27:13-29:13
+Flow(33,31). //@27:17-27:17
+Flow(33,32). //@27:17-27:17
+Flow(32,29). //@27:17-28:17
+Flow(31,30). //@27:17-27:13
+Flow(29,30). //@28:17-27:13
+Flow(28,15). //@20:9-21:13
+Flow(26,21). //@16:5-18:5
+Flow(23,25). //@16:9-16:9
+Flow(23,27). //@16:9-16:9
+Flow(27,24). //@16:9-17:9
+Flow(25,26). //@16:9-16:5
+Flow(24,1). //@17:9-44:1
+Flow(22,23). //@15:5-16:9
+Stmt_Decl(22,[IStore(&count,0)]). // @15:5
+Stmt_Return(24,[IStore(&return,0)]). // @17:9
+PruneNode(25,false,[Prune(!(n$18 == 1), false)]). // @16:9
+PruneNode(27,true,[Prune((n$18 == 1), true)]). // @16:9
+Stmt_BinaryOperatorStmt(23,EQ,[ILoad(&#GB<benchmark/termination/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c|ice>$flag,n$18)]). // @16:9
+Join(26,[]).  // @16:5
+Stmt_Decl(28,[ICall(_fun___VERIFIER_nondet_int,,n$16),IStore(&num,n$16)]). // @20:9
+Stmt_BinaryOperatorStmt(29,Assign,[ILoad(&num,n$12),IStore(&num,-n$12)]). // @28:17
+PruneNode(31,false,[Prune(!(n$11 < 0), false)]). // @27:17
+PruneNode(32,true,[Prune((n$11 < 0), true)]). // @27:17
+Stmt_BinaryOperatorStmt(33,LT,[ILoad(&num,n$11)]). // @27:17
+Join(30,[]).  // @27:13
 Stmt_BinaryOperatorStmt(34,Assign,[ILoad(&num,n$10),IStore(&num,(n$10 % 1000))]). // @29:13
-Stmt_UnaryOperator(4,[ILoad(&count,n$9),IStore(&count,(n$9 + 1))]). // @30:13
-Stmt_BinaryOperatorStmt(7,Assign,[IStore(&#GB<benchmark/termination/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c|ice>$flag,1)]). // @38:17
-Stmt_Return(8,[IStore(&return,n$7)]). // @39:17
-Stmt_Return(6,[ILoad(&count,n$7)]). // @39:17
-Stmt_UnaryOperator(5,[ILoad(&loc,n$6),IStore(&loc,(n$6 + 1))]). // @33:17
-PruneNode(9,false,[Prune(!(n$4 < 995), false)]). // @31:17
-PruneNode(10,true,[Prune((n$4 < 995), true)]). // @31:17
-Stmt_BinaryOperatorStmt(14,LT,[ILoad(&num,n$4)]). // @31:17
-Join(17,[]).  // @31:13
-Stmt_Return(18,[IStore(&return,-1)]). // @23:13
+Stmt_UnaryOperator(3,[ILoad(&count,n$9),IStore(&count,(n$9 + 1))]). // @30:13
+Stmt_BinaryOperatorStmt(5,Assign,[IStore(&#GB<benchmark/termination/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c|ice>$flag,1)]). // @38:17
+Stmt_Return(6,[IStore(&return,n$7)]). // @39:17
+Stmt_Return(8,[ILoad(&count,n$7)]). // @39:17
+Stmt_UnaryOperator(4,[ILoad(&loc,n$6),IStore(&loc,(n$6 + 1))]). // @33:17
+PruneNode(7,false,[Prune(!(n$4 < 995), false)]). // @31:17
+PruneNode(9,true,[Prune((n$4 < 995), true)]). // @31:17
+Stmt_BinaryOperatorStmt(11,LT,[ILoad(&num,n$4)]). // @31:17
+Join(13,[]).  // @31:13
+Stmt_Return(14,[IStore(&return,-1)]). // @23:13
 PruneNode(16,false,[Prune(!(n$3 == 0), false)]). // @21:13
-PruneNode(15,true,[Prune((n$3 == 0), true)]). // @21:13
-Stmt_BinaryOperatorStmt(19,EQ,[ILoad(&num,n$3)]). // @21:13
-Join(20,[]).  // @21:9
-PruneNode(21,false,[Prune(!(n$1 < n$2), false)]). // @18:12
-PruneNode(22,true,[Prune((n$1 < n$2), true)]). // @18:12
-Stmt_BinaryOperatorStmt(13,LT,[ILoad(&loc,n$1),ILoad(&len,n$2)]). // @18:12
-Join(12,[]).  // @18:5
-Stmt_Return(11,[IStore(&return,n$0)]). // @43:5
-Stmt_Return(2,[ILoad(&count,n$0)]). // @43:5
-Exit(3).  // @44:1
-Start(1). // @13:1
+PruneNode(12,true,[Prune((n$3 == 0), true)]). // @21:13
+Stmt_BinaryOperatorStmt(15,EQ,[ILoad(&num,n$3)]). // @21:13
+Join(17,[]).  // @21:9
+PruneNode(18,false,[Prune(!(n$1 < n$2), false)]). // @18:12
+PruneNode(19,true,[Prune((n$1 < n$2), true)]). // @18:12
+Stmt_BinaryOperatorStmt(20,LT,[ILoad(&loc,n$1),ILoad(&len,n$2)]). // @18:12
+Join(21,[]).  // @18:5
+Stmt_Return(10,[IStore(&return,n$0)]). // @43:5
+Stmt_Return(0,[ILoad(&count,n$0)]). // @43:5
+Exit(1).  // @44:1
+Start(2). // @13:1
 */
 
