@@ -550,6 +550,9 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     )
     
 
+
+
+  | BinOp (Shiftrt, e1, e2)
   | BinOp (MinusA _, e1, e2)
   | BinOp (MinusPI, e1, e2)
   | BinOp (MinusPP, e1, e2) -> 
@@ -559,6 +562,9 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     | Some t1 , Some t2 -> Some (Minus (t1, t2))
     | _, _  -> None )
 
+
+    
+  | BinOp (Shiftlt, e1, e2)
   | BinOp (PlusA _, e1, e2)
   | BinOp (PlusPI, e1, e2) -> 
     let t1 = expressionToTerm e1 stack in 
@@ -566,8 +572,6 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     (match t1, t2 with 
     | Some t1 , Some t2 -> Some (Plus (t1, t2))
     | _, _  -> None )
-
-
 
   | BinOp _ (*_ -> Basic (BVAR ("BinOp"))*)
   | Exn _ (*-> Basic (BVAR ("Exn"))*)
@@ -631,6 +635,7 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
         | Some p, None | None, Some p -> Some p 
         | _ -> None 
         )
+      | Shiftrt -> Some (Eq (t1, Minus(t1, t2)))
       | _ -> 
         (*print_endline ("expressionToPure None : " ^ Exp.to_string exp); *)
         None
@@ -791,6 +796,23 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     
   | _ -> None
 
+let rec partitionFromLast (li:'a list) : ('a list * 'a list) = 
+  match li with
+  | [] -> [], []
+  | [x] -> [], [x]
+  | x::xs -> 
+    let li1, li2 = partitionFromLast xs in 
+    x::li1, li2
+
+let updateStakeUsingLoads intrs = 
+  List.fold_left intrs ~init:[] ~f:(fun acc (ins:Sil.instr) -> 
+          match ins with 
+          | Load l -> 
+            (*print_endline (Exp.to_string l.e ^ " -> " ^ IR.Ident.to_string l.id); *)
+            (l.e, l.id) :: acc 
+          | _ -> acc
+        ) 
+
 let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  getNodeID node in
@@ -831,17 +853,33 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
     | BinaryOperatorStmt (op) -> 
       if existAux (fun a b-> String.compare a b ==0) ["EQ";"GT";"LT";"NE";"LE";"GE"] op then 
         (*String.compare op "EQ" == 0 || String.compare op "GT" == 0 then  *)
-        let stack = List.fold_left instrs ~init:[] ~f:(fun acc (ins:Sil.instr) -> 
-          match ins with 
-          | Load l -> 
-            (*print_endline (Exp.to_string l.e ^ " -> " ^ IR.Ident.to_string l.id); *)
-            (l.e, l.id) :: acc 
-          | _ -> acc
-        ) in 
+        let stack = updateStakeUsingLoads instrs in 
         Emp , stack
         (*Singleton(TRUE, node_key), stack *)
         (* This is to avoid th extra (T)@loc before the guard, we only need to 
            record the stack, but no need any event *)
+
+      else if existAux (fun a b-> String.compare a b ==0) ["ShrAssign"] op then 
+        let loads, last = partitionFromLast instrs in 
+        let stack' = updateStakeUsingLoads loads in 
+        match last with 
+        | Store s :: _ -> 
+          let exp1 = s.e1 in 
+          (match expressionToTerm exp1 stack' with 
+          | None -> Singleton(TRUE, node_key), []   
+          | Some t1 -> 
+          
+          let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+          let g1 = Guard(Eq(t1, Basic (BINT 0 )), !allTheUniqueIDs) in 
+          let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+          let g2 = Guard((Gt(t1, Basic (BINT 0 ))), !allTheUniqueIDs) in 
+
+          Disjunction (Concate(g1, Singleton(Eq(t1, t1), node_key)), Concate(g2, Singleton(Eq(t1, Minus (t1 ,Basic (BINT 1))), node_key)) ), 
+          stack' )
+        | _ -> Singleton(TRUE, node_key), []   
+
+
+          
       else 
         (match getPureFromBinaryOperatorStmtInstructions op instrs stack with 
         | Some pure -> Singleton (pure, node_key), []
@@ -1394,6 +1432,7 @@ let rec makeAGuessFromPure (pi:pure) : terms list =
   | Lt (t, Basic (BINT 0)) -> [(Minus(Basic (BINT 0), t))]
   | Lt (t1, t2) -> [ (Minus(t2, t1))]
   | GtEq (t, Basic (BINT 0)) 
+  | Neg (Eq(t, Basic (BINT 0)))
   | Gt (t, Basic (BINT 0)) ->[ t ]
   | Gt (t1, t2) -> [(Minus(t1, t2))]
   | PureAnd (p1, p2) 
@@ -1577,13 +1616,15 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : (reg
 
         let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
         let left_hand_side = PureAnd (guard, path) in 
-        let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in 
-        print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
-  
-        if containUnknown rankingTerm' then Some FALSE 
+        let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
+        if entailConstrains left_hand_side FALSE then Some FALSE  
         else 
-          if entailConstrains left_hand_side right_hand_side then None 
-          else Some right_hand_side
+          (print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
+    
+          if containUnknown rankingTerm' then Some FALSE 
+          else 
+            if entailConstrains left_hand_side right_hand_side then None 
+            else Some right_hand_side)
       in 
 
       match acc, pureIter with 
