@@ -19,7 +19,7 @@ int main()
     int r;
     while( i < hash )
     {
-        //if( !r ) r = h % rehash;
+        if( !r ) r = h % rehash;
         i = i + r;
     }
     return 0;

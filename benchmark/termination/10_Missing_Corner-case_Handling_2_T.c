@@ -5,6 +5,8 @@ Project Name: xorg-server
 License: MIT
 termination: TRUE
 */
+
+
 int main()
 {
     int val = __VERIFIER_nondet_int();

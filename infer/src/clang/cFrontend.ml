@@ -543,14 +543,12 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     | _ -> (*Basic BNULL*) None 
     )
 
-  | UnOp (Neg, t, _) -> 
+  | UnOp (_, t, _) -> 
     (match expressionToTerm t stack with 
     | Some (Basic (BINT n)) -> Some(Basic (BINT ((-1) * n)))
     | _ -> None (*Basic (BVAR ("UnOp1"))*)
     )
     
-    (** Unary minus *)
-  | UnOp _ -> None (*Basic (BVAR ("UnOp"))*)
 
   | BinOp (MinusA _, e1, e2)
   | BinOp (MinusPI, e1, e2)
@@ -643,17 +641,36 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
   | UnOp (_, e, _) -> 
     (match expressionToPure e stack with 
     | Some p -> Some (Neg p)
-    | None -> None 
+    | None -> 
+     print_endline ("expressionToPure UnOp : " ^ Exp.to_string exp ); 
+
+        (match expressionToTerm e stack with 
+        | Some t -> Some (Eq (t,  Basic (BINT 0)))
+        | None -> 
+        None 
+        )
+  
     )
   | Const _ -> 
     if String.compare (Exp.to_string exp) "1" == 0 then Some TRUE
     else 
       (
-      (*print_endline ("expressionToPure Const : " ^ Exp.to_string exp ); *)
+      print_endline ("expressionToPure Const : " ^ Exp.to_string exp ); 
       None )
-  (*| Var _ -> 
-    print_endline ("expressionToPure Var None : " ^ Exp.to_string exp); 
-    None 
+
+  | Lvar _ 
+  | Var _ -> 
+    (match expressionToTerm exp stack with 
+    | Some t -> Some (Eq (t,  Basic (BINT 0)))
+    | None -> None 
+    )
+  
+
+      
+  (*
+
+  print_endline ("expressionToPure Var None : " ^ Exp.to_string exp); 
+      None 
   | Exn _ -> 
     print_endline ("expressionToPure Exn None : " ^ Exp.to_string exp); 
     None 
@@ -679,7 +696,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     None 
     *)
   | _ -> 
-    None 
+    (
+    None )
   
 let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store s):IR.Sil.instr) stack : pure option =
   let exp1 = s.e1 in 
@@ -791,9 +809,20 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
     (match instrs with 
     | Prune (e, loc, f, _):: _ ->  
       (match expressionToPure e stack with 
+      | Some p -> 
+        Guard(p, node_key)
+      | None -> 
+
+        Guard(TRUE, node_key) ), []
+    | Load l :: Prune (e, loc, f, _):: _ ->  
+      let stack' = (l.e, l.id) :: stack in 
+      (match expressionToPure e (stack@stack') with 
       | Some p -> Guard(p, node_key)
-      | None -> Guard(TRUE, node_key) ), []
-    | _ -> Singleton(TRUE, node_key) , []
+      | None -> 
+        Guard(TRUE, node_key) ), stack'
+
+    | _ -> 
+      Singleton(TRUE, node_key) , []
     )
   
 
@@ -1163,7 +1192,8 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
   
-  (*print_endline ("existCycleHelper stack: " ^ string_of_stack stack);
+  (*
+  print_endline ("existCycleHelper stack: " ^ string_of_stack stack);
   print_endline ("existCycleHelper id: " ^ string_of_int currentID);
 *)
 
@@ -1184,10 +1214,10 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
       )
     | succ1::succ2::_ -> 
       (match existCycleHelper  (stackCtx@stackIn) succ1 id, existCycleHelper  (stackCtx@stackIn) succ2 id with 
-      | (re1, stackSucc1, false), (re2, stackSucc2, false) -> (Disjunction(re1, re2), stackCtx@stackIn@stackSucc1@stackSucc2, false) 
+      | (re1, stackSucc1, false), (re2, stackSucc2, false) -> (Concate(reExtensionIn, Disjunction(re1, re2)), stackCtx@stackIn@stackSucc1@stackSucc2, false) 
       | (re1, stackSucc1, false), (re2, stackSucc2, true)
       | (re1, stackSucc1, true), (re2, stackSucc2, false)
-      | (re1, stackSucc1, true), (re2, stackSucc2, true) -> (Disjunction(re1, re2), stackCtx@stackIn@stackSucc1@stackSucc2, true)
+      | (re1, stackSucc1, true), (re2, stackSucc2, true) -> (Concate(reExtensionIn, Disjunction(re1, re2)), stackCtx@stackIn@stackSucc1@stackSucc2, true)
       )
 
   in 
@@ -1198,6 +1228,7 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
     | Join_node -> 
       (match existCycle stack currentState currentID with 
       | Some (non_cycle_succ, loop_body, stack1) -> 
+        (*print_endline ("loop_body1: " ^ string_of_regularExpr loop_body); *)
         let re1Succ, stackSucc, flag = moveForward_aux (stack@stack1) non_cycle_succ in  
        (Disjunction(re1Succ, Kleene(loop_body)), stack@stack1@stackSucc, flag)
       | None -> moveForward_aux stack currentState
@@ -1209,7 +1240,8 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
 
 
 and existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.Node.t * regularExpr * stack) option = 
-  (*print_endline ("existCycl:\n" ^ string_of_int (getNodeID currentState)); 
+  (*
+  print_endline ("existCycl:\n" ^ string_of_int (getNodeID currentState)); 
   print_endline ("id:\n" ^ string_of_int (id)); 
   *)
   let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
@@ -1277,6 +1309,7 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
   | Join_node -> 
     (match existCycle stack currentState currentID with 
     | Some (non_cycle_succ, loop_body, stack1) -> 
+      (*print_endline ("loop_body2: " ^ string_of_regularExpr loop_body); *)
       let re1Succ, stackSucc = moveForward (stack@stack1) non_cycle_succ in  
       Disjunction(re1Succ, Kleene(loop_body)), (stack@stack1@stackSucc)
     | None -> moveForward stack currentState
@@ -1842,8 +1875,11 @@ let getAllImplicationLeft (ctls:ctl list): pure list =
 
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr = 
 
-  let pass1 =  normalise_es (getRegularExprFromCFG procedure) in 
-  let pass3 =  ( ( pass1)) in 
+  let pass1 =   (getRegularExprFromCFG procedure) in 
+  (*
+  print_endline ("\nPASS1:\n"^string_of_regularExpr (pass1)^ "\n------------"); 
+*)
+  let pass3 =  (normalise_es ( pass1)) in 
   recordTheMaxValue4RE pass3; 
   print_endline ("\nPASS3:\n"^string_of_regularExpr (pass3)^ "\n------------"); 
 
@@ -2312,6 +2348,11 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let () = predicateDeclearation := [] in 
 
+  let facts = (Cfg.fold_sorted cfg ~init:[] 
+  ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
+
+  (*print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); 
+*)
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
@@ -2359,8 +2400,6 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
 
 
-  let facts = (Cfg.fold_sorted cfg ~init:[] 
-    ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"] );
 
