@@ -33,8 +33,8 @@ flow(47,47).
 flow(50,50).
 flow(50,49).
 Start(39).
-Eq("res",39,0).  // delete this line 
-GtEq("res",39,0). //  and delete this line 
+Eq("res",39,0).
+GtEq("res",39,0). // delete this line 
 Lt("res",39,0).
 State(39).
 control_flow(39,40).
