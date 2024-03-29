@@ -6,6 +6,9 @@
 
 int _nondet_int() {}
 
+/*@ AF(x<0) @*/
+
+
 int main()
 {
     int x;

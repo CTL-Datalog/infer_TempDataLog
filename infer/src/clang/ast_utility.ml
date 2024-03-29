@@ -620,6 +620,14 @@ let normalise_terms (t:terms) : terms =
   | Minus (Minus(_end, b), Minus(_end1, Plus(b1, inc))) -> 
     if stricTcompareTerm _end _end1 && stricTcompareTerm b b1 then inc 
     else t 
+
+  | Minus(Plus(Basic(BVAR x),Basic( BINT n1)), Plus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))) -> 
+    if String.compare x x1 == 0 then 
+      if (n2-n1) == 0 then Basic( BVAR y)
+      else if n2-n1 > 0 then Minus(Basic( BVAR y), Basic( BINT (n2-n1)))
+      else Plus(Basic( BVAR y), Basic( BINT (n2-n1)))
+    else t
+
   
   | Minus (t1, t2) -> 
     if stricTcompareTerm t1 t2 then Basic(BINT 0)
@@ -637,16 +645,37 @@ let rec normalise_pure (pi:pure) : pure =
   match pi with 
   | TRUE 
   | FALSE -> pi
-  | Gt (Minus(t1, t2),Basic( BINT 0)) -> Gt (t1, t2)
+
+
+  | Gt (leftHandside,Basic( BINT 0)) -> 
+    (match normalise_terms leftHandside with
+    | Minus(t1, t2) -> Gt (t1, t2)
+    | t -> Gt(t, Basic( BINT 0))
+    )
+
+  
+    
   | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
 
   | Gt (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Lt(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  
+  | Eq (Plus(t1, Basic( BINT n)),Basic( BINT 0)) -> Eq(t1,  Basic( BINT (-1 * n)))
+  
+
   | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
 
+
   | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
+
   | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
+
+  | LtEq (Minus(Basic(BVAR x),Basic( BINT n1)), Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))) -> 
+    if String.compare x x1 == 0 then  LtEq(Basic(BVAR y), Basic( BINT (n2-n1)))
+    else LtEq (normalise_terms (Minus(Basic(BVAR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))))
+
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
+
   | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
   | PureAnd (pi1,TRUE) 
   | PureAnd (TRUE, pi1) -> normalise_pure pi1
@@ -1105,8 +1134,8 @@ let entailConstrains p1 p2 =
   let p1 = normalise_pure p1 in 
   let p2 = normalise_pure p2 in 
 
-  print_endline (string_of_pure p1 ^  " => " ^ string_of_pure p2);
-
+  (*print_endline (string_of_pure p1 ^  " => " ^ string_of_pure p2);
+*)
   let aux pi1 pi2 = 
     let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
   (*

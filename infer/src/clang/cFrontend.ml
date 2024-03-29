@@ -1453,7 +1453,7 @@ let rec makeAGuessFromPure (pi:pure) : terms list =
   | LtEq (t, Basic (BINT 0)) 
   | Lt (t, Basic (BINT 0)) -> [(Minus(Basic (BINT 0), t))]
   | Lt (t1, t2) -> [ (Minus(t2, t1))]
-  | GtEq (t, Basic (BINT 0)) 
+  | GtEq (t, Basic (BINT 0)) -> [ (Plus(t, Basic (BINT 1)))]
   | Neg (Eq(t, Basic (BINT 0)))
   | Gt (t, Basic (BINT 0)) ->[ t ]
   | Gt (t1, t2) -> [(Minus(t1, t2))]
@@ -1582,6 +1582,7 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
           | PureEv _
           | Delimiter _ 
           | GuardEv _ -> (Bot, eventToRe f) 
+          | OmegaEv reIn -> (Bot, Omega reIn)
           | _ ->  raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
         in 
         let (dTerm, dNonTerm) = helper (normalise_es(derivitives f reIn)) in 
@@ -1807,12 +1808,10 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms list) (re
   *)
 
 let terminatingFinalState rankingFun = 
-  (match rankingFun with 
+  match rankingFun with 
   | [] -> raise (Failure "wp4Termination true but no rankingFun")
-  | (Basic rf) :: _  -> Eq(Basic rf, Basic(BINT 0))
-  | (Minus (t1, t2)) :: _ 
-  | (Plus (t1, t2))  ::_ -> Eq(t1, t2)
-  )
+  | rf::_ -> normalise_pure (Eq(rf, Basic(BINT 0)))
+  
 
 let rankingFunctionFromTerminatingTraces rankingFuns pi : terms option = 
   let r1 = makeAGuessFromPure pi in 
@@ -1895,6 +1894,8 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
       Concate(Guard(pi, loc), Concate(stateAfterTerminate pureAfterTerminate, reFalse))
 
     | Some (weakestPre, rf) -> 
+      print_endline("wp4Termination weakestPre raw: " ^ string_of_pure (weakestPre));  
+
       let weakestPre = normalise_pure weakestPre in 
       print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_terms rf ^ " when " ^ string_of_pure weakestPre);
 
@@ -2183,8 +2184,8 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
    where as predicatesSpec only matters to generate facts for PureEv
 *)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
-  print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
-
+  (*print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
+*)
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2213,8 +2214,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
     let currentConstraint = PureAnd(pureOfCurrentState, pathConstrint') in 
-    print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
-    
+    (*print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
+    *)
     
     let predicates' = 
         if entailConstrains currentConstraint FALSE 
