@@ -1786,6 +1786,9 @@ and translation_inner (ctl:ctl) : string * datalog =
       let params =  (locKeyWord , Number) :: infer_params pure in
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
+        updateRuleDeclearation ruleDeclearation (gtKeyWord);
+        updateRuleDeclearation bodyDeclearation (gtKeyWord^"D");
+
         let cond = Pos (gtKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
@@ -1796,6 +1799,9 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
+        updateRuleDeclearation ruleDeclearation (geqKeyWord);
+        updateRuleDeclearation bodyDeclearation (geqKeyWord^"D");
+
         let cond = Pos (geqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
@@ -1808,6 +1814,9 @@ and translation_inner (ctl:ctl) : string * datalog =
 
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
+        updateRuleDeclearation ruleDeclearation (ltKeyWord);
+        updateRuleDeclearation bodyDeclearation (ltKeyWord^"D");
+
         let cond = Pos (ltKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
         
@@ -1819,6 +1828,9 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | LtEq(Basic (BSTR x), Basic (BINT n) ) -> 
+        updateRuleDeclearation ruleDeclearation (leqKeyWord);
+        updateRuleDeclearation bodyDeclearation (leqKeyWord^"D");
+
         let cond = Pos (leqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
@@ -1844,6 +1856,9 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
+        updateRuleDeclearation ruleDeclearation (notEQKeyWord);
+        updateRuleDeclearation bodyDeclearation (notEQKeyWord^"D");
+
         let cond = Pos (notEQKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 

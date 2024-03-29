@@ -2166,6 +2166,14 @@ let rec updateCurrentValuation (currentValuation: (string * basic_type) list) (v
     if String.compare var var1 ==0 then (var, n) :: xs 
     else (var1, n1) :: updateCurrentValuation xs var n 
 
+let rec findCurrentValuation (currentValuation: (string * basic_type) list) (var:string) : int option = 
+  match currentValuation with 
+  | [] -> None 
+  | (var1, (BINT n)) :: xs  -> 
+    if String.compare var var1 ==0 then Some n
+    else findCurrentValuation xs var
+  | _::xs -> findCurrentValuation xs var
+
 let rec pureOfCurrentState (currentValuation: (string * basic_type) list) : pure = 
   match currentValuation with 
   | [] -> TRUE 
@@ -2185,7 +2193,9 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
 *)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
   (*print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
-*)
+*) 
+  print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
+
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2206,14 +2216,13 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
 
   (* assign concret value *)
   | Eq (Basic(BVAR var), Basic t1) -> 
-    print_endline ("predicates pure \n" ^ string_of_pure p); 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
-    (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
-*)
+    print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
+
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
-    let currentConstraint = PureAnd(pureOfCurrentState, pathConstrint') in 
+    let currentConstraint = normalise_pure (PureAnd(pureOfCurrentState, pathConstrint')) in 
     (*print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
     *)
     
@@ -2222,7 +2231,14 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
         (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
         then List.filter ~f:(fun ele -> relevent ele var && entailConstrains pureOfCurrentState ele) (predicates@predicatesSpec) 
         else List.filter ~f:(fun ele -> 
-        relevent ele var && entailConstrains currentConstraint ele) (predicates@predicatesSpec) in 
+          if relevent ele var 
+          then 
+            let res =  entailConstrains currentConstraint ele in 
+
+            print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
+            res
+          else false 
+        ) (predicates@predicatesSpec) in 
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     currentValuation', facts
 
@@ -2231,6 +2247,37 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     then currentValuation, ([(s, terms@[loc])] @ flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates))
     else currentValuation, [(s, terms@[loc])] 
       
+
+  | Eq (Basic(BVAR var), Plus(Basic(BVAR var1),Basic(BINT n) )) -> 
+    
+    
+    if String.compare var var1 == 0 then 
+      (
+        match findCurrentValuation currentValuation var with 
+        | None ->  currentValuation, []
+        | Some n -> 
+          let newBt = (BINT (n+1)) in 
+          let currentValuation' =  updateCurrentValuation currentValuation var newBt  in 
+          getFactFromPureEv (Eq (Basic(BVAR var), Basic newBt)) state predicates predicatesSpec pathConstrint currentValuation' 
+
+      )
+    else currentValuation, []
+  | Eq (Basic(BVAR var), Minus(Basic(BVAR var1),Basic(BINT n) )) -> 
+    
+    
+    if String.compare var var1 == 0 then 
+      (
+        match findCurrentValuation currentValuation var with 
+        | None ->  currentValuation, []
+        | Some n -> 
+          let newBt = (BINT (n-1)) in 
+          let currentValuation' =  updateCurrentValuation currentValuation var newBt  in 
+          getFactFromPureEv (Eq (Basic(BVAR var), Basic newBt)) state predicates predicatesSpec pathConstrint currentValuation' 
+
+      )
+    else currentValuation, []
+
+
 
   | _ -> currentValuation, []
   ;;
