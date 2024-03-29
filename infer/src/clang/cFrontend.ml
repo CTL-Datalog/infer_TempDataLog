@@ -64,6 +64,7 @@ let string_of_source_range ((s1, s2):Clang_ast_t.source_range) :string =
 
 let rec decomposePure p : pure list = 
   match p with 
+  | PureOr (p1, p2)
   | PureAnd (p1, p2) -> decomposePure p1 @ decomposePure p2 
   | Ast_utility.TRUE -> []
   | _ -> [p]
@@ -2148,8 +2149,27 @@ let rec getRelaventPure (p:pure) (str:string) : pure option =
   | _ -> None 
 
 
+let rec convertSTR2VARTerms (t:terms) : terms = 
+  match t with 
+  | Basic (BSTR str) ->  Basic (BVAR str)
+  | Minus (t1, t2) -> Minus (convertSTR2VARTerms t1, convertSTR2VARTerms t2) 
+  | Plus (t1, t2) -> Plus (convertSTR2VARTerms t1, convertSTR2VARTerms t2) 
+  | _ -> t 
+
+let rec convertSTR2VAR (pi:pure) : pure = 
+  match pi with
+  | Eq (t1, t2) ->  Eq (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
+  | Gt (t1, t2)  ->  Gt (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
+  | Lt (t1, t2) ->  Lt (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
+  | GtEq (t1, t2) ->  GtEq (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
+  | LtEq (t1, t2) ->  LtEq (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
+  | Neg p -> Neg (convertSTR2VAR p)
+  | PureAnd (pi1, pi2) -> PureAnd (convertSTR2VAR pi1, convertSTR2VAR pi2)
+  | PureOr (pi1,pi2) -> PureOr (convertSTR2VAR pi1, convertSTR2VAR pi2)
+  | _ -> pi
 
 
+  ;;
 
 let rec pathConditionRelatedToVar str (pathConditions:pure list): pure list = 
   List.fold_left pathConditions ~init:[] ~f:(fun acc p -> 
@@ -2229,12 +2249,14 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let predicates' = 
         if entailConstrains currentConstraint FALSE 
         (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
-        then List.filter ~f:(fun ele -> relevent ele var && entailConstrains pureOfCurrentState ele) (predicates@predicatesSpec) 
+        then List.filter ~f:(fun ele -> 
+          let ele = convertSTR2VAR ele in 
+          relevent ele var && entailConstrains pureOfCurrentState ele) (predicates@predicatesSpec) 
         else List.filter ~f:(fun ele -> 
+          let ele = convertSTR2VAR ele in 
           if relevent ele var 
           then 
             let res =  entailConstrains currentConstraint ele in 
-
             print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
             res
           else false 
@@ -2402,9 +2424,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               )
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
-          (*
+          
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-*)
+
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
           in 

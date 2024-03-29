@@ -1230,44 +1230,58 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     else ()    );
     [(s, (vartoStr terms)@[loc])])
 
+  | Eq (Basic(BSTR var1), Basic(BVAR var2))
   | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
     [(assignKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
+  | Eq (Basic(BSTR var), Basic (BINT t2))
   | Eq (Basic(BVAR var), Basic (BINT t2)) -> 
     updateRuleDeclearation ruleDeclearation (assignKeyWord) ;
     [(assignKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
 
-
+  | Neg (LtEq (Basic(BSTR var), Basic(BVAR var2)))
   | Neg (LtEq (Basic(BVAR var), Basic(BVAR var2)))
+  | Gt (Basic(BSTR var), Basic(BVAR var2))
   | Gt (Basic(BVAR var), Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWordVar) ;
     [(gtKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+
+  | Neg (LtEq (Basic(BSTR var), t2))
+  | Gt (Basic(BSTR var), t2)
   | Neg (LtEq (Basic(BVAR var), t2))
   | Gt (Basic(BVAR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWord);
     [(gtKeyWord, [Basic(BSTR var);loc;t2])]
 
-
+  | Neg (LtEq (t1, Basic(BSTR var2)))
+  | Gt (t1, Basic(BSTR var2))
   | Neg (LtEq (t1, Basic(BVAR var2)))
   | Gt (t1, Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWordVar);
     [(gtKeyWordVar, [t1;loc;Basic(BSTR var2)])]
+
+
   | Neg (LtEq (t1, t2))
   | Gt (t1, t2) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWord) ;
     [(gtKeyWord, [t1;loc;t2])]
 
-
+  | Neg (GtEq (Basic(BSTR var), Basic(BVAR var2)))
+  | Lt (Basic(BSTR var), Basic(BVAR var2))
   | Neg (GtEq (Basic(BVAR var), Basic(BVAR var2)))
   | Lt (Basic(BVAR var), Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
     [(ltKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+  | Neg (GtEq (Basic(BSTR var), t2))
+  | Lt (Basic(BSTR var), t2)
   | Neg (GtEq (Basic(BVAR var), t2))
   | Lt (Basic(BVAR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (ltKeyWord);
     [(ltKeyWord, [Basic(BSTR var);loc;t2])]
 
 
+  | Neg (GtEq (t1, Basic(BSTR var2)))
+  | Lt (t1, Basic(BSTR var2))
   | Neg (GtEq (t1, Basic(BVAR var2)))
   | Lt (t1, Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
@@ -1589,6 +1603,41 @@ let negatedPredicate str: string =
 
   else str 
 
+let string_of_int_shall n = 
+    if n >= 0 then string_of_int n 
+    else "neg_" ^ string_of_int (-1 * n)
+
+
+let rec propositionName pi : (string ) = 
+    match pi with 
+    | Eq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int_shall n
+    | Eq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_eq_" ^ str1
+    | Gt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n
+    | Gt (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_gt_" ^ str1
+
+    | Lt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lt_" ^ string_of_int_shall n
+    | Lt (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_lt_" ^ str1
+    | GtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gteq_" ^ string_of_int_shall n
+    | GtEq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_gteq_" ^ str1
+
+    | LtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lteq_" ^ string_of_int_shall n
+    | LtEq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_lteq_" ^ str1
+
+    | PureAnd (pi1, pi2) -> 
+      let n1 = propositionName pi1 in 
+      let n2 = propositionName pi2 in 
+      n1 ^ "_and_" ^ n2
+
+    | PureOr (pi1, pi2) -> 
+    let n1 = propositionName pi1 in 
+    let n2 = propositionName pi2 in 
+      n1 ^ "_or_" ^ n2
+
+    | Predicate (str, termLi) -> str
+    | _ -> 
+      print_endline ("propositionDefult " ^ string_of_pure pi);
+      "propositionDefult"
+
 let reachablibilyrules head = 
   (*print_endline ("reachablibilyrules: " ^ head) ; *)
   let base = ((String.sub head (0) (String.length head -1))) in 
@@ -1763,6 +1812,9 @@ and makeNegationPostiveWhenPosible (ctl:ctl) : ctl =
   | _ -> Neg ctl
 
 
+
+
+
 and translation_inner (ctl:ctl) : string * datalog =
 
     let processPair f1 f2 name (construct_rules: relation -> relation -> relation -> rule list) =
@@ -1869,6 +1921,14 @@ and translation_inner (ctl:ctl) : string * datalog =
         else 
           (predicateDeclearation:= (pName, ["Number"]) :: !predicateDeclearation ;
           pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ]))
+
+      | PureOr (p1, p2) -> 
+        processPair (Atom (propositionName p1, p1)) (Atom (propositionName p2, p2)) 
+        (fun x1 x2 ->  x1 ^ "_OR_" ^ x2) 
+        (fun (pName,newArgs) (x1,f1Args) (x2,f2Args) -> [ ( (pName, newArgs) , [Pos(x1,f1Args)] ) ; ( (pName, newArgs) , [Pos(x2,f2Args)] ) ]);
+
+
+
       | _ ->  pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ])
       )
     

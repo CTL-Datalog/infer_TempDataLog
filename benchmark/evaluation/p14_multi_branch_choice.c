@@ -6,7 +6,11 @@
  * -ctl EF{x==-4}
  *
  */
-/*@ EF(x=-4) @*/
+/* EF(x=-4) /\  EF(x=4)  @*/
+
+/*@ AF((x=-4) \/(x=4 ))  @*/
+
+
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
 
