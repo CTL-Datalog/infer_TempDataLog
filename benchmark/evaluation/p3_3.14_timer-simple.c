@@ -3,7 +3,9 @@
 //#Unsafe
 //@ ltl invariant someinv: !([](AP(timer_1 == 0) ==> <>(AP(output_1 == 1))));
 
-//AG (  {timer_1 != 0 \/ AF{output_1 == 1}}  )
+//
+
+/*@ AG ((timer_1 = 0) => (AF(output_1 = 1))  ) @*/ 
 
 int timer_1;
 int output_1;
@@ -14,13 +16,13 @@ int main()
 	output_1 = 0;
 
     while(1){
-        timer_1++;
+        timer_1 = timer_1 +  1;
         if(timer_1>=10){
             timer_1=0;
         }
 		if(timer_1==0){
 			output_1=1;
-		} else{
+		} else {
 			output_1=0;
 		}
     }

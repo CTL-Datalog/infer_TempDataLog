@@ -602,8 +602,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Some (Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BVAR var )])) 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BVAR var )])) 
+    | Some (Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
   | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
@@ -611,8 +611,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BVAR var )])) 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BVAR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
 
@@ -1755,12 +1755,14 @@ let stateAfterTerminate pi =
 
 let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun: rankingfunction list) (re:regularExpr) =  
   match rankingFun with 
-  | [] ->  Omega (Concate (Guard(guard), Concate(Singleton guard, re)))
   | (rankingFun, Some _):: _ -> 
     Omega (Concate (Guard(guard), Concate(Singleton guard, re)))
 
   | (rankingFun, None):: _ -> 
     Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
+
+  | [] ->  (*Omega (Concate (Guard(guard), Concate(Singleton guard, re)))*)
+
   (*
     match re with 
 
@@ -1769,7 +1771,7 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun: rankingfunctio
     Omega (Concate (Guard(guard),  Concate(Singleton(guard), re)))
     *)
 
-  (*let rec reoccur (his:fstElem list)  f =     
+  let rec reoccur (his:fstElem list)  f =     
     match his with 
     | [] -> false 
     | hd::tail -> 
@@ -1779,8 +1781,6 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun: rankingfunctio
       print_endline (string_of_bool temp); 
       *)
       if temp then true else  reoccur tail f 
-      
-
       
   in 
   let rec helper (reIn:regularExpr) (his:fstElem list) : (fstElem list) list = 
@@ -1838,7 +1838,7 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun: rankingfunctio
     
     ) pathes in 
   disjunctRE res
-  *)
+  
 
 let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:regularExpr) (reInfinite): regularExpr = 
   match rankingFun with 
@@ -1943,7 +1943,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
 
       | None ->  
         print_endline ("!!! " ^ string_of_regularExpr reIn ^ " has no decreasing argument !");
-        let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns reIn in 
+        let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) [] reIn in 
         (stateWhenNonTerminate_fixpoint))
 
     (*
@@ -2094,6 +2094,24 @@ let rec recordTheMaxValue4RE (re:regularExpr): unit =
   | Bot | Emp -> ()
 
 
+let rec mapToOddEvenDomain (re:regularExpr): regularExpr =
+  match  re with 
+  | Singleton (Eq (Basic(BVAR var), Minus(Basic(BVAR var1),Basic(BINT 1) )), loc) -> 
+    if String.compare var var1 == 0 then 
+      let re1 = Concate (Guard(Predicate(evenKeyWord, [Basic(BVAR var)]), loc) , Singleton(Predicate(oddKeyWord, [Basic(BVAR var)]), loc)) in 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let re2 = Concate (Guard(Predicate(oddKeyWord, [Basic(BVAR var)]), !allTheUniqueIDs) , Singleton(Predicate(evenKeyWord, [Basic(BVAR var)]), !allTheUniqueIDs)) in 
+      Disjunction(re1, re2)
+    else re
+
+  | Concate (re1, re2) ->  Concate (mapToOddEvenDomain re1, mapToOddEvenDomain re2) 
+  | Disjunction (re1, re2) -> Disjunction (mapToOddEvenDomain re1, mapToOddEvenDomain re2)
+  | Omega reIn -> Omega (mapToOddEvenDomain reIn )
+  | Kleene (reIn) -> Kleene (mapToOddEvenDomain reIn )
+  | _ -> re
+
+
+
 let getAllImplicationLeft (ctls:ctl list): pure list = 
   List.fold_left ~init:[] ~f:(fun acc ctl -> acc @ getAllPureFromImplicationLeft  ctl) ctls 
 
@@ -2114,10 +2132,29 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   let pass5, _ = instantiateREStatesWithFreshNum (pass4) [] in  (*this is the step for renaming the states *)
   print_endline ("\nPASS5:\n"^string_of_regularExpr (pass5)^ "\n------------"); 
 
+  
+  (*
+  let pathConditions = getAllPathConditions pass5 in 
+  let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
+  let (predNames:string list) = List.fold_left decomposedPathConditions ~init:[] 
+    ~f:(fun acc a -> 
+      match a with 
+      | Predicate(str, _) -> acc @ [str] 
+      | _ -> acc) 
+  in
+
+  let pass6 = 
+    if twoStringSetOverlap predNames [evenKeyWord; oddKeyWord] 
+    then mapToOddEvenDomain pass5 
+    else pass5
+  in 
+  *)
+
+  (*
   let (pathConditionsSpecOnTheLeft:pure list) = getAllImplicationLeft specs in 
   
   print_endline ("pathConditionsSpecOnTheLeft \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpecOnTheLeft))));   
- 
+ *)
 
 
   pass5
@@ -2357,7 +2394,9 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     if String.compare var var1 == 0 then 
       (
         match findCurrentValuation currentValuation var with 
-        | None ->  currentValuation, []
+        | None ->  
+          print_endline ("findCurrentValuation none for " ^  string_of_pure p);
+          currentValuation, []
         | Some n -> 
           let newBt = (BINT (n-1)) in 
           let currentValuation' =  updateCurrentValuation currentValuation var newBt  in 

@@ -1,8 +1,8 @@
-/*@ EF(resp=5) @*/
 
 
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
+/*@ EF(resp=5) @*/
 
 void main() {
   int c;
