@@ -36,6 +36,9 @@ let oddKeyWord = "Odd"
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
 
 
+
+
+
 type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
 
 type event = string * (basic_type list)
@@ -121,7 +124,7 @@ type ctl =
   | EU of ctl * ctl 
 
 
-
+type rankingfunction =  (terms * regularExpr option)
 
 (* Global States *)
 let (varSet: (string list) ref) = ref [] 
@@ -571,6 +574,13 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
     | _ -> Bot 
     )
 
+let string_of_ranking_function (p, re): string = 
+  string_of_terms p ^ " :: " ^ 
+  (match re with 
+  | None -> "none"
+  | Some re -> string_of_regularExpr re
+  )
+
 
 let eventToRe (ev:fstElem) : regularExpr = 
   match ev with 
@@ -646,6 +656,10 @@ let rec normalise_pure (pi:pure) : pure =
   | TRUE 
   | FALSE -> pi
 
+
+  | LtEq (Basic(BINT n), Basic(BVAR v)) -> GtEq (Basic(BVAR v), Basic(BINT n))
+  | Lt (Basic(BINT n), Basic(BVAR v)) -> Gt (Basic(BVAR v), Basic(BINT n))
+  | Gt (Basic(BINT n), Basic(BVAR v)) -> Lt (Basic(BVAR v), Basic(BINT n))
 
   | Gt (leftHandside,Basic( BINT 0)) -> 
     (match normalise_terms leftHandside with

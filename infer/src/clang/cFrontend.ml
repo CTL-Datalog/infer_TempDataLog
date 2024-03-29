@@ -1467,20 +1467,49 @@ let rec makeAGuessFromPure (pi:pure) : terms list =
     )
   | _ -> [] 
 
-let makeAGuessFromGuard (re:regularExpr) : terms list = 
+let rec deleteallGuard (reIn:regularExpr) : regularExpr = 
+  match reIn with 
+  | Guard(pi, _) -> Emp 
+  | Disjunction (re1, re2) ->Disjunction(deleteallGuard re1, deleteallGuard re2)
+  | Concate (re1, re2) ->  Concate(deleteallGuard re1, deleteallGuard re2)
+
+  | Omega re1 -> Omega(deleteallGuard re1)
+  | Kleene re1 ->  Kleene(deleteallGuard re1)
+  | _ -> reIn
+  
+
+let rec getPersistantValuation(reIn:regularExpr) : regularExpr = 
+  match reIn with 
+  | Singleton(Eq(Basic (BVAR a), Basic (BINT n)), _) -> reIn 
+  | Guard _ -> Emp 
+  | Disjunction (re1, re2) -> Disjunction(getPersistantValuation re1, getPersistantValuation re2)
+  | Concate (re1, re2) ->  Concate(getPersistantValuation re1, getPersistantValuation re2)
+
+  | Omega re1 -> Omega(getPersistantValuation re1)
+  | Kleene re1 ->  Kleene(getPersistantValuation re1)
+  | _ -> reIn
+
+
+let makeAGuessFromGuard (re:regularExpr) : rankingfunction list = 
+
   
   let pathConditions = getAllPathConditions re in 
   let pathConditions = flattenList (List.map  pathConditions ~f:decomposePure) in 
   (*print_endline ("makeAGuessFromGuard pathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditions))));   
 *)
-  flattenList (List.map pathConditions ~f:makeAGuessFromPureRelaxed)
+  let temp = flattenList (List.map pathConditions ~f:makeAGuessFromPureRelaxed)  in 
+  List.map temp ~f:(fun a -> (a, 
+    Some (deleteallGuard re)))
 
 (* makeAGuess is to get a list of possible ranking functions *)
-let rec makeAGuess (pi:pure) (terminatingCases) : terms list = 
-  let r1 = makeAGuessFromPure pi in 
+(* it returns a list of ranking functions, and for the onces derived from the leacking paths, it is together with a regular expression denoting the leacking behaviours  *)
+let rec makeAGuess (guard:pure) (terminatingCases) :  rankingfunction list = 
+  let r1 = makeAGuessFromPure guard in 
   let r2 = makeAGuessFromGuard terminatingCases in 
-  r1@r2
+  List.map r1 ~f:(fun a -> (a, None)) @ r2 
   
+
+
 let rec findStateRecord (t:terms) (s:((terms * terms)list)) = 
     match s with 
     | [] -> None 
@@ -1625,10 +1654,10 @@ let rec containUnknown (term:terms) : bool =
   | Basic _ -> false 
   | Minus(t1, t2) | Plus(t1,  t2) -> containUnknown t1 || containUnknown t2
 
-let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : (regularExpr * ((pure * terms) option)) list = 
+let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:rankingfunction list) : (regularExpr * ((pure * rankingfunction) option)) list = 
   print_endline ("wp4Termination"); 
 
-  let helper rankingTerm reIn : (pure * terms)  = 
+  let helper ((rankingTerm, leakBehaves):rankingfunction) reIn : (pure * rankingfunction)  = 
     let (transitionSummary:transitionSummary) = transitionSummary reIn in 
     print_endline ("current ranking function is " ^ string_of_terms rankingTerm); 
 
@@ -1661,14 +1690,14 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : (reg
     match precondition with 
     | None -> 
       print_endline("wp4Termination " ^ string_of_pure (TRUE)); 
-      TRUE, rankingTerm 
+      TRUE, (rankingTerm, leakBehaves) 
     | Some pre -> 
-      if entailConstrains pre FALSE then FALSE, rankingTerm 
-      else pre, rankingTerm
+      if entailConstrains pre FALSE then FALSE, (rankingTerm, leakBehaves) 
+      else pre, (rankingTerm, leakBehaves)
   in 
 
   (* for each path, it is enough that one ranking function is be decresing, so disjunct on the results *)
-  let rec aux (rankingTermLi:terms list) reIn : (regularExpr * ((pure * terms) option)) list = 
+  let rec aux (rankingTermLi:rankingfunction list) reIn : (regularExpr * ((pure * rankingfunction) option)) list = 
     match rankingTermLi with 
     | [] -> [(reIn , None)] (* there is no ranking function make this trace terminate *)
     | rankingTerm :: tail -> 
@@ -1680,7 +1709,7 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:terms list) : (reg
   in 
 
   (* for each path, we need to try at least one ranking function should be decresing, so conjucntion on the results *)
-  let rec iterator reLi rankingTermLi : (regularExpr * ((pure * terms) option)) list = 
+  let rec iterator reLi (rankingTermLi:rankingfunction list) : (regularExpr * ((pure * rankingfunction) option)) list = 
     match reLi with 
     | [] -> [] 
     | [re] ->  aux rankingTermLi re
@@ -1724,11 +1753,14 @@ let stateAfterTerminate pi =
    
 
 
-let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms list) (re:regularExpr) =  
+let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun: rankingfunction list) (re:regularExpr) =  
   match rankingFun with 
   | [] ->  Omega (Concate (Guard(guard), Concate(Singleton guard, re)))
-  | rankingFun:: _ -> 
-  Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
+  | (rankingFun, Some _):: _ -> 
+    Omega (Concate (Guard(guard), Concate(Singleton guard, re)))
+
+  | (rankingFun, None):: _ -> 
+    Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
   (*
     match re with 
 
@@ -1808,19 +1840,39 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun:terms list) (re
   disjunctRE res
   *)
 
-let terminatingFinalState rankingFun = 
+let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:regularExpr) (reInfinite): regularExpr = 
   match rankingFun with 
   | [] -> raise (Failure "wp4Termination true but no rankingFun")
-  | rf::_ -> normalise_pure (Eq(rf, Basic(BINT 0)))
+  | (rf, None)::_ -> 
+    let finalState = normalise_pure (Eq(rf, Basic(BINT 0))) in 
+    let ev = stateAfterTerminate finalState in 
+    Concate (Concate (ev, persistant), reFalse)
+  | (rf, Some re)::_ -> 
+
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let gT =  (Gt(rf, Basic(BINT 0) ), !allTheUniqueIDs) in 
+    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+    let gNT =  (LtEq(rf, Basic(BINT 0) ), !allTheUniqueIDs) in
+
+    let finalState = normalise_pure (Eq(rf, Basic(BINT 0))) in 
+    let ev = stateAfterTerminate finalState in 
+
+    let terminaing = Concate (Guard(gT), Concate (Concate (ev, persistant), re)) in
+    let nonterminaing = Concate (Guard(gNT), reInfinite) in
+    Disjunction(terminaing, nonterminaing)
+
+    
+
+    
   
 
-let rankingFunctionFromTerminatingTraces rankingFuns pi : terms option = 
+let rankingFunctionFromTerminatingTraces (rankingFuns:rankingfunction list) pi : rankingfunction option = 
   let r1 = makeAGuessFromPure pi in 
   match rankingFuns, r1 with 
   | rf::_, [] -> Some rf
-  | rf::_, r1::_ -> 
+  | (rf, re)::_, r1::_ -> 
     if stricTcompareTerm rf r1 then None 
-    else Some rf
+    else Some (rf, re)
   | _,  _ -> None 
 
 
@@ -1842,8 +1894,8 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
       print_endline ("leakingBranches: " ^ string_of_regularExpr leakingBranches) ; 
       print_endline ("nonleakingBranches: "  ^ string_of_regularExpr nonleakingBranches) ; 
     
-      let (rankingFuns:terms list) = makeAGuess pi leakingBranches in 
-      let rankingFuns = removeRedundant rankingFuns stricTcompareTerm in 
+      let (rankingFuns:rankingfunction list ) = makeAGuess pi leakingBranches in 
+      let rankingFuns = removeRedundant rankingFuns (fun (a, _) (b , _) -> stricTcompareTerm a b ) in 
       pi, deriv, rankingFuns, loc, nonleakingBranches
 
     | [PureEv (_, loc)] -> raise (Failure "loop starting with PureEv") (*Ast_utility.TRUE, re, None, loc *)
@@ -1853,7 +1905,11 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
   in 
 
 
-  print_endline ("\nRankingFuns \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_terms p) (rankingFuns))));   
+  print_endline ("\nRankingFuns \n" ^ (String.concat ~sep:",\n" 
+    (List.map ~f:(fun (p, re) -> string_of_ranking_function (p, re)
+      
+      ) (rankingFuns))));   
+
 
 
   print_endline ("loop guard: " ^ string_of_pure pi );
@@ -1862,26 +1918,27 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
 
   (*let stateWhenNonTerminate = deriv in 
   *)
-
-  let (analyseEachTraceEachRankingFunction:(regularExpr * ((pure * terms) option)) list) = wp4Termination nonleakingBranches (PureAnd(pi, path)) rankingFuns in 
+                                            (* a trace,    Some(terminational wp, ranking function) *)
+  let (analyseEachTraceEachRankingFunction:(regularExpr * ((pure * rankingfunction) option)) list) = wp4Termination nonleakingBranches (PureAnd(pi, path)) rankingFuns in 
 
   let temp = List.map analyseEachTraceEachRankingFunction ~f:(fun (reIn, res) -> 
     
     match res with 
     | None -> 
-      (match rankingFunctionFromTerminatingTraces rankingFuns pi with 
-      | Some rf -> 
-        let pureAfterTerminate = normalise_pure (terminatingFinalState [rf]) in 
+      (match rankingFunctionFromTerminatingTraces rankingFuns pi with (* rankingfunction option *)
+      | Some (rf, leakingBehave) -> 
         let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns reIn in 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
         let tGuard = Guard (normalise_pure (Eq(rf, Basic(BINT 0))), !allTheUniqueIDs) in 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
 
         let ntGuard = Guard (normalise_pure (Gt(rf, Basic(BINT 0))), !allTheUniqueIDs) in 
+        let nonterminating = Concate(ntGuard, stateWhenNonTerminate_fixpoint) in 
+
+        let (reAfterTerminate:regularExpr) = normalise_es (terminatingFinalState  [(rf, leakingBehave)] Emp reFalse nonterminating)  in 
 
         disjunctRE[
-          Concate(Guard(pi, loc), Concate (tGuard, Concate(stateAfterTerminate pureAfterTerminate, reFalse))); 
-          Concate(ntGuard, stateWhenNonTerminate_fixpoint)
+          Concate(Guard(pi, loc), Concate (tGuard, reAfterTerminate))
         ]
 
       | None ->  
@@ -1889,16 +1946,18 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
         let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns reIn in 
         (stateWhenNonTerminate_fixpoint))
 
+    (*
     | Some(TRUE, rf) -> 
-      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " always terminates with ranking function " ^ string_of_terms rf);
-      let pureAfterTerminate = terminatingFinalState [rf] in 
-      Concate(Guard(pi, loc), Concate(stateAfterTerminate pureAfterTerminate, reFalse))
+      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " always terminates with ranking function " ^ string_of_ranking_function rf);
+      let (reAfterTerminate:regularExpr) = terminatingFinalState [rf] reFalse in 
+      Concate(Guard(pi, loc), reAfterTerminate)
+      *)
 
     | Some (weakestPre, rf) -> 
-      print_endline("wp4Termination weakestPre raw: " ^ string_of_pure (weakestPre));  
+      (*print_endline("wp4Termination weakestPre raw: " ^ string_of_pure (weakestPre));  *)
 
       let weakestPre = normalise_pure weakestPre in 
-      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_terms rf ^ " when " ^ string_of_pure weakestPre);
+      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_ranking_function rf ^ " when " ^ string_of_pure weakestPre);
 
       print_endline("wp4Termination weakestPre: " ^ string_of_pure (weakestPre));  
       (*let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
@@ -1914,11 +1973,18 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
       let terminating = 
         (*Concate (g1, Concate(g2, g3) ) *) Concate(g2, g3) in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let pureAfterTerminate = terminatingFinalState [rf] in 
+ 
       let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) [rf] reIn in 
-      let non_terminating = Concate (negg2 , stateWhenNonTerminate_fixpoint) in 
+      let non_terminating = 
+        match rf with 
+        | (_, None)-> Concate (negg2 , stateWhenNonTerminate_fixpoint)  
+        | (_, Some _) -> stateWhenNonTerminate_fixpoint
+      in 
+      let (persistant:regularExpr) = normalise_es (getPersistantValuation reIn) in 
+      let (reAfterTerminate:regularExpr) = terminatingFinalState [rf] persistant reFalse non_terminating in 
+
       disjunctRE [
-        Concate (terminating, Concate (stateAfterTerminate pureAfterTerminate, reFalse)); non_terminating]
+        Concate (terminating, reAfterTerminate)]
   )
   in 
   disjunctRE temp 
