@@ -12,6 +12,12 @@ warnLight, temp, otime = 0, time = 0, limit, init = 0;
 int tempInRand;
 int limitRand;
 
+
+
+
+/*@ AF(AU(init=0, AU(init=1, AG(init=3)))) @*/
+
+
 void display(int tempdiff, int warning)
 {
 	tempDisplay = tempdiff;

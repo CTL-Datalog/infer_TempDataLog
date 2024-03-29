@@ -1436,7 +1436,7 @@ let rec makeAGuessFromPureRelaxed (pi:pure) : terms list =
   | LtEq (t, Basic (BINT 0)) 
   | Lt (t, Basic (BINT 0)) -> [(Minus(Basic (BINT 0), t))]
   | Lt (t1, t2) -> [(Minus(t2, t1))]
-  | Eq (t1, _) -> [(Minus(Basic (BINT 0), t1))]
+  | Eq (t1, Basic (BINT n)) -> [(Minus(Basic (BINT n), t1)); (Minus(t1, Basic (BINT n)))]
   | GtEq (t, Basic (BINT 0)) 
   | Gt (t, Basic (BINT 0)) ->[ t ]
   | Gt (t1, t2) -> [(Minus(t1, t2))]
@@ -1583,7 +1583,7 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
           | PureEv _
           | Delimiter _ 
           | GuardEv _ -> (Bot, eventToRe f) 
-          | OmegaEv reIn -> (Bot, Omega reIn)
+          | OmegaEv reIn -> (Omega reIn, Bot)
           | _ ->  raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
         in 
         let (dTerm, dNonTerm) = helper (normalise_es(derivitives f reIn)) in 
@@ -1832,19 +1832,19 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
 
   let (fstSet:(fstElem list)) = fst re in 
   let fstSet' = removeRedundant fstSet compareEvent in 
-  let pi, deriv, rankingFuns, loc, nonTerminatingBranches =  
+  let pi, deriv, rankingFuns, loc, nonleakingBranches =  
     (match fstSet' with 
     | [GuardEv (pi, loc)] ->  
       let f = GuardEv (pi, loc) in 
       let deriv = normalise_es (derivitives f re) in 
-      let terminatingBranches, nonTerminatingBranches = devideByExitOrReturn deriv in 
+      let leakingBranches, nonleakingBranches = devideByExitOrReturn deriv in 
 
-      print_endline ("terminatingBranches: " ^ string_of_regularExpr terminatingBranches) ; 
-      print_endline ("nonTerminatingBranches: "  ^ string_of_regularExpr nonTerminatingBranches) ; 
+      print_endline ("leakingBranches: " ^ string_of_regularExpr leakingBranches) ; 
+      print_endline ("nonleakingBranches: "  ^ string_of_regularExpr nonleakingBranches) ; 
     
-      let (rankingFuns:terms list) = makeAGuess pi terminatingBranches in 
+      let (rankingFuns:terms list) = makeAGuess pi leakingBranches in 
       let rankingFuns = removeRedundant rankingFuns stricTcompareTerm in 
-      pi, deriv, rankingFuns, loc, nonTerminatingBranches
+      pi, deriv, rankingFuns, loc, nonleakingBranches
 
     | [PureEv (_, loc)] -> raise (Failure "loop starting with PureEv") (*Ast_utility.TRUE, re, None, loc *)
     
@@ -1863,7 +1863,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reFalse:regularExpr): regularEx
   (*let stateWhenNonTerminate = deriv in 
   *)
 
-  let (analyseEachTraceEachRankingFunction:(regularExpr * ((pure * terms) option)) list) = wp4Termination nonTerminatingBranches (PureAnd(pi, path)) rankingFuns in 
+  let (analyseEachTraceEachRankingFunction:(regularExpr * ((pure * terms) option)) list) = wp4Termination nonleakingBranches (PureAnd(pi, path)) rankingFuns in 
 
   let temp = List.map analyseEachTraceEachRankingFunction ~f:(fun (reIn, res) -> 
     
@@ -2214,8 +2214,8 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
   (*print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
 *) 
-  print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
-
+  (*print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
+*)
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2238,8 +2238,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   | Eq (Basic(BVAR var), Basic t1) -> 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
-    print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
-
+    (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
+*)
     let pureOfCurrentState = pureOfCurrentState currentValuation' in 
     let pathConstrint' = removeConstrint pathConstrint var in 
     let currentConstraint = normalise_pure (PureAnd(pureOfCurrentState, pathConstrint')) in 
@@ -2257,7 +2257,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
           if relevent ele var 
           then 
             let res =  entailConstrains currentConstraint ele in 
-            print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
+            (*print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
+            *)
             res
           else false 
         ) (predicates@predicatesSpec) in 
@@ -2425,8 +2426,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
           
+          (*
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-
+*)
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
           in 
