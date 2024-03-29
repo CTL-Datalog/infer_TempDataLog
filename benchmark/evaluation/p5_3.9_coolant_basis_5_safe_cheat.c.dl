@@ -1,0 +1,744 @@
+/*(Join())@30*/
+
+flow(30,30).
+State(30).
+
+/*(Start())@31 · (init=0)@32 · (EXIT())@33*/
+
+flow(31,32).
+flow(32,33).
+flow(33,33).
+Start(31).
+State(31).
+Eq("init",32,0).
+State(32).
+EXIT(33).
+State(33).
+
+/*(Start())@34 · (otime=0)@35 · (EXIT())@36*/
+
+flow(34,35).
+flow(35,36).
+flow(36,36).
+Start(34).
+State(34).
+State(35).
+EXIT(36).
+State(36).
+
+/*(Start())@37 · (time=0)@38 · (EXIT())@39*/
+
+flow(37,38).
+flow(38,39).
+flow(39,39).
+Start(37).
+State(37).
+State(38).
+EXIT(39).
+State(39).
+
+/*(Start())@40 · [⊤]@41 · (otime=time)@42 · (time=(otime+1))@43 · (tempIn=tempInRand)@44 · (temp=_)@45 · (([temp>limit]@46 · (chainBroken=1)@47 · ([⊤]@48 · (otime=time)@49 · (time=(otime+1))@50 · (tempIn=tempInRand)@51 · (temp=_)@52 · (([temp>limit]@53 · (chainBroken=1)@54) \/ ([temp<=limit]@55)))^w) \/ ([temp<=limit]@56 · ([⊤]@57 · (otime=time)@58 · (time=(otime+1))@59 · (tempIn=tempInRand)@60 · (temp=_)@61 · (([temp>limit]@62 · (chainBroken=1)@63) \/ ([temp<=limit]@64)))^w))*/
+
+flow(41,42).
+flow(42,43).
+flow(43,44).
+flow(44,45).
+flow(54,54).
+flow(55,55).
+flow(54,48).
+flow(55,48).
+flow(63,63).
+flow(64,64).
+flow(63,57).
+flow(64,57).
+Start(40).
+GtVar("temp",40,"limit").
+LtEqVar("temp",40,"limit").
+State(40).
+control_flow(40,41).
+State(41).
+State(42).
+State(43).
+State(44).
+State(46).
+State(47).
+State(48).
+State(49).
+State(50).
+State(51).
+State(53).
+State(54).
+State(52).
+State(55).
+State(45).
+State(56).
+State(57).
+State(58).
+State(59).
+State(60).
+State(62).
+State(63).
+State(61).
+State(64).
+control_flow(45,46) :- GtVarD("temp",45,"limit").
+control_flow(46,47) :- GtVarD("temp",45,"limit").
+control_flow(47,48) :- GtVarD("temp",45,"limit").
+control_flow(48,49) :- GtVarD("temp",45,"limit").
+control_flow(49,50) :- GtVarD("temp",45,"limit").
+control_flow(50,51) :- GtVarD("temp",45,"limit").
+control_flow(51,52) :- GtVarD("temp",45,"limit").
+control_flow(52,53) :- GtVarD("temp",45,"limit"), GtVarD("temp",52,"limit").
+control_flow(53,54) :- GtVarD("temp",45,"limit"), GtVarD("temp",52,"limit").
+control_flow(52,55) :- GtVarD("temp",45,"limit"), LtEqVarD("temp",52,"limit").
+control_flow(45,56) :- LtEqVarD("temp",45,"limit").
+control_flow(56,57) :- LtEqVarD("temp",45,"limit").
+control_flow(57,58) :- LtEqVarD("temp",45,"limit").
+control_flow(58,59) :- LtEqVarD("temp",45,"limit").
+control_flow(59,60) :- LtEqVarD("temp",45,"limit").
+control_flow(60,61) :- LtEqVarD("temp",45,"limit").
+control_flow(61,62) :- LtEqVarD("temp",45,"limit"), GtVarD("temp",61,"limit").
+control_flow(62,63) :- LtEqVarD("temp",45,"limit"), GtVarD("temp",61,"limit").
+control_flow(61,64) :- LtEqVarD("temp",45,"limit"), LtEqVarD("temp",61,"limit").
+/*(Start())@65 · (tempDisplay=tempdiff)@66 · (warnLED=warning)@67 · (EXIT())@68*/
+
+flow(65,66).
+flow(66,67).
+flow(67,68).
+flow(68,68).
+Start(65).
+State(65).
+State(66).
+State(67).
+EXIT(68).
+State(68).
+
+/*(Start())@89 · (init=0)@90 · (tempDisplay=0)@91 · (warnLED=1)@92 · (tempIn=0)@93 · (error=0)@94 · (chainBroken=0)@95 · (warnLight=0)@96 · (temp=0)@97 · (limit=8)@98 · (init=1)@99 · [⊤]@100 · (limit=_)@101 · (([limit<10]@102 · (([limit>-273]@103 · (error=0)@104 · (_fun_display())@105 · (init=3)@106 · (coolantControl())@107 · (EXIT())@108) \/ ([limit<=-273]@109 · (error=1)@110 · (_fun_display())@111 · (([⊤]@112 · [limit=10]@113 · (([limit<10]@114 · (limit=10)@115 · (limit=_)@116 · (error=0)@117 · (_fun_display())@118 · (init=3)@119 · (coolantControl())@120 · (EXIT())@121) \/ ([limit>=10]@122 · [limit<10]@123 · ([⊤]@124 · (limit=_)@125 · [limit<10]@126 · [limit<=-273]@127 · (error=1)@128 · (_fun_display())@129)^w))) \/ ([⊤]@130 · [limit=10]@131 · (([limit<10]@132 · (limit=10)@133 · (limit=_)@134 · (error=0)@135 · (_fun_display())@136 · (init=3)@137 · (coolantControl())@138 · (EXIT())@139) \/ ([limit>=10]@140 · [limit<10]@141 · ([⊤]@142 · (limit=_)@143 · [limit>=10]@144 · (error=1)@145 · (_fun_display())@146)^w))))))) \/ ([limit>=10]@147 · (error=1)@148 · (_fun_display())@149 · (([⊤]@150 · [limit=10]@151 · (([limit<10]@152 · (limit=10)@153 · (limit=_)@154 · (error=0)@155 · (_fun_display())@156 · (init=3)@157 · (coolantControl())@158 · (EXIT())@159) \/ ([limit>=10]@160 · [limit<10]@161 · ([⊤]@162 · (limit=_)@163 · [limit<10]@164 · [limit<=-273]@165 · (error=1)@166 · (_fun_display())@167)^w))) \/ ([⊤]@168 · [limit=10]@169 · (([limit<10]@170 · (limit=10)@171 · (limit=_)@172 · (error=0)@173 · (_fun_display())@174 · (init=3)@175 · (coolantControl())@176 · (EXIT())@177) \/ ([limit>=10]@178 · [limit<10]@179 · ([⊤]@180 · (limit=_)@181 · [limit>=10]@182 · (error=1)@183 · (_fun_display())@184)^w))))))*/
+
+flow(89,90).
+flow(90,91).
+flow(91,92).
+flow(92,93).
+flow(93,94).
+flow(94,95).
+flow(95,96).
+flow(96,97).
+flow(97,98).
+flow(98,99).
+flow(100,101).
+flow(108,108).
+flow(121,121).
+flow(129,129).
+flow(129,124).
+flow(139,139).
+flow(146,146).
+flow(146,142).
+flow(159,159).
+flow(167,167).
+flow(167,162).
+flow(177,177).
+flow(184,184).
+flow(184,180).
+Start(89).
+Gt("limit",89,-273).
+LtEq("limit",89,-273).
+Eq("limit",89,10).
+Lt("limit",89,10).
+GtEq("limit",89,10).
+State(89).
+Eq("init",90,0).
+State(90).
+State(91).
+State(92).
+State(93).
+State(94).
+State(95).
+State(96).
+State(97).
+Gt("limit",98,-273).
+Lt("limit",98,10).
+State(98).
+Eq("init",99,1).
+State(99).
+control_flow(99,100).
+State(100).
+State(103).
+State(104).
+_fun_display(105).
+State(105).
+Eq("init",106,3).
+State(106).
+coolantControl(107).
+State(107).
+EXIT(108).
+State(108).
+State(102).
+State(109).
+State(110).
+_fun_display(111).
+State(112).
+State(114).
+Gt("limit",115,-273).
+Eq("limit",115,10).
+GtEq("limit",115,10).
+State(115).
+State(116).
+State(117).
+_fun_display(118).
+State(118).
+Eq("init",119,3).
+State(119).
+coolantControl(120).
+State(120).
+EXIT(121).
+State(121).
+State(113).
+State(122).
+State(123).
+State(124).
+State(125).
+State(126).
+State(127).
+State(128).
+_fun_display(129).
+State(129).
+State(111).
+State(130).
+State(132).
+Gt("limit",133,-273).
+Eq("limit",133,10).
+GtEq("limit",133,10).
+State(133).
+State(134).
+State(135).
+_fun_display(136).
+State(136).
+Eq("init",137,3).
+State(137).
+coolantControl(138).
+State(138).
+EXIT(139).
+State(139).
+State(131).
+State(140).
+State(141).
+State(142).
+State(143).
+State(144).
+State(145).
+_fun_display(146).
+State(146).
+State(101).
+State(147).
+State(148).
+_fun_display(149).
+State(150).
+State(152).
+Gt("limit",153,-273).
+Eq("limit",153,10).
+GtEq("limit",153,10).
+State(153).
+State(154).
+State(155).
+_fun_display(156).
+State(156).
+Eq("init",157,3).
+State(157).
+coolantControl(158).
+State(158).
+EXIT(159).
+State(159).
+State(151).
+State(160).
+State(161).
+State(162).
+State(163).
+State(164).
+State(165).
+State(166).
+_fun_display(167).
+State(167).
+State(149).
+State(168).
+State(170).
+Gt("limit",171,-273).
+Eq("limit",171,10).
+GtEq("limit",171,10).
+State(171).
+State(172).
+State(173).
+_fun_display(174).
+State(174).
+Eq("init",175,3).
+State(175).
+coolantControl(176).
+State(176).
+EXIT(177).
+State(177).
+State(169).
+State(178).
+State(179).
+State(180).
+State(181).
+State(182).
+State(183).
+_fun_display(184).
+State(184).
+control_flow(101,102) :- LtD("limit",101,10).
+control_flow(102,103) :- LtD("limit",101,10), GtD("limit",102,-273).
+control_flow(103,104) :- LtD("limit",101,10), GtD("limit",102,-273).
+control_flow(104,105) :- LtD("limit",101,10), GtD("limit",102,-273).
+control_flow(105,106) :- LtD("limit",101,10), GtD("limit",102,-273).
+control_flow(106,107) :- LtD("limit",101,10), GtD("limit",102,-273).
+control_flow(107,108) :- LtD("limit",101,10), GtD("limit",102,-273).
+control_flow(102,109) :- LtD("limit",101,10), LtEqD("limit",102,-273).
+control_flow(109,110) :- LtD("limit",101,10), LtEqD("limit",102,-273).
+control_flow(110,111) :- LtD("limit",101,10), LtEqD("limit",102,-273).
+control_flow(111,112) :- LtD("limit",101,10), LtEqD("limit",102,-273).
+control_flow(112,113) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10).
+control_flow(113,114) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(114,115) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(115,116) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(116,117) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(117,118) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(118,119) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(119,120) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(120,121) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), LtD("limit",113,10).
+control_flow(113,122) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10).
+control_flow(122,123) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10).
+control_flow(123,124) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10).
+control_flow(124,125) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10).
+control_flow(125,126) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10), LtD("limit",125,10).
+control_flow(126,127) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10), LtD("limit",125,10), LtEqD("limit",126,-273).
+control_flow(127,128) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10), LtD("limit",125,10), LtEqD("limit",126,-273).
+control_flow(128,129) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",112,10), GtEqD("limit",113,10), LtD("limit",122,10), LtD("limit",125,10), LtEqD("limit",126,-273).
+control_flow(111,130) :- LtD("limit",101,10), LtEqD("limit",102,-273).
+control_flow(130,131) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10).
+control_flow(131,132) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(132,133) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(133,134) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(134,135) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(135,136) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(136,137) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(137,138) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(138,139) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), LtD("limit",131,10).
+control_flow(131,140) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10).
+control_flow(140,141) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10), LtD("limit",140,10).
+control_flow(141,142) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10), LtD("limit",140,10).
+control_flow(142,143) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10), LtD("limit",140,10).
+control_flow(143,144) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10), LtD("limit",140,10), GtEqD("limit",143,10).
+control_flow(144,145) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10), LtD("limit",140,10), GtEqD("limit",143,10).
+control_flow(145,146) :- LtD("limit",101,10), LtEqD("limit",102,-273), EqD("limit",130,10), GtEqD("limit",131,10), LtD("limit",140,10), GtEqD("limit",143,10).
+control_flow(101,147) :- GtEqD("limit",101,10).
+control_flow(147,148) :- GtEqD("limit",101,10).
+control_flow(148,149) :- GtEqD("limit",101,10).
+control_flow(149,150) :- GtEqD("limit",101,10).
+control_flow(150,151) :- GtEqD("limit",101,10), EqD("limit",150,10).
+control_flow(151,152) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(152,153) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(153,154) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(154,155) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(155,156) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(156,157) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(157,158) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(158,159) :- GtEqD("limit",101,10), EqD("limit",150,10), LtD("limit",151,10).
+control_flow(151,160) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10).
+control_flow(160,161) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10).
+control_flow(161,162) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10).
+control_flow(162,163) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10).
+control_flow(163,164) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10), LtD("limit",163,10).
+control_flow(164,165) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10), LtD("limit",163,10), LtEqD("limit",164,-273).
+control_flow(165,166) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10), LtD("limit",163,10), LtEqD("limit",164,-273).
+control_flow(166,167) :- GtEqD("limit",101,10), EqD("limit",150,10), GtEqD("limit",151,10), LtD("limit",160,10), LtD("limit",163,10), LtEqD("limit",164,-273).
+control_flow(149,168) :- GtEqD("limit",101,10).
+control_flow(168,169) :- GtEqD("limit",101,10), EqD("limit",168,10).
+control_flow(169,170) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(170,171) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(171,172) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(172,173) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(173,174) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(174,175) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(175,176) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(176,177) :- GtEqD("limit",101,10), EqD("limit",168,10), LtD("limit",169,10).
+control_flow(169,178) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10).
+control_flow(178,179) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10), LtD("limit",178,10).
+control_flow(179,180) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10), LtD("limit",178,10).
+control_flow(180,181) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10), LtD("limit",178,10).
+control_flow(181,182) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10), LtD("limit",178,10), GtEqD("limit",181,10).
+control_flow(182,183) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10), LtD("limit",178,10), GtEqD("limit",181,10).
+control_flow(183,184) :- GtEqD("limit",101,10), EqD("limit",168,10), GtEqD("limit",169,10), LtD("limit",178,10), GtEqD("limit",181,10).
+/*(Start())@185 · (([temp<0]@186 · (error=1)@187 · (_fun_display())@188 · (Return(0))@189) \/ ([temp>=0]@190 · (Return(0))@191))*/
+
+flow(189,189).
+flow(191,191).
+Start(185).
+Lt("temp",185,0).
+GtEq("temp",185,0).
+State(186).
+State(187).
+_fun_display(188).
+State(188).
+Return(0,189).
+State(189).
+State(185).
+State(190).
+Return(0,191).
+State(191).
+control_flow(185,186) :- LtD("temp",185,0).
+control_flow(186,187) :- LtD("temp",185,0).
+control_flow(187,188) :- LtD("temp",185,0).
+control_flow(188,189) :- LtD("temp",185,0).
+control_flow(185,190) :- GtEqD("temp",185,0).
+control_flow(190,191) :- GtEqD("temp",185,0).
+//AF(AU("init"=0,AU("init"=1,AG("init"=3))))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl EXIT(n0:number)
+.decl Return(n0:number,n1:number)
+.decl _fun_display(n0:number)
+.decl coolantControl(n0:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl GtEq(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl LtEqVar(x:symbol,loc:number,y:symbol)
+.decl GtVar(x:symbol,loc:number,y:symbol)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl GtEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
+.decl LtEqVarD(x:symbol,loc:number,y:symbol)
+.decl GtVarD(x:symbol,loc:number,y:symbol)
+.decl init_eq_3(loc:number)
+.decl NOT_init_eq_3(loc:number)
+.decl EF_NOT_init_eq_3(loc:number)
+.decl AG_init_eq_3(loc:number)
+.decl NOT_AG_init_eq_3(loc:number)
+.decl init_eq_1(loc:number)
+.decl NOT_init_eq_1(loc:number)
+.decl NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc:number)
+.decl NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc:number)
+.decl NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc:number)
+.decl AF_AG_init_eq_3_T(interm_state:number,loc:number)
+.decl AF_AG_init_eq_3_S(loc:number)
+.decl AF_AG_init_eq_3(loc:number)
+.decl AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc:number)
+.decl init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl NOT_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl init_eq_0(loc:number)
+.decl NOT_init_eq_0(loc:number)
+.decl NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl NOT_NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl AF_init_eq_1_AU_AG_init_eq_3_T(interm_state:number,loc:number)
+.decl AF_init_eq_1_AU_AG_init_eq_3_S(loc:number)
+.decl AF_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl AF_init_eq_1_AU_AG_init_eq_3_AND_NOT_NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_T(interm_state:number,loc:number)
+.decl AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_S(loc:number)
+.decl AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc:number)
+.decl AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+GtEqD(x,loc,n) :- GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+LtEqVarD(x,loc,n) :- LtEqVar(x,loc,n).
+LtEqVarD(x,loc,n) :- LtEqVarD(x,locI,n), control_flow(locI,loc), !LtEqVar(x,loc,_), !GtVar(x,loc,_).
+GtVarD(x,loc,n) :- GtVar(x,loc,n).
+GtVarD(x,loc,n) :- GtVarD(x,locI,n), control_flow(locI,loc), !GtVar(x,loc,_), !LtEqVar(x,loc,_).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+NOT_AG_init_eq_3(loc) :- State(loc), !AG_init_eq_3(loc).
+init_eq_1(loc) :- State(loc), EqD("init",loc,1).
+NOT_init_eq_1(loc) :- State(loc), !init_eq_1(loc).
+NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_init_eq_1(loc), NOT_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+NOT_AG_init_eq_3(loc) :- State(loc), !AG_init_eq_3(loc).
+NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_AG_init_eq_3(loc), control_flow(tempOne,loc), NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(tempOne).
+NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- State(loc), !NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+AF_AG_init_eq_3_T(interm_state,loc) :- AF_AG_init_eq_3_T(tempOne,loc), !AG_init_eq_3(tempOne), control_flow(tempOne,interm_state).
+AF_AG_init_eq_3_T(interm_state,loc) :- !AG_init_eq_3(loc), control_flow(loc,interm_state).
+AF_AG_init_eq_3_S(loc) :- !AG_init_eq_3(loc), control_flow(loc,tempOne), AF_AG_init_eq_3_S(tempOne).
+AF_AG_init_eq_3_S(loc) :- AF_AG_init_eq_3_T(loc,loc).
+AF_AG_init_eq_3(loc) :- State(loc), !AF_AG_init_eq_3_S(loc).
+AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- AF_AG_init_eq_3(loc), NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+init_eq_1_AU_AG_init_eq_3(loc) :- AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+NOT_init_eq_1_AU_AG_init_eq_3(loc) :- State(loc), !init_eq_1_AU_AG_init_eq_3(loc).
+init_eq_0(loc) :- State(loc), EqD("init",loc,0).
+NOT_init_eq_0(loc) :- State(loc), !init_eq_0(loc).
+NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc) :- NOT_init_eq_0(loc), NOT_init_eq_1_AU_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+NOT_AG_init_eq_3(loc) :- State(loc), !AG_init_eq_3(loc).
+init_eq_1(loc) :- State(loc), EqD("init",loc,1).
+NOT_init_eq_1(loc) :- State(loc), !init_eq_1(loc).
+NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_init_eq_1(loc), NOT_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+NOT_AG_init_eq_3(loc) :- State(loc), !AG_init_eq_3(loc).
+NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_AG_init_eq_3(loc), control_flow(tempOne,loc), NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(tempOne).
+NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- State(loc), !NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+AF_AG_init_eq_3_T(interm_state,loc) :- AF_AG_init_eq_3_T(tempOne,loc), !AG_init_eq_3(tempOne), control_flow(tempOne,interm_state).
+AF_AG_init_eq_3_T(interm_state,loc) :- !AG_init_eq_3(loc), control_flow(loc,interm_state).
+AF_AG_init_eq_3_S(loc) :- !AG_init_eq_3(loc), control_flow(loc,tempOne), AF_AG_init_eq_3_S(tempOne).
+AF_AG_init_eq_3_S(loc) :- AF_AG_init_eq_3_T(loc,loc).
+AF_AG_init_eq_3(loc) :- State(loc), !AF_AG_init_eq_3_S(loc).
+AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- AF_AG_init_eq_3(loc), NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+init_eq_1_AU_AG_init_eq_3(loc) :- AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+NOT_init_eq_1_AU_AG_init_eq_3(loc) :- State(loc), !init_eq_1_AU_AG_init_eq_3(loc).
+NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc) :- NOT_init_eq_1_AU_AG_init_eq_3(loc), control_flow(tempOne,loc), NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(tempOne).
+NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc) :- NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc).
+NOT_NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc) :- State(loc), !NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+NOT_AG_init_eq_3(loc) :- State(loc), !AG_init_eq_3(loc).
+init_eq_1(loc) :- State(loc), EqD("init",loc,1).
+NOT_init_eq_1(loc) :- State(loc), !init_eq_1(loc).
+NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_init_eq_1(loc), NOT_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+NOT_AG_init_eq_3(loc) :- State(loc), !AG_init_eq_3(loc).
+NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_AG_init_eq_3(loc), control_flow(tempOne,loc), NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(tempOne).
+NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- State(loc), !NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+init_eq_3(loc) :- State(loc), EqD("init",loc,3).
+NOT_init_eq_3(loc) :- State(loc), !init_eq_3(loc).
+EF_NOT_init_eq_3(loc) :- control_flow(loc,tempOne), EF_NOT_init_eq_3(tempOne).
+EF_NOT_init_eq_3(loc) :- NOT_init_eq_3(loc).
+AG_init_eq_3(loc) :- State(loc), !EF_NOT_init_eq_3(loc).
+AF_AG_init_eq_3_T(interm_state,loc) :- AF_AG_init_eq_3_T(tempOne,loc), !AG_init_eq_3(tempOne), control_flow(tempOne,interm_state).
+AF_AG_init_eq_3_T(interm_state,loc) :- !AG_init_eq_3(loc), control_flow(loc,interm_state).
+AF_AG_init_eq_3_S(loc) :- !AG_init_eq_3(loc), control_flow(loc,tempOne), AF_AG_init_eq_3_S(tempOne).
+AF_AG_init_eq_3_S(loc) :- AF_AG_init_eq_3_T(loc,loc).
+AF_AG_init_eq_3(loc) :- State(loc), !AF_AG_init_eq_3_S(loc).
+AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc) :- AF_AG_init_eq_3(loc), NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+init_eq_1_AU_AG_init_eq_3(loc) :- AF_AG_init_eq_3_AND_NOT_NOT_AG_init_eq_3_EU_NOT_init_eq_1_AND_NOT_AG_init_eq_3(loc).
+AF_init_eq_1_AU_AG_init_eq_3_T(interm_state,loc) :- AF_init_eq_1_AU_AG_init_eq_3_T(tempOne,loc), !init_eq_1_AU_AG_init_eq_3(tempOne), control_flow(tempOne,interm_state).
+AF_init_eq_1_AU_AG_init_eq_3_T(interm_state,loc) :- !init_eq_1_AU_AG_init_eq_3(loc), control_flow(loc,interm_state).
+AF_init_eq_1_AU_AG_init_eq_3_S(loc) :- !init_eq_1_AU_AG_init_eq_3(loc), control_flow(loc,tempOne), AF_init_eq_1_AU_AG_init_eq_3_S(tempOne).
+AF_init_eq_1_AU_AG_init_eq_3_S(loc) :- AF_init_eq_1_AU_AG_init_eq_3_T(loc,loc).
+AF_init_eq_1_AU_AG_init_eq_3(loc) :- State(loc), !AF_init_eq_1_AU_AG_init_eq_3_S(loc).
+AF_init_eq_1_AU_AG_init_eq_3_AND_NOT_NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc) :- AF_init_eq_1_AU_AG_init_eq_3(loc), NOT_NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc).
+init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc) :- AF_init_eq_1_AU_AG_init_eq_3_AND_NOT_NOT_init_eq_1_AU_AG_init_eq_3_EU_NOT_init_eq_0_AND_NOT_init_eq_1_AU_AG_init_eq_3(loc).
+AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_T(interm_state,loc) :- AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_T(tempOne,loc), !init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(tempOne), control_flow(tempOne,interm_state).
+AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_T(interm_state,loc) :- !init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc), control_flow(loc,interm_state).
+AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_S(loc) :- !init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc), control_flow(loc,tempOne), AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_S(tempOne).
+AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_S(loc) :- AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_T(loc,loc).
+AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc) :- State(loc), !AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_S(loc).
+AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_Final(loc) :- Start(loc), AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3(loc), !NotTotal(loc).
+.output NotEq
+.output GtEq
+.output Lt
+.output LtEq
+.output Gt
+.output LtEqVar
+.output GtVar
+.output Eq
+.output Start
+.output State
+.output flow
+.output EXIT
+.output Return
+.output _fun_display
+.output coolantControl
+.output AF_init_eq_0_AU_init_eq_1_AU_AG_init_eq_3_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <__infer_globals_initializer_init> 
+
+Flow(2,0). //@9:1-9:1
+Flow(0,1). //@9:1-10:53
+Stmt_Decl(0,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$init,0)]). // @9:1
+Exit(1).  // @10:53
+Start(2). // @9:1
+//-- Facts for Procedure <__infer_globals_initializer_otime> 
+
+Flow(2,0). //@9:1-9:1
+Flow(0,1). //@9:1-10:26
+Stmt_Decl(0,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$otime,0)]). // @9:1
+Exit(1).  // @10:26
+Start(2). // @9:1
+//-- Facts for Procedure <__infer_globals_initializer_time> 
+
+Flow(2,0). //@9:1-9:1
+Flow(0,1). //@9:1-10:36
+Stmt_Decl(0,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$time,0)]). // @9:1
+Exit(1).  // @10:36
+Start(2). // @9:1
+//-- Facts for Procedure <coolantControl> 
+
+Flow(2,0). //@39:1-41:2
+Flow(0,12). //@41:2-41:8
+Flow(0,13). //@41:2-41:8
+Flow(13,3). //@41:8-43:3
+Flow(12,1). //@41:8-52:1
+Flow(9,0). //@47:3-41:2
+Flow(7,10). //@47:6-47:6
+Flow(7,11). //@47:6-47:6
+Flow(11,8). //@47:6-49:4
+Flow(10,9). //@47:6-47:3
+Flow(8,9). //@49:4-47:3
+Flow(6,7). //@46:3-47:6
+Flow(5,6). //@45:3-46:3
+Flow(4,5). //@44:3-45:3
+Flow(3,4). //@43:3-44:3
+Stmt_BinaryOperatorStmt(3,Assign,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$time,n$8),IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$otime,n$8)]). // @43:3
+Stmt_BinaryOperatorStmt(4,Assign,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$otime,n$7),IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$time,(n$7 + 1))]). // @44:3
+Stmt_BinaryOperatorStmt(5,Assign,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$tempInRand,n$6),IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$tempIn,n$6)]). // @45:3
+Stmt_BinaryOperatorStmt(6,Assign,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$tempIn,n$4),ICall(_fun_vinToCels,n$4,n$5),IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$temp,n$5)]). // @46:3
+Stmt_BinaryOperatorStmt(8,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$chainBroken,1)]). // @49:4
+PruneNode(10,false,[Prune(!(n$0 > n$1), false)]). // @47:6
+PruneNode(11,true,[Prune((n$0 > n$1), true)]). // @47:6
+Stmt_BinaryOperatorStmt(7,GT,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$temp,n$0),ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$limit,n$1)]). // @47:6
+Join(9,[]).  // @47:3
+PruneNode(12,false,[Prune(!1, false)]). // @41:8
+PruneNode(13,true,[Prune(1, true)]). // @41:8
+Join(0,[]).  // @41:2
+Exit(1).  // @52:1
+Start(2). // @39:1
+//-- Facts for Procedure <display> 
+
+Flow(2,13). //@23:1-25:2
+Flow(0,1). //@26:2-27:1
+Flow(13,0). //@25:2-26:2
+Stmt_BinaryOperatorStmt(13,Assign,[ILoad(&tempdiff,n$1),IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$tempDisplay,n$1)]). // @25:2
+Stmt_BinaryOperatorStmt(0,Assign,[ILoad(&warning,n$0),IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$warnLED,n$0)]). // @26:2
+Exit(1).  // @27:1
+Start(2). // @23:1
+//-- Facts for Procedure <main> 
+
+Flow(2,14). //@54:1-56:5
+Flow(0,1). //@82:2-83:1
+Flow(13,0). //@81:2-82:2
+Flow(12,7). //@67:2-67:8
+Flow(12,9). //@67:2-67:8
+Flow(9,24). //@67:8-69:3
+Flow(7,13). //@67:8-81:2
+Flow(11,12). //@70:3-67:2
+Flow(10,6). //@70:6-70:6
+Flow(10,8). //@70:6-70:6
+Flow(8,5). //@70:6-70:20
+Flow(6,25). //@70:6-76:4
+Flow(5,3). //@70:20-70:20
+Flow(5,4). //@70:20-70:20
+Flow(4,27). //@70:20-72:4
+Flow(3,25). //@70:20-76:4
+Flow(28,13). //@73:4-81:2
+Flow(27,28). //@72:4-73:4
+Flow(26,11). //@77:4-70:3
+Flow(25,26). //@76:4-77:4
+Flow(24,10). //@69:3-70:6
+Flow(23,12). //@65:5-67:2
+Flow(22,23). //@64:5-65:5
+Flow(21,22). //@63:5-64:5
+Flow(20,21). //@62:5-63:5
+Flow(19,20). //@61:5-62:5
+Flow(18,19). //@60:5-61:5
+Flow(17,18). //@59:5-60:5
+Flow(16,17). //@58:5-59:5
+Flow(15,16). //@57:5-58:5
+Flow(14,15). //@56:5-57:5
+Stmt_BinaryOperatorStmt(14,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$init,0)]). // @56:5
+Stmt_BinaryOperatorStmt(15,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$tempDisplay,0)]). // @57:5
+Stmt_BinaryOperatorStmt(16,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$warnLED,1)]). // @58:5
+Stmt_BinaryOperatorStmt(17,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$tempIn,0)]). // @59:5
+Stmt_BinaryOperatorStmt(18,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,0)]). // @60:5
+Stmt_BinaryOperatorStmt(19,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$chainBroken,0)]). // @61:5
+Stmt_BinaryOperatorStmt(20,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$warnLight,0)]). // @62:5
+Stmt_BinaryOperatorStmt(21,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$temp,0)]). // @63:5
+Stmt_BinaryOperatorStmt(22,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$limit,8)]). // @64:5
+Stmt_BinaryOperatorStmt(23,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$init,1)]). // @65:5
+Stmt_Decl(24,[ICall(_fun___VERIFIER_nondet_int,,n$9),IStore(&limit,n$9)]). // @69:3
+Stmt_BinaryOperatorStmt(25,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,1)]). // @76:4
+Stmt_Call(26,_fun_display,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,n$6),ICall(_fun_display,0,n$6,n$7)]). // @77:4
+Stmt_BinaryOperatorStmt(27,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,0)]). // @72:4
+Stmt_Call(28,_fun_display,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,n$4),ICall(_fun_display,0,n$4,n$5)]). // @73:4
+PruneNode(3,false,[Prune(!(n$2 > -273), false)]). // @70:20
+PruneNode(4,true,[Prune((n$2 > -273), true)]). // @70:20
+Stmt_BinaryOperatorStmt(5,GT,[ILoad(&limit,n$2)]). // @70:20
+PruneNode(6,false,[Prune(!(n$1 < 10), false)]). // @70:6
+PruneNode(8,true,[Prune((n$1 < 10), true)]). // @70:6
+Stmt_BinaryOperatorStmt(10,LT,[ILoad(&limit,n$1)]). // @70:6
+Join(11,[]).  // @70:3
+PruneNode(7,false,[Prune(!1, false)]). // @67:8
+PruneNode(9,true,[Prune(1, true)]). // @67:8
+Join(12,[]).  // @67:2
+Stmt_BinaryOperatorStmt(13,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c|ice>$init,3)]). // @81:2
+Stmt_Call(0,_fun_coolantControl,[ICall(_fun_coolantControl,,n$0)]). // @82:2
+Exit(1).  // @83:1
+Start(2). // @54:1
+//-- Facts for Procedure <vinToCels> 
+
+Flow(2,9). //@29:1-31:6
+Flow(0,13). //@36:2-36:2
+Flow(13,1). //@36:2-37:1
+Flow(12,0). //@31:2-36:2
+Flow(9,11). //@31:6-31:6
+Flow(9,7). //@31:6-31:6
+Flow(7,8). //@31:6-33:3
+Flow(11,12). //@31:6-31:2
+Flow(10,12). //@34:3-31:2
+Flow(8,10). //@33:3-34:3
+Stmt_BinaryOperatorStmt(8,Assign,[IStore(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,1)]). // @33:3
+Stmt_Call(10,_fun_display,[ILoad(&kelvin,n$2),ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$error,n$3),ICall(_fun_display,(n$2 - 273),n$3,n$4)]). // @34:3
+PruneNode(11,false,[Prune(!(n$1 < 0), false)]). // @31:6
+PruneNode(7,true,[Prune((n$1 < 0), true)]). // @31:6
+Stmt_BinaryOperatorStmt(9,LT,[ILoad(&#GB<benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c>$temp,n$1)]). // @31:6
+Join(12,[]).  // @31:2
+Stmt_Return(13,[IStore(&return,(n$0 - 273))]). // @36:2
+Stmt_Return(0,[ILoad(&kelvin,n$0)]). // @36:2
+Exit(1).  // @37:1
+Start(2). // @29:1
+*/
+

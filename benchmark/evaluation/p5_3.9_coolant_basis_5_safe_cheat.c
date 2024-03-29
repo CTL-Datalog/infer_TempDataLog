@@ -17,6 +17,8 @@ int limitRand;
 
 /*@ AF(AU(init=0, AU(init=1, AG(init=3)))) @*/
 
+extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
+
 
 void display(int tempdiff, int warning)
 {
@@ -64,8 +66,8 @@ int main()
 	
 	while(1)
 	{
-		int limit = limitRand;
-		if(limit < 10 && limit > -273)
+		int limit = __VERIFIER_nondet_int();
+		if(limit < 10 && limit > -273) 
 		{
 			error = 0;
 			display(0, error);
