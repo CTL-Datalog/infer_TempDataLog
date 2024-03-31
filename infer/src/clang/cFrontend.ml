@@ -1249,14 +1249,19 @@ let rec findTheNextJoin (stack:stack) (loopJoins:int list) (currentState:Procdes
   )
   *)
 
-let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regularExpr * stack * bool)  = 
+let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : (regularExpr * stack * bool)  = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
   
-  (*
-  print_endline ("existCycleHelper stack: " ^ string_of_stack stack);
+  
+  (*print_endline ("existCycleHelper stack: " ^ string_of_stack stack);*)
+  print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
   print_endline ("existCycleHelper id: " ^ string_of_int currentID);
-*)
+  let idHead, idTail = 
+    match id with 
+    | [] -> raise (Failure "existCycleHelper not possible")
+    | hd::tail -> hd, tail
+  in 
 
 
 
@@ -1283,11 +1288,13 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
 
   in 
 
-  if currentID == id then (Emp, stack, true)
+  if currentID == idHead then (Emp, stack, true)
+  else if existAux (==) idTail currentID then (Emp, stack, false)
+
   else 
     match node_kind with 
     | Join_node -> 
-      (match existCycle stack currentState currentID with 
+      (match existCycle stack currentState (currentID::id) with 
       | Some (non_cycle_succ, loop_body, stack1) -> 
         (*print_endline ("loop_body1: " ^ string_of_regularExpr loop_body); *)
         let re1Succ, stackSucc, flag = moveForward_aux (stack@stack1) non_cycle_succ in  
@@ -1300,25 +1307,32 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state) : (regu
 
 
 
-and existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.Node.t * regularExpr * stack) option = 
-  (*
+and existCycle stack (currentState:Procdesc.Node.t) (id:state list) : (Procdesc.Node.t * regularExpr * stack) option = 
+  
   print_endline ("existCycl:\n" ^ string_of_int (getNodeID currentState)); 
-  print_endline ("id:\n" ^ string_of_int (id)); 
-  *)
+  print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
+  
   let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
 
 
   let nextStates = Procdesc.Node.get_succs currentState in 
   match nextStates with 
+  | [] -> None 
   | [succ] -> 
+    
     if List.length (Procdesc.Node.get_succs succ) == 1 then None 
     else 
-
-    (match existCycle (stack'@stack) succ id with 
-    | None -> None 
-    | Some (node, re, stack'') -> Some (node, Concate(reExtension, re), stack@stack'@stack'')
-    
+    (match Procdesc.Node.get_kind succ with 
+    | Join_node -> None 
+    | _ -> 
+      (match existCycle (stack'@stack) succ id with 
+      | None -> None 
+      | Some (node, re, stack'') -> Some (node, Concate(reExtension, re), stack@stack'@stack'')
+      
+      )
     )
+
+    
   | [succ1;succ2] -> 
     let trueNodefalseNode = 
       (match (Procdesc.Node.get_kind succ1, Procdesc.Node.get_kind succ2) with 
@@ -1336,15 +1350,15 @@ and existCycle stack (currentState:Procdesc.Node.t) (id:state) : (Procdesc.Node.
       )
   )
     
-  | _ -> None 
+  | _ -> raise (Failure ("existCycleHelper Failure")) 
   
 
 
 let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (regularExpr * stack) = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
-  (*print_endline ("getRegularExprFromCFG_helper_new:\n" ^ string_of_int currentID); 
-*)
+  print_endline ("getRegularExprFromCFG_helper_new:\n" ^ string_of_int currentID); 
+
   let moveForward stackCtx (nodeIn:Procdesc.Node.t): (regularExpr * stack)  = 
     let reExtensionIn, stackIn = recordToRegularExpr ([nodeIn]) stackCtx in 
 
@@ -1367,8 +1381,8 @@ let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (
   | Exit_node | Stmt_node ReturnStmt -> (* looping at the last state *)
     let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
     ((reExtension), (stack@stack'))
-  | Join_node -> 
-    (match existCycle stack currentState currentID with 
+  | Join_node ->
+    (match existCycle stack currentState [currentID] with 
     | Some (non_cycle_succ, loop_body, stack1) -> 
       (*print_endline ("loop_body2: " ^ string_of_regularExpr loop_body); *)
       let re1Succ, stackSucc = moveForward (stack@stack1) non_cycle_succ in  
@@ -1761,15 +1775,19 @@ let infiniteLoopSummaryCalculus (guard:(pure*state)) (rankingFun: rankingfunctio
   | (rankingFun, None):: _ -> 
     Omega (Concate (Guard(guard), stateAfterTerminate (Gt(rankingFun, Basic(BINT 0)))))
 
-  | [] ->  (*Omega (Concate (Guard(guard), Concate(Singleton guard, re)))*)
+  | [] -> 
 
-  (*
-    match re with 
+    let pathConditions = getAllPathConditions re in 
+    let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
+    let (predNames:string list) = List.fold_left decomposedPathConditions ~init:[] 
+      ~f:(fun acc a -> 
+        match a with 
+        | Predicate(str, _) -> acc @ [str] 
+        | _ -> acc) 
+    in
+    if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then Omega (Concate (Guard(guard), Concate(Singleton guard, re)))
+    else 
 
-  | Disjunction _ -> Omega (Concate (Guard(guard), Singleton(guard)))
-  | _ -> 
-    Omega (Concate (Guard(guard),  Concate(Singleton(guard), re)))
-    *)
 
   let rec reoccur (his:fstElem list)  f =     
     match his with 
@@ -2133,22 +2151,6 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   print_endline ("\nPASS5:\n"^string_of_regularExpr (pass5)^ "\n------------"); 
 
   
-  (*
-  let pathConditions = getAllPathConditions pass5 in 
-  let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
-  let (predNames:string list) = List.fold_left decomposedPathConditions ~init:[] 
-    ~f:(fun acc a -> 
-      match a with 
-      | Predicate(str, _) -> acc @ [str] 
-      | _ -> acc) 
-  in
-
-  let pass6 = 
-    if twoStringSetOverlap predNames [evenKeyWord; oddKeyWord] 
-    then mapToOddEvenDomain pass5 
-    else pass5
-  in 
-  *)
 
   (*
   let (pathConditionsSpecOnTheLeft:pure list) = getAllImplicationLeft specs in 
@@ -2698,8 +2700,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
 
-  (*print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); 
-*)
+  print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); 
+
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );

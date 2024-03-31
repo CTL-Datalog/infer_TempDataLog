@@ -7,13 +7,11 @@
 
 /*@ AG ((timer_1 = 0) => (AF(output_1 = 1))  ) @*/ 
 
-int timer_1;
-int output_1;
 	
 int main()
 {
-	timer_1 = 0;
-	output_1 = 0;
+	int timer_1 = 0;
+	int output_1 = 0;
 
     while(1){
         timer_1 = timer_1 +  1;
