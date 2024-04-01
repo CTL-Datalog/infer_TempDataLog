@@ -716,6 +716,59 @@ let rec normalise_pure (pi:pure) : pure =
   | Predicate (str, termLi) -> 
     Predicate (str, List.map termLi ~f:(normalise_terms))
 
+let rec normalise_es_prime (eff:regularExpr) : regularExpr = 
+  match eff with 
+  | Disjunction(es1, es2) -> 
+    let es1 = normalise_es_prime es1 in 
+    let es2 = normalise_es_prime es2 in 
+    (match (es1, es2) with 
+    | (Emp, Emp) -> Emp
+    | (Emp, _) -> if nullable es2 then es2 else (Disjunction (es2, es1))
+    | (Bot, es) -> normalise_es_prime es 
+    | (es, Bot) -> normalise_es_prime es 
+    | _ -> (Disjunction (es1, es2))
+    )
+  | Concate (es1, es2) -> 
+    let es1 = normalise_es_prime es1 in 
+    let es2 = normalise_es_prime es2 in 
+    (match (es1, es2) with 
+    | (Singleton (TRUE, _), _)
+    | (Emp, _) -> normalise_es_prime es2
+    | (_, Singleton (TRUE, _))
+    | (_, Emp) -> normalise_es_prime es1
+    | (Bot, _) -> Bot
+    | (_, Bot) -> Bot
+    | (Omega _, _) -> es1
+    (*| (Disjunction (es11, es12), es3) -> Disjunction(normalise_es (Concate (es11,es3)),  normalise_es (Concate (es12, es3))) *)
+    | (Concate (es11, es12), es3) -> (Concate (es11, normalise_es_prime (Concate (es12, es3))))
+    | _ -> (Concate (es1, es2))
+    )
+  | Kleene effIn -> 
+    let effIn' = normalise_es_prime effIn in 
+    (match effIn' with 
+    | Emp -> Emp 
+    | _ ->  
+    Kleene (effIn'))
+  | Omega effIn -> 
+    let effIn' = normalise_es_prime effIn in 
+    (match effIn' with 
+    | Bot -> Bot 
+    | _ -> Omega (effIn'))
+
+
+  | Guard (p, state) ->  
+    let t = normalise_pure p in 
+    (match t with 
+    | TRUE -> Emp
+    | FALSE -> Bot 
+    | _ -> Guard (t, state))
+
+  | Singleton (p, state) ->  Singleton (normalise_pure p, state)
+
+  | _ -> eff 
+
+
+
 
 let rec normalise_es (eff:regularExpr) : regularExpr = 
   match eff with 
@@ -758,7 +811,7 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
   | Guard (p, state) ->  
     let t = normalise_pure p in 
     (match t with 
-    | FALSE -> Bot 
+    (*| FALSE -> Bot *)
     | _ -> Guard (t, state))
 
   | Singleton (p, state) ->  Singleton (normalise_pure p, state)

@@ -1309,9 +1309,11 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
 
 and existCycle stack (currentState:Procdesc.Node.t) (id:state list) : (Procdesc.Node.t * regularExpr * stack) option = 
   
+  (*
   print_endline ("existCycl:\n" ^ string_of_int (getNodeID currentState)); 
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
-  
+  *)
+
   let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
 
 
@@ -1357,7 +1359,8 @@ and existCycle stack (currentState:Procdesc.Node.t) (id:state list) : (Procdesc.
 let rec getRegularExprFromCFG_helper_new stack (currentState:Procdesc.Node.t): (regularExpr * stack) = 
   let node_kind = Procdesc.Node.get_kind currentState in
   let currentID = getNodeID currentState in
-  print_endline ("getRegularExprFromCFG_helper_new:\n" ^ string_of_int currentID); 
+  (*print_endline ("getRegularExprFromCFG_helper_new:\n" ^ string_of_int currentID); 
+  *)
 
   let moveForward stackCtx (nodeIn:Procdesc.Node.t): (regularExpr * stack)  = 
     let reExtensionIn, stackIn = recordToRegularExpr ([nodeIn]) stackCtx in 
@@ -1931,8 +1934,10 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
     | Some (weakestPre, (rfterm, leakingRE)) -> (* there exist a ranking function, and a termination segement leakingRE *)
       (*print_endline("wp4Termination weakestPre raw: " ^ string_of_pure (weakestPre));  *)
       let rf = (rfterm, leakingRE) in 
-      let weakestPre = normalise_pure weakestPre in 
-      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_ranking_function rf ^ " when " ^ string_of_pure weakestPre);
+      let weakestPre = normalise_pure (weakestPre) in 
+      let startingState =  normalise_pure (Gt(rfterm, Basic(BINT 0))) in 
+
+      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_ranking_function rf ^ " when " ^ string_of_pure weakestPre ^ " and "^ string_of_pure startingState);
 
       (*
       1.   weakestPre = true, temrinating 
@@ -1946,8 +1951,11 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let terminatingGuard = Guard (weakestPre, !allTheUniqueIDs) in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let terminatingGuardWRTRF = Guard (startingState, !allTheUniqueIDs) in 
+
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let terminatingFinalState = Singleton (Eq(rfterm, Basic(BINT 0)), !allTheUniqueIDs) in 
-      let terminatingRE1 = Concate (Guard loopGuard, Concate(terminatingGuard, terminatingFinalState)) in 
+      let terminatingRE1 = Concate (Guard loopGuard, Concate(terminatingGuard, Concate(terminatingGuardWRTRF, terminatingFinalState))) in 
       let leakingBehave = match leakingRE with | Some leakingRE -> leakingRE | None -> Emp in 
       let terminatingRE2 = Concate (terminatingRE1, Concate(leakingBehave, persistant)) in 
 
@@ -1956,11 +1964,13 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuard = (normalise_pure(Neg weakestPre), !allTheUniqueIDs) in 
-      
       let non_terminating_fixpoint = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuard] reIn in 
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let nonTerminatingGuardWRTRF = (normalise_pure(Neg startingState), !allTheUniqueIDs) in 
+      let non_terminating_fixpointWRTRF = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuardWRTRF] reIn in 
 
       
-      disjunctRE [Concate (terminatingRE2, reNonCycle); non_terminating_fixpoint]
+      disjunctRE [Concate (terminatingRE2, reNonCycle); non_terminating_fixpoint; non_terminating_fixpointWRTRF]
   )
   in 
   disjunctRE temp 
@@ -2108,7 +2118,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
   print_endline ("\nPASS4:\n"^string_of_regularExpr (pass4)^ "\n------------"); 
   let pass5, _ = instantiateREStatesWithFreshNum (pass4) [] in  (*this is the step for renaming the states *)
-  print_endline ("\nPASS5:\n"^string_of_regularExpr (pass5)^ "\n------------"); 
+  let pass6 = normalise_es_prime pass5 in 
+  print_endline ("\nPASS6:\n"^string_of_regularExpr (pass6)^ "\n------------"); 
 
   
 
@@ -2119,7 +2130,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
  *)
 
 
-  pass5
+  pass6
   ;;
 
 
@@ -2231,6 +2242,7 @@ let rec convertSTR2VAR (pi:pure) : pure =
   | Neg p -> Neg (convertSTR2VAR p)
   | PureAnd (pi1, pi2) -> PureAnd (convertSTR2VAR pi1, convertSTR2VAR pi2)
   | PureOr (pi1,pi2) -> PureOr (convertSTR2VAR pi1, convertSTR2VAR pi2)
+  | Predicate (str, terms) -> Predicate (str, List.map terms ~f:convertSTR2VARTerms)
   | _ -> pi
 
 
@@ -2277,8 +2289,9 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
    where as predicatesSpec only matters to generate facts for PureEv
 *)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
-  (*print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
-*) 
+  (*
+  print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
+ *)
   (*print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
 *)
   let relevent (conds:pure) (var: string) : bool = 

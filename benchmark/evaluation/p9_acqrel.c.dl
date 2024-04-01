@@ -3,47 +3,52 @@
 flow(22,22).
 State(22).
 
-/*(Start())@24 · (A=0)@25 · (R=0)@26 · ([⊤]@27 · (A=1)@28 · (A=0)@29 · (n=_)@30 · (([n<=0]@31 · (R=1)@32 · (R=0)@33) \/ ([n>0]@34 · (n=0)@35 · (R=1)@36 · (R=0)@37)))^w*/
+/*(Start())@28 · (A=0)@29 · (R=0)@30 · ([⊤]@31 · (A=1)@32 · (A=0)@33 · (n=_)@34 · (([n<=0]@35 · (R=1)@36 · (R=0)@37) \/ ([n>0]@38 · [⊤]@39 · (n=0)@40 · (n=(n-1))@41 · (R=1)@42 · (R=0)@43)))^w*/
 
-flow(24,25).
-flow(25,26).
-flow(27,28).
 flow(28,29).
 flow(29,30).
-flow(33,33).
+flow(31,32).
+flow(32,33).
+flow(33,34).
 flow(37,37).
-flow(33,27).
-flow(37,27).
-Start(24).
-LtEq("n",24,0).
-Gt("n",24,0).
-State(24).
-State(25).
-Eq("R",26,0).
-State(26).
-control_flow(26,27).
-State(27).
-Eq("A",28,1).
+flow(43,43).
+flow(37,31).
+flow(43,31).
+Start(28).
+LtEq("n",28,0).
+Gt("n",28,0).
 State(28).
 State(29).
-State(31).
-State(32).
-Eq("R",33,0).
-State(33).
+Eq("R",30,0).
 State(30).
-State(34).
-LtEq("n",35,0).
+control_flow(30,31).
+State(31).
+Eq("A",32,1).
+State(32).
+State(33).
 State(35).
 State(36).
 Eq("R",37,0).
 State(37).
-control_flow(30,31) :- LtEqD("n",30,0).
-control_flow(31,32) :- LtEqD("n",30,0).
-control_flow(32,33) :- LtEqD("n",30,0).
-control_flow(30,34) :- GtD("n",30,0).
-control_flow(34,35) :- GtD("n",30,0).
-control_flow(35,36) :- GtD("n",30,0).
-control_flow(36,37) :- GtD("n",30,0).
+State(34).
+State(38).
+State(39).
+LtEq("n",40,0).
+State(40).
+LtEq("n",41,0).
+State(41).
+State(42).
+Eq("R",43,0).
+State(43).
+control_flow(34,35) :- LtEqD("n",34,0).
+control_flow(35,36) :- LtEqD("n",34,0).
+control_flow(36,37) :- LtEqD("n",34,0).
+control_flow(34,38) :- GtD("n",34,0).
+control_flow(38,39) :- GtD("n",34,0).
+control_flow(39,40) :- GtD("n",34,0).
+control_flow(40,41) :- GtD("n",34,0).
+control_flow(41,42) :- GtD("n",34,0).
+control_flow(42,43) :- GtD("n",34,0).
 //AG(("A"=1 => AF("R"=0)))
 .decl Start(x:number)
 .decl State(x:number)

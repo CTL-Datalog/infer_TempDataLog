@@ -1,11 +1,11 @@
-/*(Start())@20 · (x=0)@21 · (y=0)@22 · [⊤]@23 · [⊤]@24 · (([x<10]@25 · (x=10)@26 · (x=(x+1))@27 · ((x=10)@28 · (y=(y+1))@29)^w) \/ ([x>=10]@30 · ([⊤]@31 · (x=(x+1))@32 · [(x!=10)]@33)^w))*/
+/*(Start())@20 · (x=0)@21 · (y=0)@22 · (([x<10]@27 · (x=10)@28 · (x=(x+1))@29 · ((x=10)@30 · (y=(y+1))@31)^w) \/ (([x>=10]@38 · (x>=10)@39 · (x=(x+1))@40 · [(x!=10)]@41)^w))*/
 
 flow(20,21).
 flow(21,22).
-flow(29,29).
-flow(29,28).
-flow(33,33).
-flow(33,31).
+flow(31,31).
+flow(31,30).
+flow(41,41).
+flow(41,38).
 Start(20).
 Lt("x",20,10).
 GtEq("x",20,10).
@@ -14,36 +14,32 @@ State(20).
 Lt("x",21,10).
 NotEq("x",21,10).
 State(21).
-State(22).
-control_flow(22,23).
-State(23).
-control_flow(23,24).
-State(25).
-GtEq("x",26,10).
-State(26).
-GtEq("x",27,10).
-NotEq("x",27,10).
 State(27).
 GtEq("x",28,10).
 State(28).
-Gt("y",29,0).
+GtEq("x",29,10).
+NotEq("x",29,10).
 State(29).
-State(24).
+GtEq("x",30,10).
 State(30).
+Gt("y",31,0).
 State(31).
-Lt("x",32,10).
-NotEq("x",32,10).
-State(32).
-State(33).
-control_flow(24,25) :- LtD("x",24,10).
-control_flow(25,26) :- LtD("x",24,10).
-control_flow(26,27) :- LtD("x",24,10).
-control_flow(27,28) :- LtD("x",24,10).
-control_flow(28,29) :- LtD("x",24,10).
-control_flow(24,30) :- GtEqD("x",24,10).
-control_flow(30,31) :- GtEqD("x",24,10).
-control_flow(31,32) :- GtEqD("x",24,10).
-control_flow(32,33) :- GtEqD("x",24,10), NotEqD("x",32,10).
+State(22).
+State(38).
+State(39).
+Lt("x",40,10).
+NotEq("x",40,10).
+State(40).
+State(41).
+control_flow(22,27) :- LtD("x",22,10).
+control_flow(27,28) :- LtD("x",22,10).
+control_flow(28,29) :- LtD("x",22,10).
+control_flow(29,30) :- LtD("x",22,10).
+control_flow(30,31) :- LtD("x",22,10).
+control_flow(22,38) :- GtEqD("x",22,10).
+control_flow(38,39) :- GtEqD("x",22,10).
+control_flow(39,40) :- GtEqD("x",22,10).
+control_flow(40,41) :- GtEqD("x",22,10), NotEqD("x",40,10).
 //AF(AG("y">0))
 .decl Start(x:number)
 .decl State(x:number)
