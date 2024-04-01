@@ -230,7 +230,6 @@ control_flow(100,104) :- NotEqD("y",30,0), LtEqD("x",70,0), LtEqD("x",90,0), LtE
 control_flow(104,105) :- NotEqD("y",30,0), LtEqD("x",70,0), LtEqD("x",90,0), LtEqD("x",100,0).
 control_flow(105,106) :- NotEqD("y",30,0), LtEqD("x",70,0), LtEqD("x",90,0), LtEqD("x",100,0).
 //(EF("x"=-4) /\ EF("x"=4))
-//AF(("x"=-4∨"x"=4))
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -281,60 +280,6 @@ EF_x_eq_neg_4_AND_EF_x_eq_4_Final(loc) :- Start(loc), EF_x_eq_neg_4_AND_EF_x_eq_
 .output flow
 .output EXIT
 .output EF_x_eq_neg_4_AND_EF_x_eq_4_Final(IO=stdout)
-
-.decl Start(x:number)
-.decl State(x:number)
-.decl flow(x:number,y:number)
-.decl control_flow(x:number,y:number)
-.decl transFlow(x:number,y:number)
-.decl NotTotal(loc:number)
-.decl EXIT(n0:number)
-.decl LtEq(x:symbol,loc:number,n:number)
-.decl NotEq(x:symbol,loc:number,n:number)
-.decl Gt(x:symbol,loc:number,n:number)
-.decl Eq(x:symbol,loc:number,n:number)
-.decl NotEqD(x:symbol,loc:number,n:number)
-.decl LtEqD(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
-.decl EqD(x:symbol,loc:number,n:number)
-.decl x_eq_4(loc:number)
-.decl x_eq_neg_4(loc:number)
-.decl x_eq_neg_4_OR_x_eq_4(loc:number)
-.decl AF_x_eq_neg_4_OR_x_eq_4_T(interm_state:number,loc:number)
-.decl AF_x_eq_neg_4_OR_x_eq_4_S(loc:number)
-.decl AF_x_eq_neg_4_OR_x_eq_4(loc:number)
-.decl AF_x_eq_neg_4_OR_x_eq_4_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
-transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
-NotTotal(loc) :- State(loc), !control_flow(loc,_).
-NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
-control_flow(x,y) :- flow(x,y).
-NotEqD(x,loc,n) :- NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
-LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
-GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
-EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
-x_eq_4(loc) :- State(loc), EqD("x",loc,4).
-x_eq_neg_4(loc) :- State(loc), EqD("x",loc,-4).
-x_eq_neg_4_OR_x_eq_4(loc) :- x_eq_4(loc).
-x_eq_neg_4_OR_x_eq_4(loc) :- x_eq_neg_4(loc).
-AF_x_eq_neg_4_OR_x_eq_4_T(interm_state,loc) :- AF_x_eq_neg_4_OR_x_eq_4_T(tempOne,loc), !x_eq_neg_4_OR_x_eq_4(tempOne), control_flow(tempOne,interm_state).
-AF_x_eq_neg_4_OR_x_eq_4_T(interm_state,loc) :- !x_eq_neg_4_OR_x_eq_4(loc), control_flow(loc,interm_state).
-AF_x_eq_neg_4_OR_x_eq_4_S(loc) :- !x_eq_neg_4_OR_x_eq_4(loc), control_flow(loc,tempOne), AF_x_eq_neg_4_OR_x_eq_4_S(tempOne).
-AF_x_eq_neg_4_OR_x_eq_4_S(loc) :- AF_x_eq_neg_4_OR_x_eq_4_T(loc,loc).
-AF_x_eq_neg_4_OR_x_eq_4(loc) :- State(loc), !AF_x_eq_neg_4_OR_x_eq_4_S(loc).
-AF_x_eq_neg_4_OR_x_eq_4_Final(loc) :- Start(loc), AF_x_eq_neg_4_OR_x_eq_4(loc), !NotTotal(loc).
-.output LtEq
-.output NotEq
-.output Gt
-.output Eq
-.output Start
-.output State
-.output flow
-.output EXIT
-.output AF_x_eq_neg_4_OR_x_eq_4_Final(IO=stdout)
 
 /* Other information 
 

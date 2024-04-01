@@ -1,20 +1,20 @@
-/*(Start())@9 · (([x=1]@10 · (x=0)@11 · (Exit())@12) \/ ([(x!=1)]@13 · (x=(x-1))@14 · (Exit())@15))*/
+/*(Start())@9 · (([x=1]@10 · (x=0)@11 · (EXIT())@12) \/ ([(x!=1)]@13 · (x=(x-1))@14 · (EXIT())@15))*/
 
 flow(12,12).
 flow(15,15).
 Start(9).
 Eq("x",9,1).
-NotEq("x",9,1). // delete this line 
+NotEq("x",9,1).
 State(10).
 NotEq("x",11,1).
 Eq("x",11,0).
 State(11).
-Exit(12).
+EXIT(12).
 State(12).
 State(9).
 State(13).
 State(14).
-Exit(15).
+EXIT(15).
 State(15).
 control_flow(9,10) :- EqD("x",9,1).
 control_flow(10,11) :- EqD("x",9,1).
@@ -29,7 +29,7 @@ control_flow(14,15) :- NotEqD("x",9,1).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl Exit(n0:number)
+.decl EXIT(n0:number)
 .decl NotEq(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
 .decl NotEqD(x:symbol,loc:number,n:number)
@@ -63,30 +63,30 @@ AX_AX_x_eq_0_Final(loc) :- Start(loc), AX_AX_x_eq_0(loc), !NotTotal(loc).
 .output Start
 .output State
 .output flow
-.output Exit
+.output EXIT
 .output AX_AX_x_eq_0_Final(IO=stdout)
 
 /* Other information 
 
 //-- Facts for Procedure <main> 
 
-Flow(0,1). //@7:1-9:9
-Flow(4,5). //@9:5-9:5
-Flow(5,6). //@9:5-14:1
-Flow(1,7). //@9:9-9:9
-Flow(1,2). //@9:9-9:9
-Flow(2,3). //@9:9-10:9
-Flow(7,8). //@9:9-13:10
-Flow(3,4). //@10:9-9:5
-Flow(8,4). //@13:10-9:5
-Stmt_BinaryOperatorStmt(8,Assign,[ILoad(&x,n$1),IStore(&x,(n$1 - 1))]). // @13:10
-Stmt_BinaryOperatorStmt(3,Assign,[IStore(&x,0)]). // @10:9
-PruneNode(7,false,[Prune(!(n$0 == 1), false)]). // @9:9
-PruneNode(2,true,[Prune((n$0 == 1), true)]). // @9:9
-Stmt_BinaryOperatorStmt(1,EQ,[ILoad(&x,n$0)]). // @9:9
-Stmt_BetweenJoinAndExit(5,[]). // @9:5
-Join(4,[]).  // @9:5
-Exit(6).  // @14:1
-Start(0). // @7:1
+Flow(8,5). //@7:1-9:9
+Flow(1,6). //@9:5-9:5
+Flow(6,7). //@9:5-14:1
+Flow(5,3). //@9:9-9:9
+Flow(5,4). //@9:9-9:9
+Flow(4,2). //@9:9-10:9
+Flow(3,0). //@9:9-13:10
+Flow(2,1). //@10:9-9:5
+Flow(0,1). //@13:10-9:5
+Stmt_BinaryOperatorStmt(0,Assign,[ILoad(&x,n$1),IStore(&x,(n$1 - 1))]). // @13:10
+Stmt_BinaryOperatorStmt(2,Assign,[IStore(&x,0)]). // @10:9
+PruneNode(3,false,[Prune(!(n$0 == 1), false)]). // @9:9
+PruneNode(4,true,[Prune((n$0 == 1), true)]). // @9:9
+Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&x,n$0)]). // @9:9
+Stmt_BetweenJoinAndExit(6,[]). // @9:5
+Join(1,[]).  // @9:5
+Exit(7).  // @14:1
+Start(8). // @7:1
 */
 
