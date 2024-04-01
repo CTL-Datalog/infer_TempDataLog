@@ -12,10 +12,10 @@ int main()
 {
 
     int linesToRead = __VERIFIER_nondet_int();
-    if( linesToRead < 0 )
+    if( linesToRead <= 0 )
         return 0;
     int h = __VERIFIER_nondet_int();
-    while( linesToRead && h > 0 )
+    while( h > 0 )
     {
         if( linesToRead > h )
             linesToRead = h;

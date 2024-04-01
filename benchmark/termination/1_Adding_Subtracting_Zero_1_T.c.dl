@@ -1,40 +1,63 @@
-/*(Join())@0*/
+/*(Join())@21*/
 
-State(0).
-
-/*(Start())@1 · (linesToRead=_)@2 · (([linesToRead<0]@4 · ((Return(0))@5)^w) \/ ([!(linesToRead<0)]@7 · (Join())@8 · (h=_)@9 · (((((([(h<=0)]@13) \/ ([h>0∧linesToRead>0]@24)) · ((h<=0))@22) \/ (([h>0∧(linesToRead<=0)]@25 · [h>0]@23)^w))) \/ ((Join())@10 · [(h<=0)]@20 · (Return(0))@21)) · ((Return(0))@21)^w))*/
-
-flow(1,2).
-flow(5,5).
-flow(8,9).
-flow(9,10).
 flow(21,21).
-Start(1).
-Lt("linesToRead",1,0).
-Gt("linesToRead",1,0).
-LtEq("linesToRead",1,0).
-Gt("h",1,0).
-GtEq("linesToRead",1,0).
-LtEq("h",1,0).
-State(1).
-State(4).
-Return(0,5).
-State(5).
-State(2).
-State(7).
-State(8).
-State(9).
-State(10).
-State(20).
-Return(0,21).
 State(21).
-control_flow(2,4) :- LtD("linesToRead",2,0).
-control_flow(4,5) :- LtD("linesToRead",4,0).
-control_flow(2,7) :- GtEqD("linesToRead",2,0).
-control_flow(7,8) :- GtEqD("linesToRead",7,0).
-control_flow(10,20) :- LtEqD("h",10,0).
-control_flow(20,21) :- LtEqD("h",20,0).
-control_flow(21,21) :- LtEqD("h",21,0).
+
+/*(Start())@34 · (linesToRead=_)@35 · (([linesToRead<=0]@36 · (Return(0))@37) \/ ([linesToRead>0]@38 · (h=_)@39 · (([h<=0]@40 · (Return(0))@41) \/ ((([⊤]@42 · [h>0]@43 · (h=0)@44 · (linesToRead=h)@45 · (h=(h-linesToRead))@46 · (Return(0))@47) \/ ([⊤]@48 · [h>0]@49 · (h=0)@50 · (h=(h-linesToRead))@51 · (Return(0))@52))))))*/
+
+flow(34,35).
+flow(37,37).
+flow(41,41).
+flow(47,47).
+flow(52,52).
+Start(34).
+LtEq("linesToRead",34,0).
+LtEq("h",34,0).
+Gt("linesToRead",34,0).
+Gt("h",34,0).
+State(34).
+State(36).
+Return(0,37).
+State(37).
+State(35).
+State(38).
+State(40).
+Return(0,41).
+State(41).
+State(42).
+State(43).
+LtEq("h",44,0).
+State(44).
+LtEq("linesToRead",45,0).
+State(45).
+State(46).
+Return(0,47).
+State(47).
+State(39).
+State(48).
+State(49).
+LtEq("h",50,0).
+State(50).
+State(51).
+Return(0,52).
+State(52).
+control_flow(35,36) :- LtEqD("linesToRead",35,0).
+control_flow(36,37) :- LtEqD("linesToRead",35,0).
+control_flow(35,38) :- GtD("linesToRead",35,0).
+control_flow(38,39) :- GtD("linesToRead",35,0).
+control_flow(39,40) :- GtD("linesToRead",35,0), LtEqD("h",39,0).
+control_flow(40,41) :- GtD("linesToRead",35,0), LtEqD("h",39,0).
+control_flow(39,42) :- GtD("linesToRead",35,0).
+control_flow(42,43) :- GtD("linesToRead",35,0), GtD("h",42,0).
+control_flow(43,44) :- GtD("linesToRead",35,0), GtD("h",42,0).
+control_flow(44,45) :- GtD("linesToRead",35,0), GtD("h",42,0).
+control_flow(45,46) :- GtD("linesToRead",35,0), GtD("h",42,0).
+control_flow(46,47) :- GtD("linesToRead",35,0), GtD("h",42,0).
+control_flow(39,48) :- GtD("linesToRead",35,0).
+control_flow(48,49) :- GtD("linesToRead",35,0), GtD("h",48,0).
+control_flow(49,50) :- GtD("linesToRead",35,0), GtD("h",48,0).
+control_flow(50,51) :- GtD("linesToRead",35,0), GtD("h",48,0).
+control_flow(51,52) :- GtD("linesToRead",35,0), GtD("h",48,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -43,14 +66,10 @@ control_flow(21,21) :- LtEqD("h",21,0).
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
-.decl GtEq(x:symbol,loc:number,n:number)
-.decl LtEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
-.decl Lt(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
 .decl LtEqD(x:symbol,loc:number,n:number)
-.decl GtEqD(x:symbol,loc:number,n:number)
-.decl LtD(x:symbol,loc:number,n:number)
 .decl EXIT(loc:number)
 .decl AF_EXIT_T(interm_state:number,loc:number)
 .decl AF_EXIT_S(loc:number)
@@ -61,13 +80,9 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_).
-GtEqD(x,loc,n) :- GtEq(x,loc,n).
-GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_).
-LtD(x,loc,n) :- Lt(x,loc,n).
-LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
 EXIT(loc) :- Return(_,loc).
 AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
 AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
@@ -75,13 +90,61 @@ AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
 AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
 AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
 AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
-.output GtEq
-.output LtEq
 .output Gt
-.output Lt
+.output LtEq
 .output Start
 .output State
 .output flow
 .output Return
 .output AF_EXIT_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(19,0). //@11:1-14:5
+Flow(16,3). //@24:5-26:1
+Flow(8,18). //@18:5-18:12
+Flow(18,15). //@18:12-18:12
+Flow(18,17). //@18:12-18:12
+Flow(17,13). //@18:12-20:13
+Flow(15,16). //@18:12-24:5
+Flow(14,8). //@22:9-18:5
+Flow(10,14). //@20:9-22:9
+Flow(13,11). //@20:13-20:13
+Flow(13,12). //@20:13-20:13
+Flow(12,9). //@20:13-21:13
+Flow(11,10). //@20:13-20:9
+Flow(9,10). //@21:13-20:9
+Flow(7,8). //@17:5-18:5
+Flow(5,7). //@15:5-17:5
+Flow(1,4). //@15:9-15:9
+Flow(1,6). //@15:9-15:9
+Flow(6,2). //@15:9-16:9
+Flow(4,5). //@15:9-15:5
+Flow(2,3). //@16:9-26:1
+Flow(0,1). //@14:5-15:9
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$13),IStore(&linesToRead,n$13)]). // @14:5
+Stmt_Return(2,[IStore(&return,0)]). // @16:9
+PruneNode(4,false,[Prune(!(n$10 <= 0), false)]). // @15:9
+PruneNode(6,true,[Prune((n$10 <= 0), true)]). // @15:9
+Stmt_BinaryOperatorStmt(1,LE,[ILoad(&linesToRead,n$10)]). // @15:9
+Join(5,[]).  // @15:5
+Stmt_Decl(7,[ICall(_fun___VERIFIER_nondet_int,,n$9),IStore(&h,n$9)]). // @17:5
+Stmt_BinaryOperatorStmt(9,Assign,[ILoad(&h,n$5),IStore(&linesToRead,n$5)]). // @21:13
+PruneNode(11,false,[Prune(!(n$3 > n$4), false)]). // @20:13
+PruneNode(12,true,[Prune((n$3 > n$4), true)]). // @20:13
+Stmt_BinaryOperatorStmt(13,GT,[ILoad(&linesToRead,n$3),ILoad(&h,n$4)]). // @20:13
+Join(10,[]).  // @20:9
+Stmt_BinaryOperatorStmt(14,SubAssign,[ILoad(&linesToRead,n$1),ILoad(&h,n$2),IStore(&h,(n$2 - n$1))]). // @22:9
+PruneNode(15,false,[Prune(!(n$0 > 0), false)]). // @18:12
+PruneNode(17,true,[Prune((n$0 > 0), true)]). // @18:12
+Stmt_BinaryOperatorStmt(18,GT,[ILoad(&h,n$0)]). // @18:12
+Join(8,[]).  // @18:5
+Stmt_Return(16,[IStore(&return,0)]). // @24:5
+Exit(3).  // @26:1
+Start(19). // @11:1
+*/
 
