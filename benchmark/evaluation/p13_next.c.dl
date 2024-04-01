@@ -4,7 +4,7 @@ flow(12,12).
 flow(15,15).
 Start(9).
 Eq("x",9,1).
-NotEq("x",9,1).
+NotEq("x",9,1). // delete this line 
 State(10).
 NotEq("x",11,1).
 Eq("x",11,0).

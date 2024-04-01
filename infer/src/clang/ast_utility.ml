@@ -675,6 +675,7 @@ let rec normalise_pure (pi:pure) : pure =
   
   | Eq (Plus(t1, Basic( BINT n)),Basic( BINT 0)) -> Eq(t1,  Basic( BINT (-1 * n)))
   
+  | Eq (Minus(t1, t2), Basic( BINT 0)) -> Eq(t1, t2)
 
   | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
 
@@ -1378,7 +1379,9 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     updateRuleDeclearation ruleDeclearation (geqKeyWord);
     [(geqKeyWord, [t1;loc;t2])]
 
-
+  | Neg (Gt (Basic(BVAR var), Basic(BSTR var2)))
+  | LtEq (Basic(BSTR var), Basic(BSTR var2))
+  | LtEq (Basic(BVAR var), Basic(BSTR var2))
   | Neg (Gt (Basic(BVAR var), Basic(BVAR var2)))
   | LtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWordVar);

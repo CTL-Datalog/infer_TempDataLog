@@ -1967,7 +1967,10 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
       let non_terminating_fixpoint = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuardWRTRF = (normalise_pure(Neg startingState), !allTheUniqueIDs) in 
-      let non_terminating_fixpointWRTRF = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuardWRTRF] reIn in 
+      let non_terminating_fixpointWRTRF = 
+        if entailConstrains (PureAnd(pi, Neg startingState)) FALSE then Bot 
+        else 
+        infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuardWRTRF] reIn in 
 
       
       disjunctRE [Concate (terminatingRE2, reNonCycle); non_terminating_fixpoint; non_terminating_fixpointWRTRF]
