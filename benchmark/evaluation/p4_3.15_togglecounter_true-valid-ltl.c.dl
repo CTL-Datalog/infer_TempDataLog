@@ -1,33 +1,33 @@
-/*(Start())@21 · ((((Even("i"))@22 · (t=1)@23 · (Odd("i"))@24 · (t=0)@25)^w) \/ (((Odd("i"))@26 · (t=0)@27 · (Even("i"))@28 · (t=1)@29)^w))*/
+/*(Start())@22 · ((((Even("i"))@25 · (t=1)@26 · (Odd("i"))@27 · (t=0)@28)^w) \/ (((Odd("i"))@29 · (t=0)@30 · (Even("i"))@31 · (t=1)@32)^w))*/
 
-flow(21,22).
-flow(22,23).
-flow(23,24).
-flow(24,25).
-flow(25,25).
-flow(25,22).
-flow(21,26).
+flow(22,25).
+flow(25,26).
 flow(26,27).
 flow(27,28).
-flow(28,29).
-flow(29,29).
-flow(29,26).
-Start(21).
-Even("i",22).
-State(22).
-State(23).
-Odd("i",24).
-State(24).
-Eq("t",25,0).
+flow(28,28).
+flow(28,25).
+flow(22,29).
+flow(29,30).
+flow(30,31).
+flow(31,32).
+flow(32,32).
+flow(32,29).
+Start(22).
+Even("i",25).
 State(25).
-State(21).
-Odd("i",26).
 State(26).
-Eq("t",27,0).
+Odd("i",27).
 State(27).
-Even("i",28).
+Eq("t",28,0).
 State(28).
+State(22).
+Odd("i",29).
 State(29).
+Eq("t",30,0).
+State(30).
+Even("i",31).
+State(31).
+State(32).
 
 //AG((AF("t"=0) /\ AF("t"=0)))
 .decl Start(x:number)

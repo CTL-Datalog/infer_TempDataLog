@@ -3,7 +3,7 @@
 flow(15,15).
 flow(21,21).
 Start(13).
-LtEqVar("x",13,"y"). // delete this line 
+LtEqVar("x",13,"y").
 GtVar("x",13,"y").
 State(14).
 EXIT(15).
@@ -58,7 +58,7 @@ x_lteq_y(loc) :- State(loc), GtVarD("x",loc,"y").
 x_gt_y(loc) :- State(loc), LtEqVarD("x",loc,"y").
 x_gt_y_AND_x_lteq_y(loc) :- x_gt_y(loc), x_lteq_y(loc).
 x_lteq_y(loc) :- State(loc), GtVarD("x",loc,"y").
-x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_lteq_y(loc), control_flow(tempOne,loc), x_lteq_y_EU_x_gt_y_AND_x_lteq_y(tempOne).
+x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_lteq_y(loc), control_flow(loc,tempOne), x_lteq_y_EU_x_gt_y_AND_x_lteq_y(tempOne).
 x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_gt_y_AND_x_lteq_y(loc).
 NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- State(loc), !x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
 x_lteq_y(loc) :- State(loc), LtEqVarD("x",loc,"y").

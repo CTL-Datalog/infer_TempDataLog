@@ -15,7 +15,7 @@ int limitRand;
 
 
 
-/*@ AF(AU(init=0, AU(init=1, AG(init=3)))) @*/
+/*@ (AU(init=0, AU(init=1, AG(init=3)))) @*/
 
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 

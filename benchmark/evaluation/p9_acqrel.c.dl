@@ -3,52 +3,86 @@
 flow(22,22).
 State(22).
 
-/*(Start())@28 · (A=0)@29 · (R=0)@30 · ([⊤]@31 · (A=1)@32 · (A=0)@33 · (n=_)@34 · (([n<=0]@35 · (R=1)@36 · (R=0)@37) \/ ([n>0]@38 · [⊤]@39 · (n=0)@40 · (n=(n-1))@41 · (R=1)@42 · (R=0)@43)))^w*/
+/*(Start())@38 · (A=0)@39 · (R=0)@40 · ((([n>0]@47 · (n>0)@48 · (A=1)@49 · (A=0)@50 · (n=_)@51 · [n<=0]@52 · (R=1)@53 · (R=0)@54)^w) \/ ((([n>0]@57 · (n=0)@58 · (A=1)@59 · (A=0)@60 · (n=_)@61 · ((n>0)@62 · (⊥)@63 · (n=(n-1))@64)^w) \/ (([n<=0]@79 · (n<=0)@80 · (A=1)@81 · (A=0)@82 · (n=_)@83 · [n>0]@84 · [n>0]@86 · (n=0)@87 · (n=(n-1))@88 · (R=1)@89 · (R=0)@90)^w))))*/
 
-flow(28,29).
-flow(29,30).
-flow(31,32).
-flow(32,33).
-flow(33,34).
-flow(37,37).
-flow(43,43).
-flow(37,31).
-flow(43,31).
-Start(28).
-LtEq("n",28,0).
-Gt("n",28,0).
-State(28).
-State(29).
-Eq("R",30,0).
-State(30).
-control_flow(30,31).
-State(31).
-Eq("A",32,1).
-State(32).
-State(33).
-State(35).
-State(36).
-Eq("R",37,0).
-State(37).
-State(34).
+flow(38,39).
+flow(39,40).
+flow(54,54).
+flow(54,47).
+flow(64,64).
+flow(64,62).
+flow(90,90).
+flow(90,79).
+Start(38).
+LtEq("n",38,0).
+Gt("n",38,0).
 State(38).
 State(39).
-LtEq("n",40,0).
+Eq("R",40,0).
+State(47).
+State(48).
+Eq("A",49,1).
+State(49).
+State(50).
+State(51).
+State(52).
+State(53).
+Eq("R",54,0).
+State(54).
+State(57).
+LtEq("n",58,0).
+State(58).
+Eq("A",59,1).
+State(59).
+State(60).
+State(61).
+State(62).
+State(63).
+LtEq("n",64,0).
+State(64).
 State(40).
-LtEq("n",41,0).
-State(41).
-State(42).
-Eq("R",43,0).
-State(43).
-control_flow(34,35) :- LtEqD("n",34,0).
-control_flow(35,36) :- LtEqD("n",34,0).
-control_flow(36,37) :- LtEqD("n",34,0).
-control_flow(34,38) :- GtD("n",34,0).
-control_flow(38,39) :- GtD("n",34,0).
-control_flow(39,40) :- GtD("n",34,0).
-control_flow(40,41) :- GtD("n",34,0).
-control_flow(41,42) :- GtD("n",34,0).
-control_flow(42,43) :- GtD("n",34,0).
+State(79).
+State(80).
+Eq("A",81,1).
+State(81).
+State(82).
+State(83).
+State(84).
+State(86).
+LtEq("n",87,0).
+State(87).
+LtEq("n",88,0).
+State(88).
+State(89).
+Eq("R",90,0).
+State(90).
+control_flow(40,47) :- GtD("n",40,0).
+control_flow(47,48) :- GtD("n",40,0).
+control_flow(48,49) :- GtD("n",40,0).
+control_flow(49,50) :- GtD("n",40,0).
+control_flow(50,51) :- GtD("n",40,0).
+control_flow(51,52) :- GtD("n",40,0), LtEqD("n",51,0).
+control_flow(52,53) :- GtD("n",40,0), LtEqD("n",51,0).
+control_flow(53,54) :- GtD("n",40,0), LtEqD("n",51,0).
+control_flow(40,57) :- GtD("n",40,0).
+control_flow(57,58) :- GtD("n",40,0).
+control_flow(58,59) :- GtD("n",40,0).
+control_flow(59,60) :- GtD("n",40,0).
+control_flow(60,61) :- GtD("n",40,0).
+control_flow(61,62) :- GtD("n",40,0).
+control_flow(62,63) :- GtD("n",40,0).
+control_flow(63,64) :- GtD("n",40,0).
+control_flow(40,79) :- LtEqD("n",40,0).
+control_flow(79,80) :- LtEqD("n",40,0).
+control_flow(80,81) :- LtEqD("n",40,0).
+control_flow(81,82) :- LtEqD("n",40,0).
+control_flow(82,83) :- LtEqD("n",40,0).
+control_flow(83,84) :- LtEqD("n",40,0), GtD("n",83,0).
+control_flow(84,86) :- LtEqD("n",40,0), GtD("n",83,0), GtD("n",84,0).
+control_flow(86,87) :- LtEqD("n",40,0), GtD("n",83,0), GtD("n",84,0).
+control_flow(87,88) :- LtEqD("n",40,0), GtD("n",83,0), GtD("n",84,0).
+control_flow(88,89) :- LtEqD("n",40,0), GtD("n",83,0), GtD("n",84,0).
+control_flow(89,90) :- LtEqD("n",40,0), GtD("n",83,0), GtD("n",84,0).
 //AG(("A"=1 => AF("R"=0)))
 .decl Start(x:number)
 .decl State(x:number)
@@ -61,8 +95,8 @@ control_flow(42,43) :- GtD("n",34,0).
 .decl Gt(x:symbol,loc:number,n:number)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
 .decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
 .decl R_eq_0(loc:number)
 .decl AF_R_eq_0_T(interm_state:number,loc:number)
 .decl AF_R_eq_0_S(loc:number)
@@ -79,10 +113,10 @@ NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 EqD(x,loc,n) :- Eq(x,loc,n).
 EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
-GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
 LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 R_eq_0(loc) :- State(loc), EqD("R",loc,0).
 AF_R_eq_0_T(interm_state,loc) :- AF_R_eq_0_T(tempOne,loc), !R_eq_0(tempOne), control_flow(tempOne,interm_state).
 AF_R_eq_0_T(interm_state,loc) :- !R_eq_0(loc), control_flow(loc,interm_state).

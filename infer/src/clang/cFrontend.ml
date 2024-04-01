@@ -2438,9 +2438,10 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
 *)
   
   
+  (*
   print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpec))));   
   print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
-
+*)
 
   let rec mergeResults li (acca, accb) = 
     match li with 

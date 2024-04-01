@@ -664,6 +664,7 @@ let rec normalise_pure (pi:pure) : pure =
   | Gt (leftHandside,Basic( BINT 0)) -> 
     (match normalise_terms leftHandside with
     | Minus(t1, t2) -> Gt (t1, t2)
+    | Plus(t1, Basic( BINT n)) -> Gt (t1,  Basic( BINT (-1 * n)))
     | t -> Gt(t, Basic( BINT 0))
     )
 
@@ -678,6 +679,11 @@ let rec normalise_pure (pi:pure) : pure =
   | Eq (Minus(t1, t2), Basic( BINT 0)) -> Eq(t1, t2)
 
   | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  
+  | Eq (Basic( BVAR x), Minus(Basic( BVAR x1), Basic( BVAR y))) -> 
+    if String.compare x x1 ==0 then 
+    Eq(Basic( BVAR y), Basic( BINT 0))
+    else pi
 
 
   | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
@@ -2124,12 +2130,13 @@ and translation_inner (ctl:ctl) : string * datalog =
       (fun x1 x2 ->  x1 ^ "_EU_" ^ x2) 
       (fun (newName,newArgs) (x1,f1Args) (x2,f2Args) -> 
         let arg = Basic (BVAR "tempOne") in
-        let firstArg, fNewArgs = match newArgs with
-        [] -> raise (Failure "confused")
-        | x :: xs -> x, arg :: xs in
+        let firstArg, fNewArgs = 
+          match newArgs with
+          [] -> raise (Failure "confused")
+          | x :: xs -> x, arg :: xs in
         [ 
         (newName,newArgs) , [ Pos(x2,f2Args) ];
-        (newName,newArgs) , [ Pos(x1,f1Args); Pos(controlFlowKeyword,[arg;firstArg]); Pos(newName,fNewArgs) ];
+        (newName,newArgs) , [ Pos(x1,f1Args); Pos(controlFlowKeyword,[firstArg;arg]); Pos(newName,fNewArgs) ];
       ])
 
     

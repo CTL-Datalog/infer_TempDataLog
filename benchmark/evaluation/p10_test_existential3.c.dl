@@ -3,56 +3,55 @@
 flow(14,14).
 State(14).
 
-/*(Start())@23 · (r=0)@24 · (([x<=0]@25 · (EXIT())@26) \/ ((((([x>0]@27 · [⊤]@28 · (x=0)@29 · (x=(x-1))@30 · (temp=_)@31 · (r=1)@32 · (EXIT())@33) \/ ((⏊)^w))) \/ ((([x>0]@34 · [⊤]@35 · (x=0)@36 · (x=(x-1))@37 · (temp=_)@38 · (EXIT())@39) \/ ((⏊)^w))))))*/
+/*(Start())@27 · (r=0)@28 · (([x<=0]@29 · (EXIT())@30) \/ ((([x>0]@31 · [x>0]@33 · (x=0)@34 · (x=(x-1))@35 · (temp=_)@36 · (r=1)@37 · (EXIT())@38) \/ ([x>0]@47 · [x>0]@49 · (x=0)@50 · (x=(x-1))@51 · (temp=_)@52 · (EXIT())@53))))*/
 
-flow(23,24).
-flow(26,26).
-flow(33,33).
-flow(39,39).
-flow(24,24).
-Start(23).
-LtEq("x",23,0).
-Gt("x",23,0).
-State(23).
-State(25).
-EXIT(26).
-State(26).
+flow(27,28).
+flow(30,30).
+flow(38,38).
+flow(53,53).
+Start(27).
+LtEq("x",27,0).
+Gt("x",27,0).
 State(27).
-State(28).
-LtEq("x",29,0).
 State(29).
-LtEq("x",30,0).
+EXIT(30).
 State(30).
 State(31).
-Eq("r",32,1).
-State(32).
-EXIT(33).
 State(33).
+LtEq("x",34,0).
 State(34).
+LtEq("x",35,0).
 State(35).
-LtEq("x",36,0).
 State(36).
-LtEq("x",37,0).
+Eq("r",37,1).
 State(37).
+EXIT(38).
 State(38).
-EXIT(39).
-State(39).
-State(24).
-control_flow(24,25) :- LtEqD("x",24,0).
-control_flow(25,26) :- LtEqD("x",24,0).
-control_flow(24,27) :- GtD("x",24,0).
-control_flow(27,28) :- GtD("x",24,0).
-control_flow(28,29) :- GtD("x",24,0).
-control_flow(29,30) :- GtD("x",24,0).
-control_flow(30,31) :- GtD("x",24,0).
-control_flow(31,32) :- GtD("x",24,0).
-control_flow(32,33) :- GtD("x",24,0).
-control_flow(24,34) :- GtD("x",24,0).
-control_flow(34,35) :- GtD("x",24,0).
-control_flow(35,36) :- GtD("x",24,0).
-control_flow(36,37) :- GtD("x",24,0).
-control_flow(37,38) :- GtD("x",24,0).
-control_flow(38,39) :- GtD("x",24,0).
+State(28).
+State(47).
+State(49).
+LtEq("x",50,0).
+State(50).
+LtEq("x",51,0).
+State(51).
+State(52).
+EXIT(53).
+State(53).
+control_flow(28,29) :- LtEqD("x",28,0).
+control_flow(29,30) :- LtEqD("x",28,0).
+control_flow(28,31) :- GtD("x",28,0).
+control_flow(31,33) :- GtD("x",28,0), GtD("x",31,0).
+control_flow(33,34) :- GtD("x",28,0), GtD("x",31,0).
+control_flow(34,35) :- GtD("x",28,0), GtD("x",31,0).
+control_flow(35,36) :- GtD("x",28,0), GtD("x",31,0).
+control_flow(36,37) :- GtD("x",28,0), GtD("x",31,0).
+control_flow(37,38) :- GtD("x",28,0), GtD("x",31,0).
+control_flow(28,47) :- GtD("x",28,0).
+control_flow(47,49) :- GtD("x",28,0), GtD("x",47,0).
+control_flow(49,50) :- GtD("x",28,0), GtD("x",47,0).
+control_flow(50,51) :- GtD("x",28,0), GtD("x",47,0).
+control_flow(51,52) :- GtD("x",28,0), GtD("x",47,0).
+control_flow(52,53) :- GtD("x",28,0), GtD("x",47,0).
 //EF("r"=1)
 .decl Start(x:number)
 .decl State(x:number)
