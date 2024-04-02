@@ -1782,16 +1782,16 @@ let infiniteLoopSummaryCalculus (guards:(pure*state) list) (re:regularExpr) =
   let (frameState:regularExpr) = List.fold_left guards ~init:frameGuard ~f:(fun acc a -> Concate (acc, Singleton a)) in 
 
 
-    let pathConditions = getAllPathConditions re in 
-    let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
-    let (predNames:string list) = List.fold_left decomposedPathConditions ~init:[] 
+  let pathConditions = getAllPathConditions re in 
+  let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
+  let (predNames:string list) = List.fold_left decomposedPathConditions ~init:[] 
       ~f:(fun acc a -> 
         match a with 
         | Predicate(str, _) -> acc @ [str] 
         | _ -> acc) 
-    in
-    if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then Omega (Concate(frameState, re)) 
-    else 
+  in
+  if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then Omega (frameState) (*Omega (Concate(frameState, re)) *)
+  else 
 
 
   let rec reoccur (his:fstElem list)  f =     
@@ -1971,7 +1971,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuard = (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) in 
-      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuard] reIn in 
+      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [(*loopGuard;*) nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuardWRTRF = (normalise_pure_prime(Neg startingState), !allTheUniqueIDs) in 
       let non_terminating_fixpointWRTRF = 
