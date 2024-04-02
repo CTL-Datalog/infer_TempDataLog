@@ -674,16 +674,6 @@ let rec normalise_pure (pi:pure) : pure =
 
   | Gt (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Lt(Basic(BVAR v1), Basic (BINT(n1-n2)))
   
-  | Eq (Plus(t1, Basic( BINT n)),Basic( BINT 0)) -> Eq(t1,  Basic( BINT (-1 * n)))
-  
-  | Eq (Minus(t1, t2), Basic( BINT 0)) -> Eq(t1, t2)
-
-  | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
-  
-  | Eq (Basic( BVAR x), Minus(Basic( BVAR x1), Basic( BVAR y))) -> 
-    if String.compare x x1 ==0 then 
-    Eq(Basic( BVAR y), Basic( BINT 0))
-    else pi
 
 
   | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
@@ -720,6 +710,75 @@ let rec normalise_pure (pi:pure) : pure =
     else Predicate (str, List.map termLi ~f:(normalise_terms))
   | Neg piN -> Neg (normalise_pure piN)
   | PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | Predicate (str, termLi) -> 
+    Predicate (str, List.map termLi ~f:(normalise_terms))
+
+let rec normalise_pure_prime (pi:pure) : pure = 
+  match pi with 
+  | TRUE 
+  | FALSE -> pi
+
+
+  | LtEq (Basic(BINT n), Basic(BVAR v)) -> GtEq (Basic(BVAR v), Basic(BINT n))
+  | Lt (Basic(BINT n), Basic(BVAR v)) -> Gt (Basic(BVAR v), Basic(BINT n))
+  | Gt (Basic(BINT n), Basic(BVAR v)) -> Lt (Basic(BVAR v), Basic(BINT n))
+
+  | Gt (leftHandside,Basic( BINT 0)) -> 
+    (match normalise_terms leftHandside with
+    | Minus(t1, t2) -> Gt (t1, t2)
+    | Plus(t1, Basic( BINT n)) -> Gt (t1,  Basic( BINT (-1 * n)))
+    | t -> Gt(t, Basic( BINT 0))
+    )
+  | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
+
+  | Gt (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Lt(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  
+  | Eq (Plus(t1, Basic( BINT n)),Basic( BINT 0)) -> Eq(t1,  Basic( BINT (-1 * n)))
+  
+  | Eq (Minus(t1, t2), Basic( BINT 0)) -> Eq(t1, t2)
+
+  | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  
+  | Eq (Basic( BVAR x), Minus(Basic( BVAR x1), Basic( BVAR y))) -> 
+    if String.compare x x1 ==0 then 
+    Eq(Basic( BVAR y), Basic( BINT 0))
+    else pi
+
+
+  | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
+
+  | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
+  | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
+
+  | LtEq (Minus(Basic(BVAR x),Basic( BINT n1)), Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))) -> 
+    if String.compare x x1 == 0 then  LtEq(Basic(BVAR y), Basic( BINT (n2-n1)))
+    else LtEq (normalise_terms (Minus(Basic(BVAR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))))
+
+  | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
+
+  | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
+  | PureAnd (pi1,TRUE) 
+  | PureAnd (TRUE, pi1) -> normalise_pure_prime pi1
+  | PureAnd (_,FALSE) 
+  | PureAnd (FALSE, _) -> FALSE
+
+
+  | PureAnd (pi1,pi2) -> 
+    let p1 = normalise_pure_prime pi1 in 
+    let p2 = normalise_pure_prime pi2 in 
+    if comparePure p1 p2 then p1
+    else PureAnd (p1, p2)
+  | Neg (TRUE) -> FALSE
+  | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
+  | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
+  | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
+  | Neg (LtEq (t1, t2)) -> Gt (t1, t2)
+  | Neg (Predicate (str, termLi)) -> 
+    if String.compare str evenKeyWord == 0 then Predicate (oddKeyWord, termLi)
+    else if String.compare str oddKeyWord == 0 then Predicate (evenKeyWord, termLi)
+    else Predicate (str, List.map termLi ~f:(normalise_terms))
+  | Neg piN -> Neg (normalise_pure_prime piN)
+  | PureOr (pi1,pi2) -> PureAnd (normalise_pure_prime pi1, normalise_pure_prime pi2)
   | Predicate (str, termLi) -> 
     Predicate (str, List.map termLi ~f:(normalise_terms))
 

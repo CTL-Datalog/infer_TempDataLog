@@ -735,17 +735,21 @@ let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store 
 
 
 let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
-  (*print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
-  *)
+  print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
+  
   if String.compare op "Assign" == 0 then 
     match instrs with 
     | Store s :: _ -> 
-      (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
+      print_endline ("Store: " ^  Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); 
       let exp1 = s.e1 in 
       let exp2 = s.e2 in 
       (match expressionToTerm exp1 stack, expressionToTerm exp2 stack with 
-      | Some e1, Some e2 -> Some (Eq (e1, e2))
-      | _, _ -> None 
+      | Some e1, Some e2 -> 
+        print_endline ("res = Some " ^ string_of_pure (Eq (e1, e2))); 
+        Some (Eq (e1, e2))
+      | _, _ -> 
+      print_endline ("res = None " ); 
+      None 
       
       )
       
@@ -763,6 +767,7 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       getPureFromBinaryOperatorStmtInstructions "Assign" instrs stack
     | Load l :: tail ->
       let stack' = (l.e, l.id):: stack in 
+      print_endline ("SubAssign: " ^ string_of_stack stack');
       getPureFromBinaryOperatorStmtInstructions "SubAssign" tail stack'
 
     | _ -> None 
@@ -1255,8 +1260,10 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
   
   
   (*print_endline ("existCycleHelper stack: " ^ string_of_stack stack);*)
+  (*
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
   print_endline ("existCycleHelper id: " ^ string_of_int currentID);
+  *)
   let idHead, idTail = 
     match id with 
     | [] -> raise (Failure "existCycleHelper not possible")
@@ -1860,7 +1867,7 @@ let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:
   match rankingFun with 
   | [] -> raise (Failure "wp4Termination true but no rankingFun")
   | (rf, None)::_ -> 
-    let finalState = normalise_pure (Eq(rf, Basic(BINT 0))) in 
+    let finalState = normalise_pure_prime (Eq(rf, Basic(BINT 0))) in 
     let ev = stateAfterTerminate finalState in 
     Concate (Concate (ev, persistant), reFalse)
   | (rf, Some re)::_ -> 
@@ -1870,7 +1877,7 @@ let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let gNT =  (LtEq(rf, Basic(BINT 0) ), !allTheUniqueIDs) in
 
-    let finalState = normalise_pure (Eq(rf, Basic(BINT 0))) in 
+    let finalState = normalise_pure_prime (Eq(rf, Basic(BINT 0))) in 
     let ev = stateAfterTerminate finalState in 
 
     let terminaing = Concate (Guard(gT), Concate (Concate (ev, persistant), re)) in
@@ -1923,7 +1930,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
       let invariants = List.fold_left rankingFuns ~init:[loopGuard] 
         ~f:(fun acc (rf, _) -> 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-        let ntGuard =  (normalise_pure (Gt(rf, Basic(BINT 0))), !allTheUniqueIDs) in 
+        let ntGuard =  (normalise_pure_prime (Gt(rf, Basic(BINT 0))), !allTheUniqueIDs) in 
         acc@[(ntGuard)]) in 
 
       let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus invariants reIn in 
@@ -1934,8 +1941,8 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
     | Some (weakestPre, (rfterm, leakingRE)) -> (* there exist a ranking function, and a termination segement leakingRE *)
       (*print_endline("wp4Termination weakestPre raw: " ^ string_of_pure (weakestPre));  *)
       let rf = (rfterm, leakingRE) in 
-      let weakestPre = normalise_pure (weakestPre) in 
-      let startingState =  normalise_pure (Gt(rfterm, Basic(BINT 0))) in 
+      let weakestPre = normalise_pure_prime (weakestPre) in 
+      let startingState =  normalise_pure_prime (Gt(rfterm, Basic(BINT 0))) in 
 
       print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_ranking_function rf ^ " when " ^ string_of_pure weakestPre ^ " and "^ string_of_pure startingState);
 
@@ -1963,10 +1970,10 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
     
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let nonTerminatingGuard = (normalise_pure(Neg weakestPre), !allTheUniqueIDs) in 
+      let nonTerminatingGuard = (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) in 
       let non_terminating_fixpoint = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let nonTerminatingGuardWRTRF = (normalise_pure(Neg startingState), !allTheUniqueIDs) in 
+      let nonTerminatingGuardWRTRF = (normalise_pure_prime(Neg startingState), !allTheUniqueIDs) in 
       let non_terminating_fixpointWRTRF = 
         if entailConstrains (PureAnd(pi, Neg startingState)) FALSE then Bot 
         else 
@@ -1978,38 +1985,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
   in 
   disjunctRE temp 
 
-  (*
-  (match analyseEachTraceEachRankingFunction with 
-  | FALSE -> 
-    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns stateWhenNonTerminate in 
-    (stateWhenNonTerminate_fixpoint)
-  | TRUE -> 
-    let pureAfterTerminate = terminatingFinalState rankingFuns in 
-    Concate(Guard(pi, loc), Concate(stateAfterTerminate pureAfterTerminate, reFalse))
 
-  | weakestPre -> 
-    let weakestPre = normalise_pure weakestPre in 
-    print_endline("wp4Termination weakestPre: " ^ string_of_pure (weakestPre));  
-    (*let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let g1 = Guard (path, !allTheUniqueIDs) in 
-    *)
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let g2 = Guard (weakestPre, !allTheUniqueIDs) in 
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let negg2 = Guard (normalise_pure(Neg weakestPre), !allTheUniqueIDs) in 
-
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let g3 = Guard (pi, !allTheUniqueIDs) in 
-    let terminating = 
-      (*Concate (g1, Concate(g2, g3) ) *) Concate(g2, g3) in 
-    let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    let pureAfterTerminate = terminatingFinalState rankingFuns in 
-    let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (pi, loc) rankingFuns stateWhenNonTerminate in 
-    let non_terminating = Concate (negg2 , stateWhenNonTerminate_fixpoint) in 
-    disjunctRE [
-      Concate (terminating, Concate (stateAfterTerminate pureAfterTerminate, reFalse)); non_terminating]
-  )
-  *)
 
 
 let rec containCycle re : bool = 

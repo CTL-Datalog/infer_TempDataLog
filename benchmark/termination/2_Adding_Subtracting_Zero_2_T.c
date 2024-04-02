@@ -6,6 +6,9 @@ Project Name: FFmpeg
 License: LGPL-2.1
 termination: true
 */
+
+/*@ AF(EXIT()) @*/
+
 int flag = 0;
 int ff_subtitles_next_line()
 {
