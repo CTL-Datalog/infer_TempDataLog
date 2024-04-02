@@ -41,8 +41,7 @@ State(34).
 State(35).
 State(36).
 State(37).
-//Lt("max_filesize",38,0).
-GtEq("max_filesize",38,0).
+Lt("max_filesize",38,0).  // detele this and add GtEq("max_filesize",38,0).
 State(38).
 Lt("temp",39,0).
 State(39).
