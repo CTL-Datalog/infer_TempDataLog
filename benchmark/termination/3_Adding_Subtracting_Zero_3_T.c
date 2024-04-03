@@ -25,6 +25,8 @@ flag: When the end of the file is reached, flag is 1; otherwise flag is 0.
 This program is terminating.
 */
 
+/*@ AF(EXIT()) @*/
+
 
 int flag = 0;
 int read( int loc , int len )

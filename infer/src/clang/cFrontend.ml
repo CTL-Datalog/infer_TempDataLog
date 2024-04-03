@@ -1790,7 +1790,7 @@ let infiniteLoopSummaryCalculus (guards:(pure*state) list) (re:regularExpr) =
         | Predicate(str, _) -> acc @ [str] 
         | _ -> acc) 
   in
-  if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then  (*Omega (frameState)*) Omega (Concate(frameState, re)) 
+  if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then  Omega (frameState) (*Omega (Concate(frameState, re)) *)
   else 
 
 
@@ -1971,7 +1971,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuard = (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) in 
-      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuard] reIn in 
+      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [(*loopGuard;*) nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuardWRTRF = (normalise_pure_prime(Neg startingState), !allTheUniqueIDs) in 
       let non_terminating_fixpointWRTRF = 
