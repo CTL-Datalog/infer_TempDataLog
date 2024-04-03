@@ -1842,7 +1842,7 @@ let rec translation (ctl:ctl) : string * datalog =
     @
     List.map (sort_uniq (fun (a, _) (c, _) -> String.compare a c) !predicateDeclearation) 
     ~f:(fun (predName, strLi) -> 
-    (*print_endline ("predicateDeclearation " ^ predName); *)
+    print_endline ("predicateDeclearation " ^ predName); 
     let rec attribute typLi n = 
       match typLi with 
       | [] -> [] 
@@ -2051,10 +2051,13 @@ and translation_inner (ctl:ctl) : string * datalog =
 
       | Predicate (str, _) -> 
         if String.compare str exitKeyWord == 0 || String.compare str retKeyword == 0 then 
-          (predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
+          ((*print_endline ("predicate 1" ^ str); *)
+          predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
           pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
         else 
-          (predicateDeclearation:= (pName, ["Number"]) :: !predicateDeclearation ;
+          (
+          (*print_endline ("predicate 1" ^ str); *)
+          predicateDeclearation:= (pName, ["Number"]) :: !predicateDeclearation ;
           pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ]))
 
       | PureOr (p1, p2) -> 
@@ -2243,6 +2246,24 @@ and translation_inner (ctl:ctl) : string * datalog =
 
     
   (* core, EX, AF, AU, the rest needs to be translated *)
+
+
+let rec getAllPredicateFromCTL (ctl:ctl): string list  = 
+  match ctl with
+  | Atom (_, Predicate (str, _) ) -> [str]
+  | Atom (_, p) -> []
+  | AX c 
+  | EX c 
+  | AF c
+  | EF c 
+  | AG c 
+  | EG c 
+  | Neg c -> getAllPredicateFromCTL c
+  | Conj (c1, c2) 
+  | Disj (c1, c2) 
+  | AU (c1, c2)
+  | EU (c1, c2) 
+  | Imply (c1, c2) -> getAllPredicateFromCTL c1 @ getAllPredicateFromCTL c2
 
 
 let rec getAllPureFromCTL (ctl:ctl): pure list  = 

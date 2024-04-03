@@ -1790,7 +1790,7 @@ let infiniteLoopSummaryCalculus (guards:(pure*state) list) (re:regularExpr) =
         | Predicate(str, _) -> acc @ [str] 
         | _ -> acc) 
   in
-  if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then Omega (frameState) (*Omega (Concate(frameState, re)) *)
+  if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then  (*Omega (frameState)*) Omega (Concate(frameState, re)) 
   else 
 
 
@@ -1971,7 +1971,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuard = (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) in 
-      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [(*loopGuard;*) nonTerminatingGuard] reIn in 
+      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuardWRTRF = (normalise_pure_prime(Neg startingState), !allTheUniqueIDs) in 
       let non_terminating_fixpointWRTRF = 
@@ -2392,11 +2392,10 @@ let flowsForTheCycle (re:regularExpr) : relation list =
     *)
 
 
-let rec existExitKeyWord (pLi:pure list): bool = 
-  match pLi with
-  | [] -> false 
-  | Predicate(str, _) :: xs -> if String.compare str exitKeyWord == 0 then true else existExitKeyWord xs 
-  | _ :: xs -> existExitKeyWord xs 
+let existExitKeyWord (pLi:ctl list): bool = 
+  let (allPredicates:string list) = List.fold_left pLi ~init:[] ~f:(fun acc a -> acc @ (getAllPredicateFromCTL a)) in 
+  twoStringSetOverlap [exitKeyWord] allPredicates
+  
 
 
 let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
@@ -2496,12 +2495,15 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
           let pathConstrint' = 
             match p with 
             | Predicate (s, _) -> 
+              (*print_endline ("Specs are \n" ^ (String.concat ~sep:" , " (List.map ~f:(fun p -> string_of_ctl p) (specs)))); 
+              print_endline ("existExitKeyWord of " ^ s ^ " is " ^ string_of_bool (existExitKeyWord specs)); 
+              *)  
               (if String.compare s evenKeyWord ==0 ||  String.compare s oddKeyWord ==0 then 
                 predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
               else if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
               else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword] then ()
-              else if String.compare s exitKeyWord ==0 && existExitKeyWord pathConditionsSpec then ()
+              else if String.compare s exitKeyWord ==0 && existExitKeyWord specs then ()
               else 
                 predicateDeclearation:=  !predicateDeclearation@ [(s, ["Number"])] ;
               );

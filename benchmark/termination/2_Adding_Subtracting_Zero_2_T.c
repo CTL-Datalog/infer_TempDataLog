@@ -38,7 +38,7 @@ int main()
         int inc = ff_subtitles_next_line();
         if( !inc )
             break;
-        b += inc;
+        b = b + inc;
         if( b >= end - 4 )
         return 0;
     }
