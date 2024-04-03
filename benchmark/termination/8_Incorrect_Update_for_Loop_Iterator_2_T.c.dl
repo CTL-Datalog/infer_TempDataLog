@@ -1,0 +1,129 @@
+/*(Join())@15*/
+
+flow(15,15).
+State(15).
+
+/*(Start())@28 · (l=_)@29 · (([l=0]@30 · (Return(0))@31) \/ ((([(l!=0)]@32 · [l>0]@34 · (l=0)@35 · (l=(l-1))@36 · (Return(0))@37) \/ (([(l!=0)]@41 · [l=0]@42 · ((l!=0))@43 · (l>0)@44)^w))))*/
+
+flow(28,29).
+flow(31,31).
+flow(37,37).
+flow(44,44).
+flow(44,41).
+Start(28).
+Gt("l",28,0).
+NotEq("l",28,0).
+Eq("l",28,0).
+State(28).
+State(30).
+Return(0,31).
+State(31).
+State(32).
+State(34).
+Eq("l",35,0).
+State(35).
+NotEq("l",36,0).
+State(36).
+Return(0,37).
+State(37).
+State(29).
+State(41).
+State(42).
+State(43).
+State(44).
+control_flow(29,30) :- EqD("l",29,0).
+control_flow(30,31) :- EqD("l",29,0).
+control_flow(29,32) :- NotEqD("l",29,0).
+control_flow(32,34) :- NotEqD("l",29,0), GtD("l",32,0).
+control_flow(34,35) :- NotEqD("l",29,0), GtD("l",32,0).
+control_flow(35,36) :- NotEqD("l",29,0), GtD("l",32,0).
+control_flow(36,37) :- NotEqD("l",29,0), GtD("l",32,0).
+control_flow(29,41) :- NotEqD("l",29,0).
+control_flow(41,42) :- NotEqD("l",29,0), EqD("l",41,0).
+control_flow(42,43) :- NotEqD("l",29,0), EqD("l",41,0).
+control_flow(43,44) :- NotEqD("l",29,0), EqD("l",41,0).
+//AF(EXIT())
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl EXIT(loc:number)
+.decl AF_EXIT_T(interm_state:number,loc:number)
+.decl AF_EXIT_S(loc:number)
+.decl AF_EXIT(loc:number)
+.decl AF_EXIT_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+EXIT(loc) :- Return(_,loc).
+AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
+AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
+AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
+AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
+AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
+AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output LtEq
+.output Eq
+.output NotEq
+.output Gt
+.output Start
+.output State
+.output flow
+.output Return
+.output AF_EXIT_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_uchar> 
+
+//-- Facts for Procedure <main> 
+
+Flow(13,0). //@11:1-13:5
+Flow(9,12). //@22:5-23:1
+Flow(1,11). //@15:5-15:12
+Flow(11,8). //@15:12-15:12
+Flow(11,10). //@15:12-15:12
+Flow(10,6). //@15:12-17:13
+Flow(10,7). //@15:12-17:13
+Flow(8,9). //@15:12-22:5
+Flow(3,1). //@17:9-15:5
+Flow(7,5). //@17:13-17:18
+Flow(6,3). //@17:13-17:9
+Flow(5,2). //@17:18-17:18
+Flow(5,4). //@17:18-17:18
+Flow(4,3). //@17:18-17:9
+Flow(2,3). //@17:18-17:9
+Flow(0,1). //@13:5-15:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_uchar,,n$7),IStore(&l,()n$7)]). // @13:5
+PruneNode(2,false,[Prune(!n$2, false)]). // @17:18
+PruneNode(4,true,[Prune(n$2, true)]). // @17:18
+Stmt_UnaryOperator(5,[ILoad(&l,n$2),IStore(&l,(n$2 - 1))]). // @17:18
+PruneNode(6,false,[ILoad(&l,n$1),Prune(!n$1, false)]). // @17:13
+PruneNode(7,true,[ILoad(&l,n$1),Prune(n$1, true)]). // @17:13
+Join(3,[]).  // @17:9
+PruneNode(8,false,[Prune(!n$0, false)]). // @15:12
+PruneNode(10,true,[Prune(n$0, true)]). // @15:12
+Stmt_UnaryOperator(11,[ILoad(&l,n$0),IStore(&l,(n$0 - 1))]). // @15:12
+Join(1,[]).  // @15:5
+Stmt_Return(9,[IStore(&return,0)]). // @22:5
+Exit(12).  // @23:1
+Start(13). // @11:1
+*/
+

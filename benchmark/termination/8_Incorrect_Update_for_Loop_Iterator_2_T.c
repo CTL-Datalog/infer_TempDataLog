@@ -5,6 +5,9 @@ Project Name: asterisk
 License: GPL2
 termination: TRUE
 */
+
+/*@ AF(EXIT()) @*/
+
 int main()
 {
     unsigned char l = __VERIFIER_nondet_uchar();
