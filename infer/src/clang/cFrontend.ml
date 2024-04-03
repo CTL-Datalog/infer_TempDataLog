@@ -659,7 +659,7 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
 
   | UnOp (_, e, _) -> 
     (match expressionToPure e stack with 
-    | Some p -> Some (Neg p)
+    | Some p -> Some (normalise_pure (Neg p))
     | None -> 
      print_endline ("expressionToPure UnOp : " ^ Exp.to_string exp ); 
 
@@ -680,7 +680,7 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
   | Lvar _ 
   | Var _ -> 
     (match expressionToTerm exp stack with 
-    | Some t -> Some (Eq (t,  Basic (BINT 0)))
+    | Some t -> Some (Neg (Eq (t,  Basic (BINT 0))))
     | None -> None 
     )
   
@@ -893,7 +893,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           | Some t1 -> 
           
           let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-          let g1 = Guard(Eq(t1, Basic (BINT 0 )), !allTheUniqueIDs) in 
+          let g1 = Guard(Lt(t1, Basic (BINT 0 )), !allTheUniqueIDs) in 
           let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
           let g2 = Guard((Gt(t1, Basic (BINT 0 ))), !allTheUniqueIDs) in 
 
@@ -1694,7 +1694,13 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:rankingfunction li
         let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
         let left_hand_side = PureAnd (guard, path) in 
         let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
-        if entailConstrains left_hand_side FALSE then Some FALSE  
+        if entailConstrains left_hand_side FALSE then 
+          (
+          print_endline ("guard: " ^ string_of_pure guard); 
+          print_endline ("path: " ^ string_of_pure path);   
+          print_endline ("false left_hand_side: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
+    
+          Some FALSE ) 
         else 
           (print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
     
@@ -1777,9 +1783,9 @@ let stateAfterTerminate pi =
    
 
 
-let infiniteLoopSummaryCalculus (guards:(pure*state) list) (re:regularExpr) =  
+let infiniteLoopSummaryCalculus (guards:(pure*state) list ) (invariants: (pure*state) list) (re:regularExpr) =  
   let (frameGuard:regularExpr) = List.fold_left guards ~init:Emp ~f:(fun acc a -> Concate (acc, Guard a)) in 
-  let (frameState:regularExpr) = List.fold_left guards ~init:frameGuard ~f:(fun acc a -> Concate (acc, Singleton a)) in 
+  let (frameState:regularExpr) = List.fold_left (invariants) ~init:frameGuard ~f:(fun acc a -> Concate (acc, Singleton a)) in 
 
 
   let pathConditions = getAllPathConditions re in 
@@ -1889,9 +1895,12 @@ let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:
 
 let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regularExpr =  
   let re = normalise_es re in
+  print_endline ("getLoopSummary path:" ^ string_of_pure path) ;
+
+  (*
   print_endline ("reFalse:" ^ string_of_regularExpr reNonCycle) ;
   print_endline ("loop body:\n" ^ string_of_regularExpr (re));
-
+  *)
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
   let pi, rankingFuns, loc, nonleakingBranches =  
     (match fstSet with 
@@ -1927,14 +1936,25 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
     match res with 
     | None -> (* there exist no ranking function which decearces *)
 
-      let invariants = List.fold_left rankingFuns ~init:[loopGuard] 
+      let invariants = List.fold_left rankingFuns ~init:[loopGuard ] 
         ~f:(fun acc (rf, _) -> 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
         let ntGuard =  (normalise_pure_prime (Gt(rf, Basic(BINT 0))), !allTheUniqueIDs) in 
         acc@[(ntGuard)]) in 
 
-      let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus invariants reIn in 
+      let (pathConditions:pure list) = getAllPathConditions reIn in 
+
+      let (omegaGuard: (pure * state) list) = 
+        let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+        match pathConditions with 
+        | [] -> [(Ast_utility.TRUE, !allTheUniqueIDs)]
+        | p::_ -> [(p, !allTheUniqueIDs)]
+      in 
+
+      let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (loopGuard :: omegaGuard) invariants reIn in 
       print_endline ("!!! " ^ string_of_regularExpr reIn ^ " has no decreasing argument !");
+      print_endline ("stateWhenNonTerminate_fixpoint " ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
+
       (stateWhenNonTerminate_fixpoint)
 
 
@@ -1971,16 +1991,18 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuard = (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) in 
-      let non_terminating_fixpoint = infiniteLoopSummaryCalculus [(*loopGuard;*) nonTerminatingGuard] reIn in 
+      let non_terminating_fixpoint = infiniteLoopSummaryCalculus ([nonTerminatingGuard]) [loopGuard; nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuardWRTRF = (normalise_pure_prime(Neg startingState), !allTheUniqueIDs) in 
       let non_terminating_fixpointWRTRF = 
         if entailConstrains (PureAnd(pi, Neg startingState)) FALSE then Bot 
         else 
-        infiniteLoopSummaryCalculus [loopGuard; nonTerminatingGuardWRTRF] reIn in 
+        infiniteLoopSummaryCalculus ([nonTerminatingGuardWRTRF]) [loopGuard; nonTerminatingGuardWRTRF] reIn in 
 
-      
-      disjunctRE [Concate (terminatingRE2, reNonCycle); non_terminating_fixpoint; non_terminating_fixpointWRTRF]
+      print_endline ("disj 1 = " ^ string_of_regularExpr (Concate (terminatingRE2, reNonCycle)));
+      print_endline ("disj 2 = " ^ string_of_regularExpr (non_terminating_fixpoint ));
+
+      disjunctRE [Concate (terminatingRE2, reNonCycle); non_terminating_fixpoint(*; non_terminating_fixpointWRTRF *)]
   )
   in 
   disjunctRE temp 
@@ -2010,6 +2032,10 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
 
 
     let reNonCycle, path1 = convertAllTheKleeneToOmega rFalse path in 
+    let reNonCycle = normalise_es reNonCycle in 
+    print_endline ("reNonCycle: " ^ string_of_regularExpr  reNonCycle);
+
+    
     let fst = fst reNonCycle in 
     let reNonCycle'  = 
       match fst with 

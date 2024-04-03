@@ -6,6 +6,7 @@ License: MIT
 termination: TRUE
 */
 
+/*@ AF(EXIT()) @*/
 
 int main()
 {

@@ -700,6 +700,8 @@ let rec normalise_pure (pi:pure) : pure =
     if comparePure p1 p2 then p1
     else PureAnd (p1, p2)
   | Neg (TRUE) -> FALSE
+  | Neg (Neg(p)) -> p
+
   | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
   | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
   | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
@@ -770,6 +772,7 @@ let rec normalise_pure_prime (pi:pure) : pure =
     else PureAnd (p1, p2)
   | Neg (TRUE) -> FALSE
   | Neg (Gt (t1, t2)) -> LtEq (t1, t2)
+  | Neg (Neg(p)) -> p
   | Neg (Lt (t1, t2)) -> GtEq (t1, t2)
   | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
   | Neg (LtEq (t1, t2)) -> Gt (t1, t2)
