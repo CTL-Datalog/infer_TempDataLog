@@ -1944,14 +1944,17 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let (pathConditions:pure list) = getAllPathConditions reIn in 
 
-      let (omegaGuard: (pure * state) list) = 
+      let (omegaGuard: (pure * state) list), omegaGuardSimple = 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
         match pathConditions with 
-        | [] -> [(Ast_utility.TRUE, !allTheUniqueIDs)]
-        | p::_ -> [(p, !allTheUniqueIDs)]
+        | [] -> [(Ast_utility.TRUE, !allTheUniqueIDs)], Ast_utility.TRUE
+        | p::_ -> [(p, !allTheUniqueIDs)], p
       in 
 
-      let stateWhenNonTerminate_fixpoint = infiniteLoopSummaryCalculus (loopGuard :: omegaGuard) invariants reIn in 
+      let stateWhenNonTerminate_fixpoint = 
+        if entailConstrains (PureAnd(path, omegaGuardSimple)) FALSE then Bot 
+        else 
+        infiniteLoopSummaryCalculus (loopGuard :: omegaGuard) invariants reIn in 
       print_endline ("!!! " ^ string_of_regularExpr reIn ^ " has no decreasing argument !");
       print_endline ("stateWhenNonTerminate_fixpoint " ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
 
