@@ -761,7 +761,7 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       getPureFromFunctionCall e_fun arg_ts (Store s) stack
     
     | _ -> None 
-  else if String.compare op "SubAssign" == 0 then  
+  else if String.compare op "SubAssign" == 0 || String.compare op "AddAssign" == 0 then  
     match instrs with 
     | Store s :: _ ->  
       getPureFromBinaryOperatorStmtInstructions "Assign" instrs stack
