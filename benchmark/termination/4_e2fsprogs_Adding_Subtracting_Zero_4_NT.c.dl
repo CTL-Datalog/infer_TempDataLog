@@ -14,14 +14,14 @@ State(38).
 EXIT(39).
 State(39).
 
-/*(Start())@46 · (count=_)@47 · (([count<=0]@48 · (Return(0))@49) \/ ([count>0]@50 · (buf=0)@51 · (([count<=0]@52 · (Return(0))@53) \/ ((([count>0]@54 · [ret>0]@55 · [count>0]@56 · (count=0)@57 · (ret=_)@58 · (count=(count-ret))@59 · (Return(0))@60) \/ (([ret<=0]@61 · (ret<=0)@62)^w))))))*/
+/*(Start())@46 · (count=_)@47 · (([count<=0]@48 · (Return(0))@49) \/ ([count>0]@50 · (buf=0)@51 · (([count<=0]@52 · (Return(0))@53) \/ ((([count>0]@54 · [ret>0]@55 · [count>0]@56 · (count=0)@57 · (ret=_)@58 · (count=(count-ret))@59 · (buf=(buf+ret))@60 · (Return(0))@61) \/ (([ret<=0]@62 · (count>0)@63 · (ret<=0)@64)^w))))))*/
 
 flow(46,47).
 flow(49,49).
 flow(53,53).
-flow(60,60).
-flow(62,62).
-flow(62,61).
+flow(61,61).
+flow(64,64).
+flow(64,62).
 Start(46).
 LtEq("count",46,0).
 Gt("ret",46,0).
@@ -43,11 +43,13 @@ LtEq("count",57,0).
 State(57).
 State(58).
 State(59).
-Return(0,60).
 State(60).
-State(51).
+Return(0,61).
 State(61).
+State(51).
 State(62).
+State(63).
+State(64).
 control_flow(47,48) :- LtEqD("count",47,0).
 control_flow(48,49) :- LtEqD("count",47,0).
 control_flow(47,50) :- GtD("count",47,0).
@@ -61,65 +63,67 @@ control_flow(56,57) :- GtD("count",47,0), GtD("count",51,0), GtD("ret",54,0), Gt
 control_flow(57,58) :- GtD("count",47,0), GtD("count",51,0), GtD("ret",54,0), GtD("count",55,0).
 control_flow(58,59) :- GtD("count",47,0), GtD("count",51,0), GtD("ret",54,0), GtD("count",55,0).
 control_flow(59,60) :- GtD("count",47,0), GtD("count",51,0), GtD("ret",54,0), GtD("count",55,0).
-control_flow(51,61) :- GtD("count",47,0), LtEqD("ret",51,0).
-control_flow(61,62) :- GtD("count",47,0), LtEqD("ret",51,0).
-/*(Start())@75 · (count=0)@76 · (([flag=1]@77 · (Return(0))@78) \/ ([(flag!=1)]@79 · (([loc>=len]@80 · (Return(0))@81) \/ ((([loc<len]@82 · [len>loc]@84 · ((len-loc)=0)@85 · (num=_)@86 · (count=(count+1))@87 · (loc=(loc+1))@88 · (Return(0))@89) \/ ([loc<len]@92 · [len>loc]@94 · ((len-loc)=0)@95 · (num=_)@96 · (count=(count+1))@97 · (loc=(loc+1))@98 · (Return(0))@99))))))*/
+control_flow(60,61) :- GtD("count",47,0), GtD("count",51,0), GtD("ret",54,0), GtD("count",55,0).
+control_flow(51,62) :- GtD("count",47,0), LtEqD("ret",51,0).
+control_flow(62,63) :- GtD("count",47,0), LtEqD("ret",51,0).
+control_flow(63,64) :- GtD("count",47,0), LtEqD("ret",51,0).
+/*(Start())@77 · (count=0)@78 · (([flag=1]@79 · (Return(0))@80) \/ ([(flag!=1)]@81 · (([loc>=len]@82 · (Return(0))@83) \/ ((([loc<len]@84 · [len>loc]@86 · ((len-loc)=0)@87 · (num=_)@88 · (count=(count+1))@89 · (loc=(loc+1))@90 · (Return(0))@91) \/ ([loc<len]@95 · [len>loc]@97 · ((len-loc)=0)@98 · (num=_)@99 · (count=(count+1))@100 · (loc=(loc+1))@101 · (Return(0))@102))))))*/
 
-flow(75,76).
-flow(78,78).
-flow(81,81).
-flow(89,89).
-flow(99,99).
-Start(75).
-Eq("flag",75,1).
-GtEqVar("loc",75,"len").
-NotEq("flag",75,1).
-LtVar("loc",75,"len").
-GtVar("len",75,"loc").
-State(75).
+flow(77,78).
+flow(80,80).
+flow(83,83).
+flow(91,91).
+flow(102,102).
+Start(77).
+Eq("flag",77,1).
+GtEqVar("loc",77,"len").
+NotEq("flag",77,1).
+LtVar("loc",77,"len").
+GtVar("len",77,"loc").
 State(77).
-Return(0,78).
-State(78).
-State(76).
+State(79).
+Return(0,80).
 State(80).
-Return(0,81).
-State(81).
+State(78).
 State(82).
+Return(0,83).
+State(83).
 State(84).
-State(85).
 State(86).
 State(87).
 State(88).
-Return(0,89).
 State(89).
-State(79).
-State(92).
-State(94).
+State(90).
+Return(0,91).
+State(91).
+State(81).
 State(95).
-State(96).
 State(97).
 State(98).
-Return(0,99).
 State(99).
-control_flow(76,77) :- EqD("flag",76,1).
-control_flow(77,78) :- EqD("flag",76,1).
-control_flow(76,79) :- NotEqD("flag",76,1).
-control_flow(79,80) :- NotEqD("flag",76,1), GtEqVarD("loc",79,"len").
-control_flow(80,81) :- NotEqD("flag",76,1), GtEqVarD("loc",79,"len").
-control_flow(79,82) :- NotEqD("flag",76,1), LtVarD("loc",79,"len").
-control_flow(82,84) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",82,"loc").
-control_flow(84,85) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",82,"loc").
-control_flow(85,86) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",82,"loc").
-control_flow(86,87) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",82,"loc").
-control_flow(87,88) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",82,"loc").
-control_flow(88,89) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",82,"loc").
-control_flow(79,92) :- NotEqD("flag",76,1), LtVarD("loc",79,"len").
-control_flow(92,94) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",92,"loc").
-control_flow(94,95) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",92,"loc").
-control_flow(95,96) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",92,"loc").
-control_flow(96,97) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",92,"loc").
-control_flow(97,98) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",92,"loc").
-control_flow(98,99) :- NotEqD("flag",76,1), LtVarD("loc",79,"len"), GtVarD("len",92,"loc").
+State(100).
+State(101).
+Return(0,102).
+State(102).
+control_flow(78,79) :- EqD("flag",78,1).
+control_flow(79,80) :- EqD("flag",78,1).
+control_flow(78,81) :- NotEqD("flag",78,1).
+control_flow(81,82) :- NotEqD("flag",78,1), GtEqVarD("loc",81,"len").
+control_flow(82,83) :- NotEqD("flag",78,1), GtEqVarD("loc",81,"len").
+control_flow(81,84) :- NotEqD("flag",78,1), LtVarD("loc",81,"len").
+control_flow(84,86) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",84,"loc").
+control_flow(86,87) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",84,"loc").
+control_flow(87,88) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",84,"loc").
+control_flow(88,89) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",84,"loc").
+control_flow(89,90) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",84,"loc").
+control_flow(90,91) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",84,"loc").
+control_flow(81,95) :- NotEqD("flag",78,1), LtVarD("loc",81,"len").
+control_flow(95,97) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",95,"loc").
+control_flow(97,98) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",95,"loc").
+control_flow(98,99) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",95,"loc").
+control_flow(99,100) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",95,"loc").
+control_flow(100,101) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",95,"loc").
+control_flow(101,102) :- NotEqD("flag",78,1), LtVarD("loc",81,"len"), GtVarD("len",95,"loc").
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
