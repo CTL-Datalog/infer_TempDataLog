@@ -51,7 +51,7 @@ control_flow(38,39) :- NotEqD("ptr",28,13), EqD("ptr",37,10).
 control_flow(39,40) :- NotEqD("ptr",28,13), EqD("ptr",37,10).
 control_flow(37,41) :- NotEqD("ptr",28,13), NotEqD("ptr",37,10).
 control_flow(41,42) :- NotEqD("ptr",28,13), NotEqD("ptr",37,10).
-/*(Start())@49 · (b=_)@50 · (end=_)@51 · (([b<0]@52 · (Return(0))@53) \/ ([b>=0]@54 · (([end<0]@55 · (Return(0))@56) \/ ([end>=0]@57 · (([b>=end]@58 · (Return(0))@59) \/ ((([b<end]@60 · [inc>0]@61 · [end>b]@62 · ((end-b)=0)@63 · (inc=_)@64 · (b=(b+inc))@65 · (Return(0))@66) \/ (([inc<=0]@67 · (inc<=0)@68)^w))))))))*/
+/*(Start())@49 · (b=_)@50 · (end=_)@51 · (([b<0]@52 · (Return(0))@53) \/ ([b>=0]@54 · (([end<0]@55 · (Return(0))@56) \/ ([end>=0]@57 · (([b>=end]@58 · (Return(0))@59) \/ ((([b<end]@60 · [inc>0]@61 · [end>b]@62 · ((end-b)=0)@63 · (inc=_)@64 · (b=(b+inc))@65 · (Return(0))@66) \/ (([inc<=0]@67 · (b<end)@68 · (inc<=0)@69)^w))))))))*/
 
 flow(49,50).
 flow(50,51).
@@ -59,8 +59,8 @@ flow(53,53).
 flow(56,56).
 flow(59,59).
 flow(66,66).
-flow(68,68).
-flow(68,67).
+flow(69,69).
+flow(69,67).
 Start(49).
 Lt("b",49,0).
 Lt("end",49,0).
@@ -70,7 +70,7 @@ Gt("inc",49,0).
 GtVar("end",49,"b").
 GtEq("b",49,0).
 GtEq("end",49,0).
-LtEq("inc",49,0). // delete this line 
+LtEq("inc",49,0). // delete this fact
 State(49).
 State(50).
 State(52).
@@ -95,6 +95,7 @@ State(66).
 State(57).
 State(67).
 State(68).
+State(69).
 control_flow(51,52) :- LtD("b",51,0).
 control_flow(52,53) :- LtD("b",51,0).
 control_flow(51,54) :- GtEqD("b",51,0).
@@ -112,6 +113,7 @@ control_flow(64,65) :- GtEqD("b",51,0), GtEqD("end",54,0), LtVarD("b",57,"end"),
 control_flow(65,66) :- GtEqD("b",51,0), GtEqD("end",54,0), LtVarD("b",57,"end"), GtD("inc",60,0), GtVarD("end",61,"b").
 control_flow(57,67) :- GtEqD("b",51,0), GtEqD("end",54,0), LtEqD("inc",57,0).
 control_flow(67,68) :- GtEqD("b",51,0), GtEqD("end",54,0), LtEqD("inc",57,0).
+control_flow(68,69) :- GtEqD("b",51,0), GtEqD("end",54,0), LtEqD("inc",57,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)

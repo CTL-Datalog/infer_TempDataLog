@@ -1890,6 +1890,29 @@ let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:
     let nonterminaing = Concate (Guard(gNT), reInfinite) in
     Disjunction(terminaing, nonterminaing)
 
+let leakingPath_break_return (weakestPre:pure) (rankingFuns:regularExpr) : regularExpr option = 
+  let negatedWPC = 
+    match weakestPre with
+    | Gt(t1, t2) | Lt(t1, t2) -> Eq(t1, t2)
+    | _ -> normalise_pure(Neg weakestPre) in 
+  let rankingFuns = decomposeRE rankingFuns in 
+  
+  let rec helper (rankingFunsIn:regularExpr list) = 
+    match rankingFunsIn with 
+    | [] -> None 
+    | leaking :: xs  -> 
+      
+      let (pathConditions:pure list) = getAllPathConditions leaking in 
+       
+      print_endline("negatedWPC: " ^ string_of_pure negatedWPC);
+      print_endline(string_of_regularExpr leaking);
+      print_endline ("leakingPath_break_return\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditions))));   
+
+      if existAux comparePure pathConditions negatedWPC then Some leaking 
+      else helper xs
+
+
+  in helper rankingFuns
     
 
 
@@ -1902,7 +1925,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
   print_endline ("loop body:\n" ^ string_of_regularExpr (re));
   *)
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
-  let pi, rankingFuns, loc, nonleakingBranches =  
+  let pi, rankingFuns, leakingBranches, nonleakingBranches =  
     (match fstSet with 
     | [GuardEv (pi, loc)] ->  
       let f = GuardEv (pi, loc) in 
@@ -1914,7 +1937,7 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
     
       let (rankingFuns:rankingfunction list ) = makeAGuess pi leakingBranches in 
       let rankingFuns = removeRedundant rankingFuns (fun (a, _) (b , _) -> stricTcompareTerm a b ) in 
-      pi, rankingFuns, loc, nonleakingBranches
+      pi, rankingFuns, leakingBranches, nonleakingBranches
 
     | [PureEv (_, _)] -> raise (Failure "loop starting with PureEv") 
     | _-> raise (Failure "loop starting with more than one fst")
@@ -1967,7 +1990,15 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
       let weakestPre = normalise_pure_prime (weakestPre) in 
       let startingState =  normalise_pure_prime (Gt(rfterm, Basic(BINT 0))) in 
 
+      let weakestPre, leakingRE = 
+        match leakingPath_break_return weakestPre leakingBranches with
+        | None -> weakestPre, leakingRE
+        | Some leakingRE -> Ast_utility.TRUE, Some leakingRE
+      in 
+
+
       print_endline ("!!! " ^ string_of_regularExpr reIn ^ " terminates with ranking function " ^ string_of_ranking_function rf ^ " when " ^ string_of_pure weakestPre ^ " and "^ string_of_pure startingState);
+
 
       (*
       1.   weakestPre = true, temrinating 
