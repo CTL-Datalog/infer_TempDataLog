@@ -6,6 +6,8 @@ License: BSD-3-Clause
 termination: TRUE
 */
 
+/*@ AF(EXIT()) @*/
+
 int flag = 0;
 int count = 0;
 int read()

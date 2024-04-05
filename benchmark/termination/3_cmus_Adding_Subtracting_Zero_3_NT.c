@@ -77,7 +77,13 @@ int main()
     while( pos < size )
     {
         int rc = read( pos, size - pos);
-        
+        if( rc == -1 )
+        {
+            errno++;// abnormal is OK
+            if( errno == 5 )
+                return 0;
+            continue;
+        }
         pos = pos + rc;
     }
     return 0;

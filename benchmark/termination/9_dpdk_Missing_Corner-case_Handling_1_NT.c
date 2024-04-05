@@ -40,7 +40,8 @@ int main()
 {
     while(1)
     {
-        int res = read() ; 
+        int inc = read() ; 
+        int res = res - inc ;
         if( res < 0 )
             break;
     }

@@ -25,95 +25,95 @@ State(33).
 EXIT(34).
 State(34).
 
-/*(Start())@39 · [⊤]@40 · (res=_)@41 · (([res<0]@42 · (Return(0))@43) \/ ([res>=0]@44 · (([⊤]@45 · [res=0]@46 · (0=res)@47) \/ ([res<0]@48 · ([⊤]@49 · (res<0)@50)^w))))*/
+/*(Start())@41 · (([inc>0]@45 · [res>-1]@46 · ((res+1)=0)@47 · (inc=_)@48 · (res=(res-inc))@49 · (Return(0))@50 · (inc=_)@51 · (res=(res-inc))@52 · (Return(0))@53) \/ (([inc<=0]@54 · (inc<=0)@55)^w))*/
 
-flow(40,41).
-flow(43,43).
-flow(47,47).
-flow(50,50).
-flow(50,49).
-Start(39).
-Eq("res",39,0).
-GtEq("res",39,0). // delete this line 
-Lt("res",39,0).
-State(39).
-control_flow(39,40).
-State(40).
-State(42).
-Return(0,43).
-State(43).
-State(41).
+flow(53,53).
+flow(55,55).
+flow(55,54).
+Start(41).
+Gt("inc",41,0).
+Gt("res",41,-1).
+LtEq("inc",41,0). // delete this line 
 State(45).
 State(46).
 State(47).
-State(44).
 State(48).
 State(49).
+Return(0,50).
 State(50).
-control_flow(41,42) :- LtD("res",41,0).
-control_flow(42,43) :- LtD("res",41,0).
-control_flow(41,44) :- GtEqD("res",41,0).
-control_flow(44,45) :- GtEqD("res",41,0).
-control_flow(45,46) :- GtEqD("res",41,0), EqD("res",45,0).
-control_flow(46,47) :- GtEqD("res",41,0), EqD("res",45,0).
-control_flow(44,48) :- GtEqD("res",41,0), LtD("res",44,0).
-control_flow(48,49) :- GtEqD("res",41,0), LtD("res",44,0).
-control_flow(49,50) :- GtEqD("res",41,0), LtD("res",44,0).
-/*(Start())@51 · (([flag=1]@52 · (Return(0))@53) \/ ([(flag!=1)]@54 · (([count>100]@55 · (Return(0))@56) \/ ([count<=100]@57 · (num=_)@58 · (([num<=0]@59 · (Return(-1))@60) \/ ([num>0]@61 · (([num<995]@62 · (count=(count+1))@63 · (Return(0))@64) \/ ([num>=995]@65 · (flag=1)@66 · (Return(0))@67))))))))*/
-
-flow(53,53).
-flow(56,56).
-flow(60,60).
-flow(64,64).
-flow(67,67).
-Start(51).
-Eq("flag",51,1).
-Gt("count",51,100).
-LtEq("num",51,0).
-Lt("num",51,995).
-NotEq("flag",51,1).
-LtEq("count",51,100).
-Gt("num",51,0).
-GtEq("num",51,995).
+State(51).
 State(52).
 Return(0,53).
 State(53).
-State(51).
-State(55).
-Return(0,56).
-State(56).
+State(41).
 State(54).
+State(55).
+control_flow(41,45) :- GtD("inc",41,0).
+control_flow(45,46) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(46,47) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(47,48) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(48,49) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(49,50) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(50,51) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(51,52) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(52,53) :- GtD("inc",41,0), GtD("res",45,-1).
+control_flow(41,54) :- LtEqD("inc",41,0).
+control_flow(54,55) :- LtEqD("inc",41,0).
+/*(Start())@56 · (([flag=1]@57 · (Return(0))@58) \/ ([(flag!=1)]@59 · (([count>100]@60 · (Return(0))@61) \/ ([count<=100]@62 · (num=_)@63 · (([num<=0]@64 · (Return(-1))@65) \/ ([num>0]@66 · (([num<995]@67 · (count=(count+1))@68 · (Return(0))@69) \/ ([num>=995]@70 · (flag=1)@71 · (Return(0))@72))))))))*/
+
+flow(58,58).
+flow(61,61).
+flow(65,65).
+flow(69,69).
+flow(72,72).
+Start(56).
+Eq("flag",56,1).
+Gt("count",56,100).
+LtEq("num",56,0).
+Lt("num",56,995).
+NotEq("flag",56,1).
+LtEq("count",56,100).
+Gt("num",56,0).
+GtEq("num",56,995).
 State(57).
-State(59).
-Return(-1,60).
-State(60).
+Return(0,58).
 State(58).
-State(62).
-State(63).
-Return(0,64).
-State(64).
+State(56).
+State(60).
+Return(0,61).
 State(61).
+State(59).
+State(62).
+State(64).
+Return(-1,65).
 State(65).
-Eq("flag",66,1).
-State(66).
-Return(0,67).
+State(63).
 State(67).
-control_flow(51,52) :- EqD("flag",51,1).
-control_flow(52,53) :- EqD("flag",51,1).
-control_flow(51,54) :- NotEqD("flag",51,1).
-control_flow(54,55) :- NotEqD("flag",51,1), GtD("count",54,100).
-control_flow(55,56) :- NotEqD("flag",51,1), GtD("count",54,100).
-control_flow(54,57) :- NotEqD("flag",51,1), LtEqD("count",54,100).
-control_flow(57,58) :- NotEqD("flag",51,1), LtEqD("count",54,100).
-control_flow(58,59) :- NotEqD("flag",51,1), LtEqD("count",54,100), LtEqD("num",58,0).
-control_flow(59,60) :- NotEqD("flag",51,1), LtEqD("count",54,100), LtEqD("num",58,0).
-control_flow(58,61) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0).
-control_flow(61,62) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0), LtD("num",61,995).
-control_flow(62,63) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0), LtD("num",61,995).
-control_flow(63,64) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0), LtD("num",61,995).
-control_flow(61,65) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0), GtEqD("num",61,995).
-control_flow(65,66) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0), GtEqD("num",61,995).
-control_flow(66,67) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,0), GtEqD("num",61,995).
+State(68).
+Return(0,69).
+State(69).
+State(66).
+State(70).
+Eq("flag",71,1).
+State(71).
+Return(0,72).
+State(72).
+control_flow(56,57) :- EqD("flag",56,1).
+control_flow(57,58) :- EqD("flag",56,1).
+control_flow(56,59) :- NotEqD("flag",56,1).
+control_flow(59,60) :- NotEqD("flag",56,1), GtD("count",59,100).
+control_flow(60,61) :- NotEqD("flag",56,1), GtD("count",59,100).
+control_flow(59,62) :- NotEqD("flag",56,1), LtEqD("count",59,100).
+control_flow(62,63) :- NotEqD("flag",56,1), LtEqD("count",59,100).
+control_flow(63,64) :- NotEqD("flag",56,1), LtEqD("count",59,100), LtEqD("num",63,0).
+control_flow(64,65) :- NotEqD("flag",56,1), LtEqD("count",59,100), LtEqD("num",63,0).
+control_flow(63,66) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0).
+control_flow(66,67) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0), LtD("num",66,995).
+control_flow(67,68) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0), LtD("num",66,995).
+control_flow(68,69) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0), LtD("num",66,995).
+control_flow(66,70) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0), GtEqD("num",66,995).
+control_flow(70,71) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0), GtEqD("num",66,995).
+control_flow(71,72) :- NotEqD("flag",56,1), LtEqD("count",59,100), GtD("num",63,0), GtEqD("num",66,995).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -122,18 +122,18 @@ control_flow(66,67) :- NotEqD("flag",51,1), LtEqD("count",54,100), GtD("num",58,
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
+.decl GtEq(x:symbol,loc:number,n:number)
 .decl NotEq(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
-.decl Lt(x:symbol,loc:number,n:number)
-.decl GtEq(x:symbol,loc:number,n:number)
-.decl Eq(x:symbol,loc:number,n:number)
-.decl LtEqD(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
-.decl NotEqD(x:symbol,loc:number,n:number)
-.decl EqD(x:symbol,loc:number,n:number)
 .decl GtEqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
 .decl EXIT(loc:number)
 .decl AF_EXIT_T(interm_state:number,loc:number)
 .decl AF_EXIT_S(loc:number)
@@ -143,18 +143,18 @@ transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
-LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
-GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
-NotEqD(x,loc,n) :- NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
-EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
 LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 EXIT(loc) :- Return(_,loc).
 AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
 AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
@@ -162,12 +162,12 @@ AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
 AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
 AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
 AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output GtEq
 .output NotEq
+.output Lt
+.output Eq
 .output LtEq
 .output Gt
-.output Lt
-.output GtEq
-.output Eq
 .output Start
 .output State
 .output flow
@@ -194,85 +194,87 @@ Exit(1).  // @12:12
 Start(2). // @12:1
 //-- Facts for Procedure <main> 
 
-Flow(2,8). //@39:1-41:5
-Flow(0,1). //@47:5-48:1
-Flow(8,9). //@41:5-41:11
-Flow(8,10). //@41:5-41:11
-Flow(10,3). //@41:11-43:9
-Flow(9,0). //@41:11-47:5
-Flow(6,8). //@44:9-41:5
-Flow(4,5). //@44:13-44:13
-Flow(4,7). //@44:13-44:13
-Flow(7,0). //@44:13-47:5
-Flow(5,6). //@44:13-44:9
-Flow(3,4). //@43:9-44:13
-Stmt_Decl(3,[ICall(_fun_read,,n$4),IStore(&res,n$4)]). // @43:9
-PruneNode(5,false,[Prune(!(n$0 < 0), false)]). // @44:13
-PruneNode(7,true,[Prune((n$0 < 0), true)]). // @44:13
-Stmt_BinaryOperatorStmt(4,LT,[ILoad(&res,n$0)]). // @44:13
-Join(6,[]).  // @44:9
-PruneNode(9,false,[Prune(!1, false)]). // @41:11
-PruneNode(10,true,[Prune(1, true)]). // @41:11
-Join(8,[]).  // @41:5
-Stmt_Return(0,[IStore(&return,0)]). // @47:5
-Exit(1).  // @48:1
+Flow(2,9). //@39:1-41:5
+Flow(0,1). //@48:5-49:1
+Flow(9,10). //@41:5-41:11
+Flow(9,11). //@41:5-41:11
+Flow(11,3). //@41:11-43:9
+Flow(10,0). //@41:11-48:5
+Flow(7,9). //@45:9-41:5
+Flow(5,6). //@45:13-45:13
+Flow(5,8). //@45:13-45:13
+Flow(8,0). //@45:13-48:5
+Flow(6,7). //@45:13-45:9
+Flow(4,5). //@44:9-45:13
+Flow(3,4). //@43:9-44:9
+Stmt_Decl(3,[ICall(_fun_read,,n$6),IStore(&inc,n$6)]). // @43:9
+Stmt_Decl(4,[ILoad(&res,n$4),ILoad(&inc,n$5),IStore(&res,(n$4 - n$5))]). // @44:9
+PruneNode(6,false,[Prune(!(n$0 < 0), false)]). // @45:13
+PruneNode(8,true,[Prune((n$0 < 0), true)]). // @45:13
+Stmt_BinaryOperatorStmt(5,LT,[ILoad(&res,n$0)]). // @45:13
+Join(7,[]).  // @45:9
+PruneNode(10,false,[Prune(!1, false)]). // @41:11
+PruneNode(11,true,[Prune(1, true)]). // @41:11
+Join(9,[]).  // @41:5
+Stmt_Return(0,[IStore(&return,0)]). // @48:5
+Exit(1).  // @49:1
 Start(2). // @39:1
 //-- Facts for Procedure <read> 
 
-Flow(2,18). //@14:1-16:9
-Flow(0,8). //@19:5-19:5
-Flow(8,1). //@19:5-38:1
-Flow(10,6). //@19:9-19:9
-Flow(10,9). //@19:9-19:9
-Flow(9,4). //@19:9-21:9
-Flow(6,20). //@19:9-25:9
-Flow(4,1). //@21:9-38:1
-Flow(7,0). //@26:9-19:5
-Flow(5,26). //@26:13-26:13
-Flow(5,3). //@26:13-26:13
-Flow(3,23). //@26:13-28:13
-Flow(26,21). //@26:13-33:13
-Flow(24,25). //@29:13-29:13
-Flow(25,1). //@29:13-38:1
-Flow(23,24). //@28:13-29:13
-Flow(22,1). //@34:13-38:1
-Flow(21,22). //@33:13-34:13
-Flow(20,5). //@25:9-26:13
-Flow(19,10). //@18:5-19:9
-Flow(13,19). //@16:5-18:5
-Flow(18,16). //@16:9-16:9
-Flow(18,17). //@16:9-16:9
-Flow(17,11). //@16:9-17:9
-Flow(16,15). //@16:9-16:22
-Flow(15,12). //@16:22-16:22
-Flow(15,14). //@16:22-16:22
-Flow(14,11). //@16:22-17:9
-Flow(12,13). //@16:22-16:5
-Flow(11,1). //@17:9-38:1
-Stmt_Return(11,[IStore(&return,0)]). // @17:9
-PruneNode(12,false,[Prune(!(n$9 > 100), false)]). // @16:22
-PruneNode(14,true,[Prune((n$9 > 100), true)]). // @16:22
-Stmt_BinaryOperatorStmt(15,GT,[ILoad(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$count,n$9)]). // @16:22
-PruneNode(16,false,[Prune(!(n$8 == 1), false)]). // @16:9
-PruneNode(17,true,[Prune((n$8 == 1), true)]). // @16:9
-Stmt_BinaryOperatorStmt(18,EQ,[ILoad(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$flag,n$8)]). // @16:9
-Join(13,[]).  // @16:5
-Stmt_Decl(19,[ICall(_fun___VERIFIER_nondet_int,,n$7),IStore(&num,n$7)]). // @18:5
-Stmt_BinaryOperatorStmt(20,Assign,[ILoad(&num,n$5),IStore(&num,(n$5 % 1000))]). // @25:9
-Stmt_BinaryOperatorStmt(21,Assign,[IStore(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$flag,1)]). // @33:13
-Stmt_Return(22,[IStore(&return,0)]). // @34:13
-Stmt_UnaryOperator(23,[ILoad(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$count,n$3),IStore(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$count,(n$3 + 1))]). // @28:13
-Stmt_Return(25,[IStore(&return,n$2)]). // @29:13
-Stmt_Return(24,[ILoad(&num,n$2)]). // @29:13
-PruneNode(26,false,[Prune(!(n$1 < 995), false)]). // @26:13
-PruneNode(3,true,[Prune((n$1 < 995), true)]). // @26:13
-Stmt_BinaryOperatorStmt(5,LT,[ILoad(&num,n$1)]). // @26:13
-Join(7,[]).  // @26:9
-Stmt_Return(4,[IStore(&return,-1)]). // @21:9
-PruneNode(6,false,[Prune(!(n$0 <= 0), false)]). // @19:9
-PruneNode(9,true,[Prune((n$0 <= 0), true)]). // @19:9
-Stmt_BinaryOperatorStmt(10,LE,[ILoad(&num,n$0)]). // @19:9
-Stmt_BetweenJoinAndExit(8,[]). // @19:5
+Flow(2,19). //@14:1-16:9
+Flow(0,9). //@19:5-19:5
+Flow(9,1). //@19:5-38:1
+Flow(11,7). //@19:9-19:9
+Flow(11,10). //@19:9-19:9
+Flow(10,5). //@19:9-21:9
+Flow(7,21). //@19:9-25:9
+Flow(5,1). //@21:9-38:1
+Flow(8,0). //@26:9-19:5
+Flow(6,3). //@26:13-26:13
+Flow(6,4). //@26:13-26:13
+Flow(4,24). //@26:13-28:13
+Flow(3,22). //@26:13-33:13
+Flow(25,26). //@29:13-29:13
+Flow(26,1). //@29:13-38:1
+Flow(24,25). //@28:13-29:13
+Flow(23,1). //@34:13-38:1
+Flow(22,23). //@33:13-34:13
+Flow(21,6). //@25:9-26:13
+Flow(20,11). //@18:5-19:9
+Flow(14,20). //@16:5-18:5
+Flow(19,17). //@16:9-16:9
+Flow(19,18). //@16:9-16:9
+Flow(18,12). //@16:9-17:9
+Flow(17,16). //@16:9-16:22
+Flow(16,13). //@16:22-16:22
+Flow(16,15). //@16:22-16:22
+Flow(15,12). //@16:22-17:9
+Flow(13,14). //@16:22-16:5
+Flow(12,1). //@17:9-38:1
+Stmt_Return(12,[IStore(&return,0)]). // @17:9
+PruneNode(13,false,[Prune(!(n$9 > 100), false)]). // @16:22
+PruneNode(15,true,[Prune((n$9 > 100), true)]). // @16:22
+Stmt_BinaryOperatorStmt(16,GT,[ILoad(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$count,n$9)]). // @16:22
+PruneNode(17,false,[Prune(!(n$8 == 1), false)]). // @16:9
+PruneNode(18,true,[Prune((n$8 == 1), true)]). // @16:9
+Stmt_BinaryOperatorStmt(19,EQ,[ILoad(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$flag,n$8)]). // @16:9
+Join(14,[]).  // @16:5
+Stmt_Decl(20,[ICall(_fun___VERIFIER_nondet_int,,n$7),IStore(&num,n$7)]). // @18:5
+Stmt_BinaryOperatorStmt(21,Assign,[ILoad(&num,n$5),IStore(&num,(n$5 % 1000))]). // @25:9
+Stmt_BinaryOperatorStmt(22,Assign,[IStore(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$flag,1)]). // @33:13
+Stmt_Return(23,[IStore(&return,0)]). // @34:13
+Stmt_UnaryOperator(24,[ILoad(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$count,n$3),IStore(&#GB<benchmark/termination/9_dpdk_Missing_Corner-case_Handling_1_NT.c|ice>$count,(n$3 + 1))]). // @28:13
+Stmt_Return(26,[IStore(&return,n$2)]). // @29:13
+Stmt_Return(25,[ILoad(&num,n$2)]). // @29:13
+PruneNode(3,false,[Prune(!(n$1 < 995), false)]). // @26:13
+PruneNode(4,true,[Prune((n$1 < 995), true)]). // @26:13
+Stmt_BinaryOperatorStmt(6,LT,[ILoad(&num,n$1)]). // @26:13
+Join(8,[]).  // @26:9
+Stmt_Return(5,[IStore(&return,-1)]). // @21:9
+PruneNode(7,false,[Prune(!(n$0 <= 0), false)]). // @19:9
+PruneNode(10,true,[Prune((n$0 <= 0), true)]). // @19:9
+Stmt_BinaryOperatorStmt(11,LE,[ILoad(&num,n$0)]). // @19:9
+Stmt_BetweenJoinAndExit(9,[]). // @19:5
 Join(0,[]).  // @19:5
 Exit(1).  // @38:1
 Start(2). // @14:1

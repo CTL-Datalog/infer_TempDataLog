@@ -39,7 +39,7 @@ int main()
     INSDS* ip = list;
     while( ip != 0 )
     {
-        INSDS *nxt = ip->nxtact;
+        INSDS *nxt; // = ip->nxtact;
         if( ip == nxt )
             break;
         ip = nxt;

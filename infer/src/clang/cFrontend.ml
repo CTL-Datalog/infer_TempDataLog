@@ -1457,8 +1457,8 @@ let rec getAllPathConditions (re:regularExpr): pure list =
 
 let rec makeAGuessFromPureRelaxed (pi:pure) : terms list = 
   match pi with 
-  | LtEq (t, Basic (BINT 0)) 
-  | Lt (t, Basic (BINT 0)) -> [(Minus(Basic (BINT 0), t))]
+  | LtEq (t, Basic (BINT 0)) -> [t] 
+  | Lt (t, Basic (BINT 0)) -> [(Plus(t, Basic (BINT 1)))]
   | Lt (t1, t2) -> [(Minus(t2, t1))]
   | Eq (t1, Basic (BINT n)) -> [(Minus(Basic (BINT n), t1)); (Minus(t1, Basic (BINT n)))]
   | GtEq (t, Basic (BINT 0)) 
