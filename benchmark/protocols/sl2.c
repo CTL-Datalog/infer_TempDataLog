@@ -11,13 +11,14 @@
 
 #include <stdio.h>
 
-typedef struct SSL
-{
-    /* data */
-    RECORD_LAYER rlayer;
+typedef struct ssl3_record_st {
+    unsigned int read;
+    unsigned int numrpipes;
+    int type;
+    unsigned int length;
+    unsigned int off;
+} SSL3_RECORD;
 
- 
-} SSL;
 
 typedef struct record_layer_st {
     int rstate;
@@ -31,14 +32,13 @@ typedef struct record_layer_st {
 
 } RECORD_LAYER;
 
-typedef struct ssl3_record_st {
-    unsigned int read;
-    unsigned int numrpipes;
-    int type;
-    unsigned int length;
-    unsigned int off;
-} SSL3_RECORD;
+typedef struct SSL
+{
+    /* data */
+    RECORD_LAYER rlayer;
 
+ 
+} SSL;
 
 int main() {
     int len = 2;
