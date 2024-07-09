@@ -71,7 +71,8 @@ infer/bin/infer run -- clang -c ../DataLogTemp/benchmark/buffer_overflow/1_hostn
 
 souffle -F. -D. /Users/yahuis/Desktop/git/infer_TempDataLog/benchmark/evaluation/p1_1.8_potential_termination_1.c.dl
 
-benchmark/protocols/lv1.cpp | 25 +++++++++++++++++++++++++
- benchmark/protocols/lv5.cpp | 28 ++++++++++++++++++++++++++++
- benchmark/protocols/sl2.c   | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 
+infer/bin/infer run -- clang -c '/Users/yahuis/Desktop/git/infer_TempDataLog/benchmark/protocols/lv1.cpp'
+
+infer/bin/infer run -- clang -c '/Users/yahuis/Desktop/git/infer_TempDataLog/benchmark/protocols/lv5.cpp'
+
+infer/bin/infer run -- clang -c '/Users/yahuis/Desktop/git/infer_TempDataLog/benchmark/protocols/sl2.c'
