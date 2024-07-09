@@ -3,13 +3,13 @@
 flow(21,21).
 State(21).
 
-/*(Start())@34 · (linesToRead=_)@35 · (([linesToRead<=0]@36 · (Return(0))@37) \/ ([linesToRead>0]@38 · (h=_)@39 · (([h<=0]@40 · (Return(0))@41) \/ ((([h>0]@42 · [h>0]@44 · (h=0)@45 · (linesToRead=h)@46 · (h=(h-linesToRead))@47 · (Return(0))@48) \/ ([h>0]@56 · [h>0]@58 · (h=0)@59 · (h=(h-linesToRead))@60 · (Return(0))@61))))))*/
+/*(Start())@34 · (linesToRead=_)@35 · (([linesToRead<=0]@36 · (Return(0))@37) \/ ([linesToRead>0]@38 · (h=_)@39 · (([h<=0]@40 · (Return(0))@41) \/ ((([h>0]@42 · [h>0]@44 · (h=0)@45 · (linesToRead=h)@46 · (h=(h-linesToRead))@47 · (Return(0))@48) \/ ([h>0]@52 · [h>0]@54 · (h=0)@55 · (h=(h-linesToRead))@56 · (Return(0))@57))))))*/
 
 flow(34,35).
 flow(37,37).
 flow(41,41).
 flow(48,48).
-flow(61,61).
+flow(57,57).
 Start(34).
 LtEq("linesToRead",34,0).
 LtEq("h",34,0).
@@ -34,13 +34,13 @@ State(47).
 Return(0,48).
 State(48).
 State(39).
+State(52).
+State(54).
+LtEq("h",55,0).
+State(55).
 State(56).
-State(58).
-LtEq("h",59,0).
-State(59).
-State(60).
-Return(0,61).
-State(61).
+Return(0,57).
+State(57).
 control_flow(35,36) :- LtEqD("linesToRead",35,0).
 control_flow(36,37) :- LtEqD("linesToRead",35,0).
 control_flow(35,38) :- GtD("linesToRead",35,0).
@@ -53,11 +53,11 @@ control_flow(44,45) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
 control_flow(45,46) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
 control_flow(46,47) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
 control_flow(47,48) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
-control_flow(39,56) :- GtD("linesToRead",35,0), GtD("h",39,0).
-control_flow(56,58) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",56,0).
-control_flow(58,59) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",56,0).
-control_flow(59,60) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",56,0).
-control_flow(60,61) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",56,0).
+control_flow(39,52) :- GtD("linesToRead",35,0), GtD("h",39,0).
+control_flow(52,54) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
+control_flow(54,55) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
+control_flow(55,56) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
+control_flow(56,57) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
