@@ -1749,16 +1749,23 @@ let string_of_int_shall n =
 let rec propositionName pi : (string ) = 
     match pi with 
     | Eq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int_shall n
+    | Eq (Basic(BSTR str), Basic(BSTR str1)) 
     | Eq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_eq_" ^ str1
+
     | Gt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n
+    | Gt (Basic(BSTR str), Basic(BSTR str1)) 
     | Gt (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_gt_" ^ str1
 
     | Lt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lt_" ^ string_of_int_shall n
+    | Lt (Basic(BSTR str), Basic(BSTR str1)) 
     | Lt (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_lt_" ^ str1
+
     | GtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gteq_" ^ string_of_int_shall n
+    | GtEq (Basic(BSTR str), Basic(BSTR str1)) 
     | GtEq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_gteq_" ^ str1
 
     | LtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lteq_" ^ string_of_int_shall n
+    | LtEq (Basic(BSTR str), Basic(BSTR str1)) 
     | LtEq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_lteq_" ^ str1
 
     | PureAnd (pi1, pi2) -> 
@@ -1829,7 +1836,8 @@ let rec translation (ctl:ctl) : string * datalog =
     (*control_flow(x, y) :- flow(x, y).*)
         
     ]
-    @ flattenList (List.map (!bodyDeclearation) ~f:(fun nameD -> reachablibilyrules nameD))
+    
+  @ flattenList (List.map (!bodyDeclearation) ~f:(fun nameD -> reachablibilyrules nameD))
 
   in
   let defaultDecs = [
@@ -1858,7 +1866,7 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!ruleDeclearation) ~f:(fun predefinedPred -> 
-      (*print_endline ("ruleDeclearation " ^ predefinedPred); *)
+      print_endline ("ruleDeclearation " ^ predefinedPred); 
 
       if nameContainsVar predefinedPred 3 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
@@ -1870,7 +1878,7 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!bodyDeclearation) ~f:(fun predefinedPred -> 
-      (*print_endline ("bodyDeclearation " ^ predefinedPred); *)
+      print_endline ("bodyDeclearation " ^ predefinedPred); 
 
       if nameContainsVar predefinedPred 4 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
@@ -2061,7 +2069,8 @@ and translation_inner (ctl:ctl) : string * datalog =
           (
           (*print_endline ("predicate 1" ^ str); *)
           predicateDeclearation:= (pName, ["Number"]) :: !predicateDeclearation ;
-          pName,([(pName,params)], [((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; Pure pure]) ]))
+          let pNamePred = pName^"Pred" in 
+          pNamePred,([(pNamePred,params)], [((pNamePred, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; (Pos(str, [Basic (BVAR locKeyWord)]))]) ])) (* Pure pure*)
 
       | PureOr (p1, p2) -> 
         processPair (Atom (propositionName p1, p1)) (Atom (propositionName p2, p2)) 

@@ -12,6 +12,9 @@ void handleHTTPCmd_notSupported() {
   
 }
 
+/*@ AG((prevClientConnection = 0) \/ (prevClientConnection = this) => AF(handleHTTPCmd_notSupported())) @*/
+
+
 int main(){
   RTSPClientConnection *prevClientConnection;
   bool fIsActive;

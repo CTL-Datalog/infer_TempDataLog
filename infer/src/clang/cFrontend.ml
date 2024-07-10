@@ -2743,8 +2743,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
     flattenList (List.map specifications 
     ~f:(fun item -> 
       let fname, program = (translation item) in 
-      (*print_endline (string_of_datalog program);
-      print_endline (".output "^ fname ^"Final(IO=stdout)\n") *)
+      print_endline (string_of_ctl item);
+      print_endline (".output "^ fname ^"Final(IO=stdout)\n") ; 
       [string_of_datalog program] 
       @ List.map !ruleDeclearation ~f:(fun a -> ".output " ^ a) 
       @ 
