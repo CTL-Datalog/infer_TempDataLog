@@ -1,0 +1,135 @@
+/*(Start())@2 · (EXIT())@3*/
+
+flow(2,3).
+flow(3,3).
+Start(2).
+State(2).
+EXIT(3).
+State(3).
+
+/*(Start())@8 · (([prevClientConnection=0]@9 · (handleHTTPCmd_notSupported())@10 · (fIsActive=0)@11 · (Return(0))@12) \/ ([(prevClientConnection!=0)]@13 · (EXIT())@14))*/
+
+flow(12,12).
+flow(14,14).
+Start(8).
+Eq("prevClientConnection",9,0).
+NotEq("prevClientConnection",13,0).
+EqVar("prevClientConnection",8,"this_"). // delete this fact
+NotEqVar("prevClientConnection",8,"this_").
+
+
+State(9).
+handleHTTPCmd_notSupported(10).
+State(10).
+State(11).
+Return(0,12).
+State(12).
+State(8).
+State(13).
+EXIT(14).
+State(14).
+control_flow(8,9) .
+control_flow(9,10) .
+control_flow(10,11) .
+control_flow(11,12) .
+control_flow(8,13) .
+control_flow(13,14) .
+//AG((("prevClientConnection"=0∨"prevClientConnection"="this_") => AF(Return(0))))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl EXIT(n0:number)
+.decl Return(n0:number,n1:number)
+.decl handleHTTPCmd_notSupported(n0:number)
+.decl NotEqVar(x:symbol,loc:number,y:symbol)
+.decl EqVar(x:symbol,loc:number,y:symbol)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl EqVarD(x:symbol,loc:number,y:symbol)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl ReturnPred(loc:number)
+.decl AF_ReturnPred_T(interm_state:number,loc:number)
+.decl AF_ReturnPred_S(loc:number)
+.decl AF_ReturnPred(loc:number)
+.decl prevClientConnection_eq_this_(loc:number)
+.decl prevClientConnection_eq_0(loc:number)
+.decl prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc:number)
+.decl prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
+.decl NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
+.decl EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
+.decl AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
+.decl AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+EqVarD(x,loc,n) :- EqVar(x,loc,n).
+EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,_), !NotEqVar(x,loc,_).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+ReturnPred(loc) :- Return(_,loc).
+AF_ReturnPred_T(interm_state,loc) :- AF_ReturnPred_T(tempOne,loc), !ReturnPred(tempOne), control_flow(tempOne,interm_state).
+AF_ReturnPred_T(interm_state,loc) :- !ReturnPred(loc), control_flow(loc,interm_state).
+AF_ReturnPred_S(loc) :- !ReturnPred(loc), control_flow(loc,tempOne), AF_ReturnPred_S(tempOne).
+AF_ReturnPred_S(loc) :- AF_ReturnPred_T(loc,loc).
+AF_ReturnPred(loc) :- State(loc), !AF_ReturnPred_S(loc).
+prevClientConnection_eq_this_(loc) :- State(loc), EqVarD("prevClientConnection",loc,"this_").
+prevClientConnection_eq_0(loc) :- State(loc), EqD("prevClientConnection",loc,0).
+prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc) :- prevClientConnection_eq_this_(loc).
+prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc) :- prevClientConnection_eq_0(loc).
+prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- State(loc), !prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc).
+prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- AF_ReturnPred(loc).
+NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- State(loc), !prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc).
+EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- control_flow(loc,tempOne), EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(tempOne).
+EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc).
+AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- State(loc), !EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc).
+AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final(loc) :- Start(loc), AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc), !NotTotal(loc).
+.output NotEqVar
+.output EqVar
+.output NotEq
+.output Eq
+.output Start
+.output State
+.output flow
+.output EXIT
+.output Return
+.output handleHTTPCmd_notSupported
+.output AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <handleHTTPCmd_notSupported> 
+
+Flow(1,0). //@11:1-13:1
+Exit(0).  // @13:1
+Start(1). // @11:1
+//-- Facts for Procedure <main> 
+
+Flow(1,8). //@20:1-26:7
+Flow(6,9). //@26:3-26:3
+Flow(9,0). //@26:3-32:1
+Flow(8,5). //@26:7-26:7
+Flow(8,7). //@26:7-26:7
+Flow(7,2). //@26:7-28:5
+Flow(5,6). //@26:7-26:3
+Flow(4,0). //@30:5-32:1
+Flow(3,4). //@29:5-30:5
+Flow(2,3). //@28:5-29:5
+Stmt_Call(2,_fun_handleHTTPCmd_notSupported,[ICall(_fun_handleHTTPCmd_notSupported,,n$1)]). // @28:5
+Stmt_BinaryOperatorStmt(3,Assign,[IStore(&fIsActive,0)]). // @29:5
+Stmt_Return(4,[IStore(&return,0)]). // @30:5
+PruneNode(5,false,[Prune(!(n$0 == null), false)]). // @26:7
+PruneNode(7,true,[Prune((n$0 == null), true)]). // @26:7
+Stmt_BinaryOperatorStmt(8,EQ,[ILoad(&prevClientConnection,n$0)]). // @26:7
+Stmt_BetweenJoinAndExit(9,[]). // @26:3
+Join(6,[]).  // @26:3
+Exit(0).  // @32:1
+Start(1). // @20:1
+*/
+

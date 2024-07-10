@@ -2064,7 +2064,8 @@ and translation_inner (ctl:ctl) : string * datalog =
         if String.compare str exitKeyWord == 0 || String.compare str retKeyword == 0 then 
           ((*print_endline ("predicate 1" ^ str); *)
           predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
-          pName, ([(pName,params)], [((pName, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
+          let pNamePred = pName^"Pred" in 
+          pNamePred, ([(pNamePred,params)], [((pNamePred, vars), [Pos(retKeyword, [Basic(ANY); Basic (BVAR locKeyWord)])])]))
         else 
           (
           (*print_endline ("predicate 1" ^ str); *)

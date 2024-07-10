@@ -12,12 +12,16 @@ void handleHTTPCmd_notSupported() {
   
 }
 
-/*@ AG((prevClientConnection = 0) \/ (prevClientConnection = this) => AF(handleHTTPCmd_notSupported())) @*/
+/*@ AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(Return(0))) 
+@*/
+
 
 
 int main(){
   RTSPClientConnection *prevClientConnection;
   bool fIsActive;
+  RTSPClientConnection *this_;
+
   
   if (prevClientConnection == NULL) {
     // There was no previous HTTP "GET" request; treat this "POST" request as bad:
