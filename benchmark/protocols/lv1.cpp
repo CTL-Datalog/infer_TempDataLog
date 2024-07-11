@@ -15,12 +15,13 @@ void handleHTTPCmd_notSupported() {
 /*@ AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(Return(0))) 
 @*/
 
+RTSPClientConnection* _nondet_int(void);
 
 
 int main(){
   RTSPClientConnection *prevClientConnection;
   bool fIsActive;
-  RTSPClientConnection *this_;
+  RTSPClientConnection *this_; // =  _nondet_int(); 
 
   
   if (prevClientConnection == NULL) {
@@ -29,4 +30,8 @@ int main(){
     fIsActive = false; // triggers deletion of ourself
     return false;
   }
+  else if (prevClientConnection = this_) {
+
+  }
+  else {}
 }

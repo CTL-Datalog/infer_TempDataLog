@@ -497,6 +497,53 @@ let rec derivitives_2 (f:fstElem) (eff:regularExpr) : regularExpr =
     )
 
 
+    
+
+let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms list = 
+  match reIn with 
+  | Bot | Emp   -> reIn, record
+    
+  | Singleton (p, state)  -> 
+    (match p with
+    | Eq(t1, t2) -> reIn, record @ [t1]
+    | _ -> reIn, record
+    ) 
+
+  | Concate (eff1, eff2) -> 
+    let re1, record1 = deletePossibleGuards eff1 record in 
+    let re2, record2 = deletePossibleGuards eff2 record1 in 
+    Concate (re1, re2), record2
+
+
+  | Guard(p1, s1) -> 
+    (match p1 with 
+    | Neg (Eq(t1, _))
+    | Eq(t1, _) -> if false (*existAux stricTcompareTerm record t1*) then 
+      reIn, record
+      else Singleton(p1, s1), record
+    | _ -> reIn, record
+    )
+
+
+  | Disjunction (eff1, eff2) ->
+    let re1, record1 = deletePossibleGuards eff1 record in 
+    let re2, record2 = deletePossibleGuards eff2 record in 
+    Disjunction (re1, re2), record1@record2
+
+
+  
+
+    
+  | Kleene effIn          ->
+     let re1, record1 = deletePossibleGuards effIn record in 
+     Kleene re1, record1
+     
+  | Omega effIn          ->
+    let re1, record1 = deletePossibleGuards effIn record in 
+    Omega re1, record1
+
+
+
 let rec lookforExistingMapping li (n:int) : int option  = None 
     (*match li with 
     | [] -> None 
@@ -1853,7 +1900,7 @@ let rec translation (ctl:ctl) : string * datalog =
     @
     List.map (sort_uniq (fun (a, _) (c, _) -> String.compare a c) !predicateDeclearation) 
     ~f:(fun (predName, strLi) -> 
-    print_endline ("predicateDeclearation " ^ predName); 
+    (*print_endline ("predicateDeclearation " ^ predName); *)
     let rec attribute typLi n = 
       match typLi with 
       | [] -> [] 
@@ -1866,7 +1913,7 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!ruleDeclearation) ~f:(fun predefinedPred -> 
-      print_endline ("ruleDeclearation " ^ predefinedPred); 
+      (*print_endline ("ruleDeclearation " ^ predefinedPred); *)
 
       if nameContainsVar predefinedPred 3 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
@@ -1878,7 +1925,7 @@ let rec translation (ctl:ctl) : string * datalog =
     )
 
     @ List.map (!bodyDeclearation) ~f:(fun predefinedPred -> 
-      print_endline ("bodyDeclearation " ^ predefinedPred); 
+      (*print_endline ("bodyDeclearation " ^ predefinedPred); *) 
 
       if nameContainsVar predefinedPred 4 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])

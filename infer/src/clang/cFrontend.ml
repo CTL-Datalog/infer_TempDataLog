@@ -2149,14 +2149,18 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   (*
   print_endline ("\nPASS1:\n"^string_of_regularExpr (pass1)^ "\n------------"); 
 *)
-  let pass3 =  (normalise_es ( pass1)) in 
-  recordTheMaxValue4RE pass3; 
-  print_endline ("\nPASS3:\n"^string_of_regularExpr (pass3)^ "\n------------"); 
+  let pass2 =  (normalise_es ( pass1)) in 
+  recordTheMaxValue4RE pass2; 
+  print_endline ("\nPASS2:\n"^string_of_regularExpr (pass2)^ "\n------------"); 
 
-  let pass3', _ = convertAllTheKleeneToOmega pass3 (Ast_utility.TRUE) in 
-  let pass4 = normalise_es (pass3') in  (*this is the step for sumarrizing the loop*)
+  let pass3, _ = convertAllTheKleeneToOmega pass2 (Ast_utility.TRUE) in 
+  let pass4 = normalise_es (pass3) in  (*this is the step for sumarrizing the loop*)
+
   print_endline ("\nPASS4:\n"^string_of_regularExpr (pass4)^ "\n------------"); 
-  let pass5, _ = instantiateREStatesWithFreshNum (pass4) [] in  (*this is the step for renaming the states *)
+  let pass4', _ = deletePossibleGuards (pass4) [] in  
+
+  print_endline ("\nPASS4':\n"^string_of_regularExpr (pass4')^ "\n------------"); 
+  let pass5, _ = instantiateREStatesWithFreshNum (pass4') [] in  (*this is the step for renaming the states *)
   let pass6 = normalise_es_prime pass5 in 
   print_endline ("\nPASS6:\n"^string_of_regularExpr (pass6)^ "\n------------"); 
 
@@ -2321,6 +2325,23 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
   | p:: xs-> PureAnd(p, pureOfPathConstrints xs) 
 
   
+let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (loc:terms): relation list = 
+  match predicatesSpec with 
+  | [] -> [] 
+  | p :: xs  -> 
+    (match p with 
+    | Eq(Basic( BVAR v1), Basic( BVAR v2)) | Eq (Basic( BSTR v1), Basic( BSTR v2)) -> 
+      if String.compare v1 str == 0 || String.compare v2 str == 0 then 
+      [(assignKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
+       (notEQKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+    | Eq(Basic( BVAR v1), Basic( BINT v2)) | Eq (Basic( BSTR v1), Basic( BINT v2)) -> 
+      if String.compare v1 str == 0  then 
+      [(assignKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
+       (notEQKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+    | _ -> findrelationFromPredicatesSpec xs str loc
+    )
 
 (* predicates are the precicates derived from the program, whereas the 
    predicatesSpec are the precicates derived from the specifiction, 
@@ -2349,7 +2370,9 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   in 
   let loc = Basic(BINT state) in 
   match p with 
-  | Eq (Basic(BVAR _), Basic (ANY)) ->  currentValuation, []
+  | Eq (Basic(BVAR str), Basic (ANY)) ->  
+    let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
+    currentValuation, rel
 
   (* assign concret value *)
   | Eq (Basic(BVAR var), Basic t1) -> 
@@ -2384,7 +2407,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
 
   | Predicate (s, terms) -> 
     if twoStringSetOverlap [s] [entryKeyWord] 
-    then currentValuation, ([(s, terms@[loc])] @ flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates))
+    then currentValuation, [(s, terms@[loc])] 
+    (* @ flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates) *)
     else currentValuation, [(s, terms@[loc])] 
       
 
@@ -2468,15 +2492,10 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
   let (decomposedpathConditionsSpec:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsSpec) )) comparePure in 
 (* decomposedPathConditions are the precicates derived from the program, whereas the 
    decomposedpathConditionsSpec are the precicates derived from the specifiction, 
-    print_endline ("decomposedPathConditions\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions@decomposedpathConditionsSpec))));   
-
 *)
-  
-  
-  (*
-  print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpec))));   
+  print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedpathConditionsSpec))));   
   print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
-*)
+
 
   let rec mergeResults li (acca, accb) = 
     match li with 
