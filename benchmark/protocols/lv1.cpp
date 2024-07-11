@@ -21,7 +21,7 @@ RTSPClientConnection* _nondet_int(void);
 int main(){
   RTSPClientConnection *prevClientConnection;
   bool fIsActive;
-  RTSPClientConnection *this_; // =  _nondet_int(); 
+  RTSPClientConnection *this_ ; //=  _nondet_int(); 
 
   
   if (prevClientConnection == NULL) {
@@ -30,7 +30,7 @@ int main(){
     fIsActive = false; // triggers deletion of ourself
     return false;
   }
-  else if (prevClientConnection = this_) {
+  else if (prevClientConnection == this_) {
 
   }
   else {}

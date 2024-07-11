@@ -7,7 +7,7 @@ State(2).
 EXIT(3).
 State(3).
 
-/*(Start())@12 · (((prevClientConnection=0)@13 · (handleHTTPCmd_notSupported())@14 · (fIsActive=0)@15 · (Return(0))@16) \/ (((prevClientConnection!=0))@17 · (prevClientConnection=this_)@18 · ((((prevClientConnection!=0))@19 · (EXIT())@20) \/ ((prevClientConnection=0)@21 · (EXIT())@22))))*/
+/*(Start())@12 · (((prevClientConnection=0)@13 · (handleHTTPCmd_notSupported())@14 · (fIsActive=0)@15 · (Return(0))@16) \/ (((prevClientConnection!=0))@17 · (((prevClientConnection=this_)@18 · (EXIT())@19) \/ (((prevClientConnection!=this_))@20 · (EXIT())@21))))*/
 
 flow(12,13).
 flow(13,14).
@@ -17,15 +17,12 @@ flow(16,16).
 flow(12,17).
 flow(17,18).
 flow(18,19).
-flow(19,20).
-flow(20,20).
-flow(18,21).
-flow(21,22).
-flow(22,22).
+flow(19,19).
+flow(17,20).
+flow(20,21).
+flow(21,21).
 Start(12).
 Eq("prevClientConnection",13,0).
-//EqVar("prevClientConnection",18,"this_").
-
 State(13).
 handleHTTPCmd_notSupported(14).
 State(14).
@@ -33,14 +30,14 @@ State(15).
 Return(0,16).
 State(16).
 State(12).
-State(17).
-State(19).
-EXIT(20).
-State(20).
+EqVar("prevClientConnection",18,"this_"). //delete this fact
 State(18).
+EXIT(19).
+State(19).
+State(17).
+State(20).
+EXIT(21).
 State(21).
-EXIT(22).
-State(22).
 
 //AG((("prevClientConnection"=0∨"prevClientConnection"="this_") => AF(Return(0))))
 .decl Start(x:number)
@@ -131,9 +128,9 @@ Flow(5,2). //@33:12-33:12
 Flow(5,4). //@33:12-33:12
 Flow(4,3). //@33:12-33:8
 Flow(2,3). //@33:12-33:8
-PruneNode(2,false,[ILoad(&prevClientConnection,n$3),Prune(!n$3, false)]). // @33:12
-PruneNode(4,true,[ILoad(&prevClientConnection,n$3),Prune(n$3, true)]). // @33:12
-Stmt_BinaryOperatorStmt(5,Assign,[ILoad(&this_,n$2),IStore(&prevClientConnection,n$2)]). // @33:12
+PruneNode(2,false,[Prune(!(n$2 == n$3), false)]). // @33:12
+PruneNode(4,true,[Prune((n$2 == n$3), true)]). // @33:12
+Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&prevClientConnection,n$2),ILoad(&this_,n$3)]). // @33:12
 Join(3,[]).  // @33:8
 Stmt_Call(7,_fun_handleHTTPCmd_notSupported,[ICall(_fun_handleHTTPCmd_notSupported,,n$1)]). // @29:5
 Stmt_BinaryOperatorStmt(8,Assign,[IStore(&fIsActive,0)]). // @30:5

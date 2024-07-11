@@ -1414,7 +1414,8 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     [(s, (vartoStr terms)@[loc])])
 
   | Eq (Basic(BSTR var1), Basic(BVAR var2))
-  | Eq (Basic(BVAR var1), Basic(BVAR var2)) -> 
+  | Eq (Basic(BSTR var1), Basic(BSTR var2))
+  | Eq (Basic(BVAR var1), Basic(BVAR var2)) ->  
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
     [(assignKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
   | Eq (Basic(BSTR var), Basic (BINT t2))

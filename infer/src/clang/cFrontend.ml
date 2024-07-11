@@ -2391,14 +2391,15 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
         (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
         then List.filter ~f:(fun ele -> 
           let ele = convertSTR2VAR ele in 
-          relevent ele var && entailConstrains pureOfCurrentState ele) (predicates@predicatesSpec) 
+          relevent ele var && entailConstrains pureOfCurrentState ele) 
+          (predicates@predicatesSpec) 
         else List.filter ~f:(fun ele -> 
           let ele = convertSTR2VAR ele in 
           if relevent ele var 
           then 
             let res =  entailConstrains currentConstraint ele in 
-            (*print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
-            *)
+            print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
+            
             res
           else false 
         ) (predicates@predicatesSpec) in 
