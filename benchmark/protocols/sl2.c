@@ -40,6 +40,9 @@ typedef struct SSL
  
 } SSL;
 
+/*@ AG(!(peek = 0)   => EF(SSL3_RECORD_set_read())) 
+@*/
+
 int main() {
     int len = 2;
     int peek = 1;
@@ -49,12 +52,11 @@ int main() {
     unsigned int n, curr_rec, num_recs, read_bytes;
     SSL3_RECORD *rr;
     read_bytes = 0;
-    do {
+    //do {
         if ((unsigned int)len - read_bytes > rr->length)
             n = rr->length;
         else
             n = (unsigned int)len - read_bytes;
-
         if (!peek) {
             rr->length -= n;
             rr->off += n;
@@ -64,14 +66,22 @@ int main() {
                 rr->read = 1;
             }
         }
+        else {
+            int tem = SSL3_RECORD_get_length(rr);
+            if (tem == 0){
+                    //SSL3_RECORD_set_read(rr);
+                    }
+        }
+
         if (rr->length == 0
             || (peek && n == rr->length)) {
             curr_rec++;
             rr++;
         }
         read_bytes += n;
-    } while (type == 23 /*SSL3_RT_APPLICATION_DATA*/ && curr_rec < num_recs
-                && read_bytes < (unsigned int)len);
+        
+    //} while (type == 23 /*SSL3_RT_APPLICATION_DATA*/ && curr_rec < num_recs
+      //          && read_bytes < (unsigned int)len);
 
     return 0;
 }

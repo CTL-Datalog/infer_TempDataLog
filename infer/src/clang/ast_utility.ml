@@ -518,7 +518,7 @@ let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms lis
   | Guard(p1, s1) -> 
     (match p1 with 
     | Neg (Eq(t1, _))
-    | Eq(t1, _) -> if false (*existAux stricTcompareTerm record t1*) then 
+    | Eq(t1, _) -> if existAux stricTcompareTerm record t1 then 
       reIn, record
       else Singleton(p1, s1), record
     | _ -> reIn, record

@@ -94,6 +94,10 @@ ctl_formula:
       let n2, p2 = propositionName pi2 in 
       n1 ^ "_or_" ^ n2, PureOr (p1, p2)
 
+    | Neg (pi1) -> let n1, p1 = propositionName pi1 in 
+      "not_" ^ n1, Neg (p1)
+
+
     | Predicate (str, termLi) -> str, (Predicate (str, termLi))
     | _ -> "propositionDefult " ^ string_of_pure pi, pi
   in  
