@@ -1,0 +1,136 @@
+/*(Start())@17 · (((tmp>1)@18 · (parseSucceeded=1)@19 · (([parseSucceeded=0]@20 · (Return(0))@21) \/ ([(parseSucceeded!=0)]@22 · (EXIT())@23))) \/ ((tmp<=1)@24 · (parseSucceeded=1)@25 · (([parseSucceeded=0]@26 · (Return(0))@27) \/ ([(parseSucceeded!=0)]@28 · (EXIT())@29))))*/
+
+flow(17,18).
+flow(18,19).
+flow(21,21).
+flow(23,23).
+flow(17,24).
+flow(24,25).
+flow(27,27).
+flow(29,29).
+Start(17).
+State(18).
+NotEq("parseSucceeded",19,0).
+State(20).
+Return(0,21).
+State(21).
+State(19).
+State(22).
+EXIT(23).
+State(23).
+State(17).
+LtEq("tmp",24,1).
+State(24).
+NotEq("parseSucceeded",25,0). // change it into Eq("parseSucceeded",25,0).
+State(26).
+Return(0,27).
+State(27).
+State(25).
+State(28).
+EXIT(29).
+State(29).
+control_flow(19,20) :- EqD("parseSucceeded",19,0).
+control_flow(20,21) :- EqD("parseSucceeded",19,0).
+control_flow(19,22) :- NotEqD("parseSucceeded",19,0).
+control_flow(22,23) :- NotEqD("parseSucceeded",19,0).
+control_flow(25,26) :- EqD("parseSucceeded",25,0).
+control_flow(26,27) :- EqD("parseSucceeded",25,0).
+control_flow(25,28) :- NotEqD("parseSucceeded",25,0).
+control_flow(28,29) :- NotEqD("parseSucceeded",25,0).
+//AG(("tmp"<=1 => AF("parseSucceeded"=0)))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl EXIT(n0:number)
+.decl Return(n0:number,n1:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl parseSucceeded_eq_0(loc:number)
+.decl AF_parseSucceeded_eq_0_T(interm_state:number,loc:number)
+.decl AF_parseSucceeded_eq_0_S(loc:number)
+.decl AF_parseSucceeded_eq_0(loc:number)
+.decl tmp_lteq_1(loc:number)
+.decl tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc:number)
+.decl NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc:number)
+.decl EF_NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc:number)
+.decl AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc:number)
+.decl AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+parseSucceeded_eq_0(loc) :- State(loc), EqD("parseSucceeded",loc,0).
+AF_parseSucceeded_eq_0_T(interm_state,loc) :- AF_parseSucceeded_eq_0_T(tempOne,loc), !parseSucceeded_eq_0(tempOne), control_flow(tempOne,interm_state).
+AF_parseSucceeded_eq_0_T(interm_state,loc) :- !parseSucceeded_eq_0(loc), control_flow(loc,interm_state).
+AF_parseSucceeded_eq_0_S(loc) :- !parseSucceeded_eq_0(loc), control_flow(loc,tempOne), AF_parseSucceeded_eq_0_S(tempOne).
+AF_parseSucceeded_eq_0_S(loc) :- AF_parseSucceeded_eq_0_T(loc,loc).
+AF_parseSucceeded_eq_0(loc) :- State(loc), !AF_parseSucceeded_eq_0_S(loc).
+tmp_lteq_1(loc) :- State(loc), LtEq("tmp",loc,1).
+tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc) :- State(loc), !tmp_lteq_1(loc).
+tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc) :- AF_parseSucceeded_eq_0(loc).
+NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc) :- State(loc), !tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc).
+EF_NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc) :- control_flow(loc,tempOne), EF_NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(tempOne).
+EF_NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc) :- NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc).
+AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc) :- State(loc), !EF_NOT_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc).
+AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final(loc) :- Start(loc), AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0(loc), !NotTotal(loc).
+.output LtEq
+.output Eq
+.output NotEq
+.output Start
+.output State
+.output flow
+.output EXIT
+.output Return
+.output AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(16,0). //@10:1-11:5
+Flow(13,15). //@33:5-33:5
+Flow(15,11). //@33:5-34:1
+Flow(9,12). //@33:9-33:9
+Flow(9,14). //@33:9-33:9
+Flow(14,10). //@33:9-33:30
+Flow(12,13). //@33:9-33:5
+Flow(10,11). //@33:30-34:1
+Flow(8,9). //@32:5-33:9
+Flow(4,8). //@24:9-32:5
+Flow(2,6). //@24:13-24:13
+Flow(2,7). //@24:13-24:13
+Flow(7,5). //@24:13-24:23
+Flow(6,3). //@24:13-25:15
+Flow(5,4). //@24:23-24:9
+Flow(3,4). //@25:15-24:9
+Flow(1,2). //@12:5-24:13
+Flow(0,1). //@11:5-12:5
+Stmt_Decl(0,[IStore(&resultCmdName[0],0)]). // @11:5
+Stmt_Decl(1,[IStore(&reqStr," ")]). // @12:5
+Stmt_BinaryOperatorStmt(3,Assign,[IStore(&parseSucceeded,1)]). // @25:15
+Stmt_BinaryOperatorStmt(5,Assign,[IStore(&parseSucceeded,1)]). // @24:23
+PruneNode(6,false,[Prune(!(n$4 > 1), false)]). // @24:13
+PruneNode(7,true,[Prune((n$4 > 1), true)]). // @24:13
+Stmt_BinaryOperatorStmt(2,GT,[ILoad(&tmp,n$4)]). // @24:13
+Join(4,[]).  // @24:9
+Stmt_BinaryOperatorStmt(8,Assign,[ILoad(&i,n$3),IStore(&resultCmdName[n$3],0)]). // @32:5
+Stmt_Return(10,[IStore(&return,0)]). // @33:30
+PruneNode(12,false,[Prune(!(n$0 == 0), false)]). // @33:9
+PruneNode(14,true,[Prune((n$0 == 0), true)]). // @33:9
+Stmt_BinaryOperatorStmt(9,EQ,[ILoad(&parseSucceeded,n$0)]). // @33:9
+Stmt_BetweenJoinAndExit(15,[]). // @33:5
+Join(13,[]).  // @33:5
+Exit(11).  // @34:1
+Start(16). // @10:1
+*/
+

@@ -1916,9 +1916,9 @@ let getAllImplicationLeft (ctls:ctl list): pure list =
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr = 
 
   let pass1 =   (getRegularExprFromCFG procedure) in 
-  (*
+  
   print_endline ("\nPASS1:\n"^string_of_regularExpr (pass1)^ "\n------------"); 
-*)
+
   let pass2 =  (normalise_es ( pass1)) in 
   recordTheMaxValue4RE pass2; 
   print_endline ("\nPASS2:\n"^string_of_regularExpr (pass2)^ "\n------------"); 
@@ -2144,8 +2144,41 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
     currentValuation, rel
 
+  | Gt (Basic(BVAR var), Basic t1) | LtEq (Basic(BVAR var), Basic t1) | Lt (Basic(BVAR var), Basic t1) | GtEq (Basic(BVAR var), Basic t1)  -> 
+    print_endline (string_of_pure p ^ "newly added ");
+    let currentValuation' = currentValuation in 
+    (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
+*)
+    let pureOfCurrentState = pureOfCurrentState currentValuation' in 
+    let pathConstrint' = removeConstrint pathConstrint var in 
+    let currentConstraint = normalise_pure (PureAnd(pureOfCurrentState, pathConstrint')) in 
+    (*print_endline ("currentConstraint: " ^ string_of_pure currentConstraint);
+    *)
+    
+    let predicates' = 
+        if entailConstrains currentConstraint FALSE 
+        (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
+        then 
+          (
+          List.filter ~f:(fun ele -> 
+          let ele = convertSTR2VAR ele in 
+          relevent ele var && entailConstrains pureOfCurrentState ele) 
+          (predicates@predicatesSpec) )
+        else List.filter ~f:(fun ele -> 
+            let res =  entailConstrains p ele in 
+            print_endline ("entailConstrains: " ^ string_of_pure p  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
+            
+            res
+        ) (predicates@predicatesSpec) in 
+    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); 
+    let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
+    print_endline (List.fold_left ~init:"facts': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_relation value)) facts); 
+
+    currentValuation', facts
+
+
   (* assign concret value *)
-  | Eq (Basic(BVAR var), Basic t1) -> 
+  | Eq (Basic(BVAR var), Basic t1)  -> 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
@@ -2216,7 +2249,9 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
 
 
 
-  | _ -> currentValuation, []
+  | _ -> 
+    print_endline (string_of_pure p ^ "is left out");
+    currentValuation, []
   ;;
 
 let rec pureToBodies (p:pure) (state:int ): body list = 
@@ -2292,7 +2327,8 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
         
         (* if the property is AG \phi, it connect the last state with the starting state, 
            if not, it adds a loop on the last state  *)
-        let fact = 
+        let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) in 
+            (*
             match !spec_agaf with 
             | Some _ -> 
               (match startState with
@@ -2301,6 +2337,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               (flowKeyword, [Basic (BINT previousState); Basic (BINT startState (*previousState*))]) )
             | None -> (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) 
             in 
+            *)
 
         ([fact;stateFact], [])
       | _ -> ([], [])
@@ -2351,9 +2388,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
             | None -> [], []) in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
           
-          (*
+          
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-*)
+
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
           in 

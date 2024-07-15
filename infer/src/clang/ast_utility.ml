@@ -507,8 +507,8 @@ let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms lis
     
   | Singleton (p, state)  -> 
     (match p with
-    | Eq(t1, Basic(ANY)) -> Emp, record @ [t1]
-    | Eq(t1, t2) -> reIn, record 
+    | Eq(t1, Basic(ANY)) -> Emp, record 
+    | Eq(t1, t2) -> reIn, record @ [t1]
     | _ -> reIn, record
     ) 
 
@@ -521,10 +521,12 @@ let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms lis
   | Guard(p1, s1) -> 
     (match p1 with 
     | Neg (Eq(t1, _))
-    | Eq(t1, _) -> 
-      if existAux stricTcompareTerm record t1 then 
-        Singleton(p1, s1), record 
-      else reIn, record
+    | Eq(t1, _) | Gt(t1, _) | Lt(t1, _) | GtEq(t1, _) | LtEq(t1, _)-> 
+      if (existAux stricTcompareTerm record t1) then 
+      reIn, record 
+      else Singleton(p1, s1), record (* if it does not mention any asignment, guard will be come pure *)
+
+
     | _ -> reIn, record
     )
 
@@ -1520,7 +1522,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
     [(leqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (Gt (Basic(BVAR var), t2))
-  | LtEq (Basic(BVAR var), t2) -> 
+  | LtEq (Basic(BSTR var), t2) | LtEq (Basic(BVAR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWord);
     [(leqKeyWord, [Basic(BSTR var);loc;t2])]
 
@@ -1548,7 +1550,10 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   | Neg _  
   | FALSE | TRUE 
   -> [] 
-  | _ -> []
+  | _ -> 
+    print_endline (string_of_pure p ^ "left out from getFactFromPure ");  
+
+    []
 
 
 let compareRelation r1 r2 : bool = 
@@ -2100,11 +2105,19 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | LtEq(Basic (BSTR x), Basic (BINT n) ) -> 
-        updateRuleDeclearation ruleDeclearation (leqKeyWord);
+        if existAGAF leqKeyWord then 
+        (updateRuleDeclearation ruleDeclearation (leqKeyWord);
+
+        let cond = Pos (leqKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ]))
+
+        else 
+
+        (updateRuleDeclearation ruleDeclearation (leqKeyWord);
         updateRuleDeclearation bodyDeclearation (leqKeyWord^"D");
 
         let cond = Pos (leqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ]))
 
       | LtEq(Basic (BSTR x), Basic (BSTR y) ) -> 
         updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
