@@ -3,7 +3,7 @@
 flow(43,43).
 State(43).
 
-/*(Start())@44 · (len=2)@45 · (peek=1)@46 · (type=23)@47 · (((n=&rr.length)@49 · (([peek=0]@50 · (((((curr_rec=(curr_rec+1))@53 · (rr=(rr+1))@54 · (read_bytes=(read_bytes+n))@55 · (Return(0))@56) \/ ((([(peek!=0)]@58 · (([n=&rr.length]@59 · (curr_rec=(curr_rec+1))@60 · (rr=(rr+1))@61 · (read_bytes=(read_bytes+n))@62 · (Return(0))@63) \/ ([(n!=&rr.length)]@64 · (read_bytes=(read_bytes+n))@65 · (Return(0))@66))) \/ ([peek=0]@67 · (read_bytes=(read_bytes+n))@68 · (Return(0))@69))))) \/ ((((curr_rec=(curr_rec+1))@72 · (rr=(rr+1))@73 · (read_bytes=(read_bytes+n))@74 · (Return(0))@75) \/ ((([(peek!=0)]@77 · (([n=&rr.length]@78 · (curr_rec=(curr_rec+1))@79 · (rr=(rr+1))@80 · (read_bytes=(read_bytes+n))@81 · (Return(0))@82) \/ ([(n!=&rr.length)]@83 · (read_bytes=(read_bytes+n))@84 · (Return(0))@85))) \/ ([peek=0]@86 · (read_bytes=(read_bytes+n))@87 · (Return(0))@88))))))) \/ ([(peek!=0)]@89 · (tem=_)@90 · (([tem=0]@91 · (((curr_rec=(curr_rec+1))@93 · (rr=(rr+1))@94 · (read_bytes=(read_bytes+n))@95 · (Return(0))@96) \/ ((([(peek!=0)]@98 · (([n=&rr.length]@99 · (curr_rec=(curr_rec+1))@100 · (rr=(rr+1))@101 · (read_bytes=(read_bytes+n))@102 · (Return(0))@103) \/ ([(n!=&rr.length)]@104 · (read_bytes=(read_bytes+n))@105 · (Return(0))@106))) \/ ([peek=0]@107 · (read_bytes=(read_bytes+n))@108 · (Return(0))@109))))) \/ ([(tem!=0)]@110 · (((curr_rec=(curr_rec+1))@112 · (rr=(rr+1))@113 · (read_bytes=(read_bytes+n))@114 · (Return(0))@115) \/ ((([(peek!=0)]@117 · (([n=&rr.length]@118 · (curr_rec=(curr_rec+1))@119 · (rr=(rr+1))@120 · (read_bytes=(read_bytes+n))@121 · (Return(0))@122) \/ ([(n!=&rr.length)]@123 · (read_bytes=(read_bytes+n))@124 · (Return(0))@125))) \/ ([peek=0]@126 · (read_bytes=(read_bytes+n))@127 · (Return(0))@128))))))))) \/ ((([peek=0]@130 · (((((curr_rec=(curr_rec+1))@133 · (rr=(rr+1))@134 · (read_bytes=(read_bytes+n))@135 · (Return(0))@136) \/ ((([(peek!=0)]@138 · (((n=&rr.length)@139 · (curr_rec=(curr_rec+1))@140 · (rr=(rr+1))@141 · (read_bytes=(read_bytes+n))@142 · (Return(0))@143) \/ (((n!=&rr.length))@144 · (read_bytes=(read_bytes+n))@145 · (Return(0))@146))) \/ ([peek=0]@147 · (read_bytes=(read_bytes+n))@148 · (Return(0))@149))))) \/ ((((curr_rec=(curr_rec+1))@152 · (rr=(rr+1))@153 · (read_bytes=(read_bytes+n))@154 · (Return(0))@155) \/ ((([(peek!=0)]@157 · (((n=&rr.length)@158 · (curr_rec=(curr_rec+1))@159 · (rr=(rr+1))@160 · (read_bytes=(read_bytes+n))@161 · (Return(0))@162) \/ (((n!=&rr.length))@163 · (read_bytes=(read_bytes+n))@164 · (Return(0))@165))) \/ ([peek=0]@166 · (read_bytes=(read_bytes+n))@167 · (Return(0))@168))))))) \/ ([(peek!=0)]@169 · (tem=_)@170 · (([tem=0]@171 · (((curr_rec=(curr_rec+1))@173 · (rr=(rr+1))@174 · (read_bytes=(read_bytes+n))@175 · (Return(0))@176) \/ ((([(peek!=0)]@178 · (((n=&rr.length)@179 · (curr_rec=(curr_rec+1))@180 · (rr=(rr+1))@181 · (read_bytes=(read_bytes+n))@182 · (Return(0))@183) \/ (((n!=&rr.length))@184 · (read_bytes=(read_bytes+n))@185 · (Return(0))@186))) \/ ([peek=0]@187 · (read_bytes=(read_bytes+n))@188 · (Return(0))@189))))) \/ ([(tem!=0)]@190 · (((curr_rec=(curr_rec+1))@192 · (rr=(rr+1))@193 · (read_bytes=(read_bytes+n))@194 · (Return(0))@195) \/ ((([(peek!=0)]@197 · (((n=&rr.length)@198 · (curr_rec=(curr_rec+1))@199 · (rr=(rr+1))@200 · (read_bytes=(read_bytes+n))@201 · (Return(0))@202) \/ (((n!=&rr.length))@203 · (read_bytes=(read_bytes+n))@204 · (Return(0))@205))) \/ ([peek=0]@206 · (read_bytes=(read_bytes+n))@207 · (Return(0))@208))))))))))*/
+/*(Start())@44 · (len=2)@45 · (peek=1)@46 · (type=23)@47 · (((n=&rr.length)@49 · (([peek=0]@50 · (((((curr_rec=(curr_rec+1))@53 · (rr=(rr+1))@54 · (read_bytes=(read_bytes+n))@55 · (Return(0))@56) \/ ((([(peek!=0)]@58 · (([n=&rr.length]@59 · (curr_rec=(curr_rec+1))@60 · (rr=(rr+1))@61 · (read_bytes=(read_bytes+n))@62 · (Return(0))@63) \/ ([(n!=&rr.length)]@64 · (read_bytes=(read_bytes+n))@65 · (Return(0))@66))) \/ ([peek=0]@67 · (read_bytes=(read_bytes+n))@68 · (Return(0))@69))))) \/ ((((curr_rec=(curr_rec+1))@72 · (rr=(rr+1))@73 · (read_bytes=(read_bytes+n))@74 · (Return(0))@75) \/ ((([(peek!=0)]@77 · (([n=&rr.length]@78 · (curr_rec=(curr_rec+1))@79 · (rr=(rr+1))@80 · (read_bytes=(read_bytes+n))@81 · (Return(0))@82) \/ ([(n!=&rr.length)]@83 · (read_bytes=(read_bytes+n))@84 · (Return(0))@85))) \/ ([peek=0]@86 · (read_bytes=(read_bytes+n))@87 · (Return(0))@88))))))) \/ ([(peek!=0)]@89 · (((tem=0)@90 · (((curr_rec=(curr_rec+1))@92 · (rr=(rr+1))@93 · (read_bytes=(read_bytes+n))@94 · (Return(0))@95) \/ ((([(peek!=0)]@97 · (([n=&rr.length]@98 · (curr_rec=(curr_rec+1))@99 · (rr=(rr+1))@100 · (read_bytes=(read_bytes+n))@101 · (Return(0))@102) \/ ([(n!=&rr.length)]@103 · (read_bytes=(read_bytes+n))@104 · (Return(0))@105))) \/ ([peek=0]@106 · (read_bytes=(read_bytes+n))@107 · (Return(0))@108))))) \/ (((tem!=0))@109 · (((curr_rec=(curr_rec+1))@111 · (rr=(rr+1))@112 · (read_bytes=(read_bytes+n))@113 · (Return(0))@114) \/ ((([(peek!=0)]@116 · (([n=&rr.length]@117 · (curr_rec=(curr_rec+1))@118 · (rr=(rr+1))@119 · (read_bytes=(read_bytes+n))@120 · (Return(0))@121) \/ ([(n!=&rr.length)]@122 · (read_bytes=(read_bytes+n))@123 · (Return(0))@124))) \/ ([peek=0]@125 · (read_bytes=(read_bytes+n))@126 · (Return(0))@127))))))))) \/ ((([peek=0]@129 · (((((curr_rec=(curr_rec+1))@132 · (rr=(rr+1))@133 · (read_bytes=(read_bytes+n))@134 · (Return(0))@135) \/ ((([(peek!=0)]@137 · (([n=&rr.length]@138 · (curr_rec=(curr_rec+1))@139 · (rr=(rr+1))@140 · (read_bytes=(read_bytes+n))@141 · (Return(0))@142) \/ ([(n!=&rr.length)]@143 · (read_bytes=(read_bytes+n))@144 · (Return(0))@145))) \/ ([peek=0]@146 · (read_bytes=(read_bytes+n))@147 · (Return(0))@148))))) \/ ((((curr_rec=(curr_rec+1))@151 · (rr=(rr+1))@152 · (read_bytes=(read_bytes+n))@153 · (Return(0))@154) \/ ((([(peek!=0)]@156 · (([n=&rr.length]@157 · (curr_rec=(curr_rec+1))@158 · (rr=(rr+1))@159 · (read_bytes=(read_bytes+n))@160 · (Return(0))@161) \/ ([(n!=&rr.length)]@162 · (read_bytes=(read_bytes+n))@163 · (Return(0))@164))) \/ ([peek=0]@165 · (read_bytes=(read_bytes+n))@166 · (Return(0))@167))))))) \/ ([(peek!=0)]@168 · (((tem=0)@169 · (((curr_rec=(curr_rec+1))@171 · (rr=(rr+1))@172 · (read_bytes=(read_bytes+n))@173 · (Return(0))@174) \/ ((([(peek!=0)]@176 · (([n=&rr.length]@177 · (curr_rec=(curr_rec+1))@178 · (rr=(rr+1))@179 · (read_bytes=(read_bytes+n))@180 · (Return(0))@181) \/ ([(n!=&rr.length)]@182 · (read_bytes=(read_bytes+n))@183 · (Return(0))@184))) \/ ([peek=0]@185 · (read_bytes=(read_bytes+n))@186 · (Return(0))@187))))) \/ (((tem!=0))@188 · (((curr_rec=(curr_rec+1))@190 · (rr=(rr+1))@191 · (read_bytes=(read_bytes+n))@192 · (Return(0))@193) \/ ((([(peek!=0)]@195 · (([n=&rr.length]@196 · (curr_rec=(curr_rec+1))@197 · (rr=(rr+1))@198 · (read_bytes=(read_bytes+n))@199 · (Return(0))@200) \/ ([(n!=&rr.length)]@201 · (read_bytes=(read_bytes+n))@202 · (Return(0))@203))) \/ ([peek=0]@204 · (read_bytes=(read_bytes+n))@205 · (Return(0))@206))))))))))*/
 
 flow(44,45).
 flow(45,46).
@@ -17,30 +17,32 @@ flow(75,44).
 flow(82,44).
 flow(85,44).
 flow(88,44).
-flow(96,44).
-flow(103,44).
-flow(106,44).
-flow(109,44).
-flow(115,44).
-flow(122,44).
-flow(125,44).
-flow(128,44).
-flow(136,44).
-flow(143,44).
-flow(146,44).
-flow(149,44).
-flow(155,44).
-flow(162,44).
-flow(165,44).
-flow(168,44).
-flow(176,44).
-flow(183,44).
-flow(186,44).
-flow(189,44).
-flow(195,44).
-flow(202,44).
-flow(205,44).
-flow(208,44).
+flow(95,44).
+flow(102,44).
+flow(105,44).
+flow(108,44).
+flow(114,44).
+flow(121,44).
+flow(124,44).
+flow(127,44).
+SSL3_RECORD_set_read(90). // add these two fact 
+SSL3_RECORD_set_read(169).// add these two fact 
+flow(135,44).
+flow(142,44).
+flow(145,44).
+flow(148,44).
+flow(154,44).
+flow(161,44).
+flow(164,44).
+flow(167,44).
+flow(174,44).
+flow(181,44).
+flow(184,44).
+flow(187,44).
+flow(193,44).
+flow(200,44).
+flow(203,44).
+flow(206,44).
 Start(44).
 State(44).
 State(45).
@@ -89,146 +91,136 @@ State(87).
 Return(0,88).
 State(88).
 State(49).
-State(89).
 Eq("tem",90,0).
-NotEq("tem",90,0).
+State(92).
 State(93).
 State(94).
-// SSL3_RECORD_set_read(94). // add this fact
-
+Return(0,95).
 State(95).
-Return(0,96).
-State(96).
+State(98).
 State(99).
 State(100).
 State(101).
+Return(0,102).
 State(102).
-Return(0,103).
+State(97).
 State(103).
-State(98).
 State(104).
+Return(0,105).
 State(105).
-Return(0,106).
-State(106).
-State(91).
-State(107).
-State(108).
-Return(0,109).
-State(109).
 State(90).
+State(106).
+State(107).
+Return(0,108).
+State(108).
+State(89).
+State(111).
 State(112).
 State(113).
+Return(0,114).
 State(114).
-Return(0,115).
-State(115).
+State(117).
 State(118).
 State(119).
 State(120).
+Return(0,121).
 State(121).
-Return(0,122).
+State(116).
 State(122).
-State(117).
 State(123).
+Return(0,124).
 State(124).
-Return(0,125).
+State(109).
 State(125).
-State(110).
 State(126).
+Return(0,127).
 State(127).
-Return(0,128).
-State(128).
+State(132).
 State(133).
 State(134).
+Return(0,135).
 State(135).
-Return(0,136).
-State(136).
-EqVar("n",139,"&rr.length").
+State(138).
 State(139).
 State(140).
 State(141).
+Return(0,142).
 State(142).
-Return(0,143).
+State(137).
 State(143).
-State(138).
 State(144).
+Return(0,145).
 State(145).
-Return(0,146).
 State(146).
 State(147).
+Return(0,148).
 State(148).
-Return(0,149).
-State(149).
+State(151).
 State(152).
 State(153).
+Return(0,154).
 State(154).
-Return(0,155).
-State(155).
-EqVar("n",158,"&rr.length").
+State(157).
 State(158).
 State(159).
 State(160).
+Return(0,161).
 State(161).
-Return(0,162).
+State(156).
 State(162).
-State(157).
 State(163).
+Return(0,164).
 State(164).
-Return(0,165).
+State(129).
 State(165).
-State(130).
 State(166).
+Return(0,167).
 State(167).
-Return(0,168).
-State(168).
 State(47).
-State(169).
-Eq("tem",170,0).
-NotEq("tem",170,0).
+Eq("tem",169,0).
+State(171).
+State(172).
 State(173).
+Return(0,174).
 State(174).
-State(175).
-Return(0,176).
-State(176).
-EqVar("n",179,"&rr.length").
+State(177).
+State(178).
 State(179).
 State(180).
+Return(0,181).
 State(181).
+State(176).
 State(182).
-Return(0,183).
 State(183).
-State(178).
+Return(0,184).
 State(184).
+State(169).
 State(185).
-Return(0,186).
 State(186).
-State(171).
+Return(0,187).
 State(187).
-State(188).
-Return(0,189).
-State(189).
-State(170).
+State(168).
+State(190).
+State(191).
 State(192).
+Return(0,193).
 State(193).
-State(194).
-Return(0,195).
-State(195).
-EqVar("n",198,"&rr.length").
+State(196).
+State(197).
 State(198).
 State(199).
+Return(0,200).
 State(200).
+State(195).
 State(201).
-Return(0,202).
 State(202).
-State(197).
+Return(0,203).
 State(203).
+State(188).
 State(204).
-Return(0,205).
 State(205).
-State(190).
+Return(0,206).
 State(206).
-State(207).
-Return(0,208).
-State(208).
 control_flow(49,50) :- EqD("peek",49,0).
 control_flow(50,53) :- EqD("peek",49,0).
 control_flow(53,54) :- EqD("peek",49,0).
@@ -264,110 +256,108 @@ control_flow(86,87) :- EqD("peek",49,0), EqD("peek",50,0).
 control_flow(87,88) :- EqD("peek",49,0), EqD("peek",50,0).
 control_flow(49,89) :- NotEqD("peek",49,0).
 control_flow(89,90) :- NotEqD("peek",49,0).
-control_flow(90,91) :- NotEqD("peek",49,0), EqD("tem",90,0).
-control_flow(91,93) :- NotEqD("peek",49,0), EqD("tem",90,0).
-control_flow(93,94) :- NotEqD("peek",49,0), EqD("tem",90,0).
-control_flow(94,95) :- NotEqD("peek",49,0), EqD("tem",90,0).
-control_flow(95,96) :- NotEqD("peek",49,0), EqD("tem",90,0).
-control_flow(91,98) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0).
-control_flow(98,99) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), EqVarD("n",98,"&rr.length").
-control_flow(99,100) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), EqVarD("n",98,"&rr.length").
-control_flow(100,101) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), EqVarD("n",98,"&rr.length").
-control_flow(101,102) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), EqVarD("n",98,"&rr.length").
-control_flow(102,103) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), EqVarD("n",98,"&rr.length").
-control_flow(98,104) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), NotEqVarD("n",98,"&rr.length").
-control_flow(104,105) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), NotEqVarD("n",98,"&rr.length").
-control_flow(105,106) :- NotEqD("peek",49,0), EqD("tem",90,0), NotEqD("peek",91,0), NotEqVarD("n",98,"&rr.length").
-control_flow(91,107) :- NotEqD("peek",49,0), EqD("tem",90,0), EqD("peek",91,0).
-control_flow(107,108) :- NotEqD("peek",49,0), EqD("tem",90,0), EqD("peek",91,0).
-control_flow(108,109) :- NotEqD("peek",49,0), EqD("tem",90,0), EqD("peek",91,0).
-control_flow(90,110) :- NotEqD("peek",49,0), NotEqD("tem",90,0).
-control_flow(110,112) :- NotEqD("peek",49,0), NotEqD("tem",90,0).
-control_flow(112,113) :- NotEqD("peek",49,0), NotEqD("tem",90,0).
-control_flow(113,114) :- NotEqD("peek",49,0), NotEqD("tem",90,0).
-control_flow(114,115) :- NotEqD("peek",49,0), NotEqD("tem",90,0).
-control_flow(110,117) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0).
-control_flow(117,118) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), EqVarD("n",117,"&rr.length").
-control_flow(118,119) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), EqVarD("n",117,"&rr.length").
-control_flow(119,120) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), EqVarD("n",117,"&rr.length").
-control_flow(120,121) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), EqVarD("n",117,"&rr.length").
-control_flow(121,122) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), EqVarD("n",117,"&rr.length").
-control_flow(117,123) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), NotEqVarD("n",117,"&rr.length").
-control_flow(123,124) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), NotEqVarD("n",117,"&rr.length").
-control_flow(124,125) :- NotEqD("peek",49,0), NotEqD("tem",90,0), NotEqD("peek",110,0), NotEqVarD("n",117,"&rr.length").
-control_flow(110,126) :- NotEqD("peek",49,0), NotEqD("tem",90,0), EqD("peek",110,0).
-control_flow(126,127) :- NotEqD("peek",49,0), NotEqD("tem",90,0), EqD("peek",110,0).
-control_flow(127,128) :- NotEqD("peek",49,0), NotEqD("tem",90,0), EqD("peek",110,0).
-control_flow(47,130) :- EqD("peek",47,0).
-control_flow(130,133) :- EqD("peek",47,0).
+control_flow(90,92) :- NotEqD("peek",49,0).
+control_flow(92,93) :- NotEqD("peek",49,0).
+control_flow(93,94) :- NotEqD("peek",49,0).
+control_flow(94,95) :- NotEqD("peek",49,0).
+control_flow(90,97) :- NotEqD("peek",49,0), NotEqD("peek",90,0).
+control_flow(97,98) :- NotEqD("peek",49,0), NotEqD("peek",90,0), EqVarD("n",97,"&rr.length").
+control_flow(98,99) :- NotEqD("peek",49,0), NotEqD("peek",90,0), EqVarD("n",97,"&rr.length").
+control_flow(99,100) :- NotEqD("peek",49,0), NotEqD("peek",90,0), EqVarD("n",97,"&rr.length").
+control_flow(100,101) :- NotEqD("peek",49,0), NotEqD("peek",90,0), EqVarD("n",97,"&rr.length").
+control_flow(101,102) :- NotEqD("peek",49,0), NotEqD("peek",90,0), EqVarD("n",97,"&rr.length").
+control_flow(97,103) :- NotEqD("peek",49,0), NotEqD("peek",90,0), NotEqVarD("n",97,"&rr.length").
+control_flow(103,104) :- NotEqD("peek",49,0), NotEqD("peek",90,0), NotEqVarD("n",97,"&rr.length").
+control_flow(104,105) :- NotEqD("peek",49,0), NotEqD("peek",90,0), NotEqVarD("n",97,"&rr.length").
+control_flow(90,106) :- NotEqD("peek",49,0), EqD("peek",90,0).
+control_flow(106,107) :- NotEqD("peek",49,0), EqD("peek",90,0).
+control_flow(107,108) :- NotEqD("peek",49,0), EqD("peek",90,0).
+control_flow(89,109) :- NotEqD("peek",49,0).
+control_flow(109,111) :- NotEqD("peek",49,0).
+control_flow(111,112) :- NotEqD("peek",49,0).
+control_flow(112,113) :- NotEqD("peek",49,0).
+control_flow(113,114) :- NotEqD("peek",49,0).
+control_flow(109,116) :- NotEqD("peek",49,0), NotEqD("peek",109,0).
+control_flow(116,117) :- NotEqD("peek",49,0), NotEqD("peek",109,0), EqVarD("n",116,"&rr.length").
+control_flow(117,118) :- NotEqD("peek",49,0), NotEqD("peek",109,0), EqVarD("n",116,"&rr.length").
+control_flow(118,119) :- NotEqD("peek",49,0), NotEqD("peek",109,0), EqVarD("n",116,"&rr.length").
+control_flow(119,120) :- NotEqD("peek",49,0), NotEqD("peek",109,0), EqVarD("n",116,"&rr.length").
+control_flow(120,121) :- NotEqD("peek",49,0), NotEqD("peek",109,0), EqVarD("n",116,"&rr.length").
+control_flow(116,122) :- NotEqD("peek",49,0), NotEqD("peek",109,0), NotEqVarD("n",116,"&rr.length").
+control_flow(122,123) :- NotEqD("peek",49,0), NotEqD("peek",109,0), NotEqVarD("n",116,"&rr.length").
+control_flow(123,124) :- NotEqD("peek",49,0), NotEqD("peek",109,0), NotEqVarD("n",116,"&rr.length").
+control_flow(109,125) :- NotEqD("peek",49,0), EqD("peek",109,0).
+control_flow(125,126) :- NotEqD("peek",49,0), EqD("peek",109,0).
+control_flow(126,127) :- NotEqD("peek",49,0), EqD("peek",109,0).
+control_flow(47,129) :- EqD("peek",47,0).
+control_flow(129,132) :- EqD("peek",47,0).
+control_flow(132,133) :- EqD("peek",47,0).
 control_flow(133,134) :- EqD("peek",47,0).
 control_flow(134,135) :- EqD("peek",47,0).
-control_flow(135,136) :- EqD("peek",47,0).
-control_flow(130,138) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(138,139) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(139,140) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(140,141) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(141,142) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(142,143) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(138,144) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(144,145) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(145,146) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(130,147) :- EqD("peek",47,0), EqD("peek",130,0).
-control_flow(147,148) :- EqD("peek",47,0), EqD("peek",130,0).
-control_flow(148,149) :- EqD("peek",47,0), EqD("peek",130,0).
-control_flow(130,152) :- EqD("peek",47,0).
+control_flow(129,137) :- EqD("peek",47,0), NotEqD("peek",129,0).
+control_flow(137,138) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",137,"&rr.length").
+control_flow(138,139) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",137,"&rr.length").
+control_flow(139,140) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",137,"&rr.length").
+control_flow(140,141) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",137,"&rr.length").
+control_flow(141,142) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",137,"&rr.length").
+control_flow(137,143) :- EqD("peek",47,0), NotEqD("peek",129,0), NotEqVarD("n",137,"&rr.length").
+control_flow(143,144) :- EqD("peek",47,0), NotEqD("peek",129,0), NotEqVarD("n",137,"&rr.length").
+control_flow(144,145) :- EqD("peek",47,0), NotEqD("peek",129,0), NotEqVarD("n",137,"&rr.length").
+control_flow(129,146) :- EqD("peek",47,0), EqD("peek",129,0).
+control_flow(146,147) :- EqD("peek",47,0), EqD("peek",129,0).
+control_flow(147,148) :- EqD("peek",47,0), EqD("peek",129,0).
+control_flow(129,151) :- EqD("peek",47,0).
+control_flow(151,152) :- EqD("peek",47,0).
 control_flow(152,153) :- EqD("peek",47,0).
 control_flow(153,154) :- EqD("peek",47,0).
-control_flow(154,155) :- EqD("peek",47,0).
-control_flow(130,157) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(157,158) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(158,159) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(159,160) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(160,161) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(161,162) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(157,163) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(163,164) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(164,165) :- EqD("peek",47,0), NotEqD("peek",130,0).
-control_flow(130,166) :- EqD("peek",47,0), EqD("peek",130,0).
-control_flow(166,167) :- EqD("peek",47,0), EqD("peek",130,0).
-control_flow(167,168) :- EqD("peek",47,0), EqD("peek",130,0).
-control_flow(47,169) :- NotEqD("peek",47,0).
-control_flow(169,170) :- NotEqD("peek",47,0).
-control_flow(170,171) :- NotEqD("peek",47,0), EqD("tem",170,0).
-control_flow(171,173) :- NotEqD("peek",47,0), EqD("tem",170,0).
-control_flow(173,174) :- NotEqD("peek",47,0), EqD("tem",170,0).
-control_flow(174,175) :- NotEqD("peek",47,0), EqD("tem",170,0).
-control_flow(175,176) :- NotEqD("peek",47,0), EqD("tem",170,0).
-control_flow(171,178) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(178,179) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(179,180) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(180,181) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(181,182) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(182,183) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(178,184) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(184,185) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(185,186) :- NotEqD("peek",47,0), EqD("tem",170,0), NotEqD("peek",171,0).
-control_flow(171,187) :- NotEqD("peek",47,0), EqD("tem",170,0), EqD("peek",171,0).
-control_flow(187,188) :- NotEqD("peek",47,0), EqD("tem",170,0), EqD("peek",171,0).
-control_flow(188,189) :- NotEqD("peek",47,0), EqD("tem",170,0), EqD("peek",171,0).
-control_flow(170,190) :- NotEqD("peek",47,0), NotEqD("tem",170,0).
-control_flow(190,192) :- NotEqD("peek",47,0), NotEqD("tem",170,0).
-control_flow(192,193) :- NotEqD("peek",47,0), NotEqD("tem",170,0).
-control_flow(193,194) :- NotEqD("peek",47,0), NotEqD("tem",170,0).
-control_flow(194,195) :- NotEqD("peek",47,0), NotEqD("tem",170,0).
-control_flow(190,197) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(197,198) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(198,199) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(199,200) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(200,201) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(201,202) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(197,203) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(203,204) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(204,205) :- NotEqD("peek",47,0), NotEqD("tem",170,0), NotEqD("peek",190,0).
-control_flow(190,206) :- NotEqD("peek",47,0), NotEqD("tem",170,0), EqD("peek",190,0).
-control_flow(206,207) :- NotEqD("peek",47,0), NotEqD("tem",170,0), EqD("peek",190,0).
-control_flow(207,208) :- NotEqD("peek",47,0), NotEqD("tem",170,0), EqD("peek",190,0).
-//AG((("peek"!=0) => EF(SSL3_RECORD_set_read())))
+control_flow(129,156) :- EqD("peek",47,0), NotEqD("peek",129,0).
+control_flow(156,157) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",156,"&rr.length").
+control_flow(157,158) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",156,"&rr.length").
+control_flow(158,159) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",156,"&rr.length").
+control_flow(159,160) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",156,"&rr.length").
+control_flow(160,161) :- EqD("peek",47,0), NotEqD("peek",129,0), EqVarD("n",156,"&rr.length").
+control_flow(156,162) :- EqD("peek",47,0), NotEqD("peek",129,0), NotEqVarD("n",156,"&rr.length").
+control_flow(162,163) :- EqD("peek",47,0), NotEqD("peek",129,0), NotEqVarD("n",156,"&rr.length").
+control_flow(163,164) :- EqD("peek",47,0), NotEqD("peek",129,0), NotEqVarD("n",156,"&rr.length").
+control_flow(129,165) :- EqD("peek",47,0), EqD("peek",129,0).
+control_flow(165,166) :- EqD("peek",47,0), EqD("peek",129,0).
+control_flow(166,167) :- EqD("peek",47,0), EqD("peek",129,0).
+control_flow(47,168) :- NotEqD("peek",47,0).
+control_flow(168,169) :- NotEqD("peek",47,0).
+control_flow(169,171) :- NotEqD("peek",47,0).
+control_flow(171,172) :- NotEqD("peek",47,0).
+control_flow(172,173) :- NotEqD("peek",47,0).
+control_flow(173,174) :- NotEqD("peek",47,0).
+control_flow(169,176) :- NotEqD("peek",47,0), NotEqD("peek",169,0).
+control_flow(176,177) :- NotEqD("peek",47,0), NotEqD("peek",169,0), EqVarD("n",176,"&rr.length").
+control_flow(177,178) :- NotEqD("peek",47,0), NotEqD("peek",169,0), EqVarD("n",176,"&rr.length").
+control_flow(178,179) :- NotEqD("peek",47,0), NotEqD("peek",169,0), EqVarD("n",176,"&rr.length").
+control_flow(179,180) :- NotEqD("peek",47,0), NotEqD("peek",169,0), EqVarD("n",176,"&rr.length").
+control_flow(180,181) :- NotEqD("peek",47,0), NotEqD("peek",169,0), EqVarD("n",176,"&rr.length").
+control_flow(176,182) :- NotEqD("peek",47,0), NotEqD("peek",169,0), NotEqVarD("n",176,"&rr.length").
+control_flow(182,183) :- NotEqD("peek",47,0), NotEqD("peek",169,0), NotEqVarD("n",176,"&rr.length").
+control_flow(183,184) :- NotEqD("peek",47,0), NotEqD("peek",169,0), NotEqVarD("n",176,"&rr.length").
+control_flow(169,185) :- NotEqD("peek",47,0), EqD("peek",169,0).
+control_flow(185,186) :- NotEqD("peek",47,0), EqD("peek",169,0).
+control_flow(186,187) :- NotEqD("peek",47,0), EqD("peek",169,0).
+control_flow(168,188) :- NotEqD("peek",47,0).
+control_flow(188,190) :- NotEqD("peek",47,0).
+control_flow(190,191) :- NotEqD("peek",47,0).
+control_flow(191,192) :- NotEqD("peek",47,0).
+control_flow(192,193) :- NotEqD("peek",47,0).
+control_flow(188,195) :- NotEqD("peek",47,0), NotEqD("peek",188,0).
+control_flow(195,196) :- NotEqD("peek",47,0), NotEqD("peek",188,0), EqVarD("n",195,"&rr.length").
+control_flow(196,197) :- NotEqD("peek",47,0), NotEqD("peek",188,0), EqVarD("n",195,"&rr.length").
+control_flow(197,198) :- NotEqD("peek",47,0), NotEqD("peek",188,0), EqVarD("n",195,"&rr.length").
+control_flow(198,199) :- NotEqD("peek",47,0), NotEqD("peek",188,0), EqVarD("n",195,"&rr.length").
+control_flow(199,200) :- NotEqD("peek",47,0), NotEqD("peek",188,0), EqVarD("n",195,"&rr.length").
+control_flow(195,201) :- NotEqD("peek",47,0), NotEqD("peek",188,0), NotEqVarD("n",195,"&rr.length").
+control_flow(201,202) :- NotEqD("peek",47,0), NotEqD("peek",188,0), NotEqVarD("n",195,"&rr.length").
+control_flow(202,203) :- NotEqD("peek",47,0), NotEqD("peek",188,0), NotEqVarD("n",195,"&rr.length").
+control_flow(188,204) :- NotEqD("peek",47,0), EqD("peek",188,0).
+control_flow(204,205) :- NotEqD("peek",47,0), EqD("peek",188,0).
+control_flow(205,206) :- NotEqD("peek",47,0), EqD("peek",188,0).
+//AG((("peek"!=0)∧"tem"=0 => AF(SSL3_RECORD_set_read())))
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -385,13 +375,17 @@ control_flow(207,208) :- NotEqD("peek",47,0), NotEqD("tem",170,0), EqD("peek",19
 .decl NotEqD(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
 .decl SSL3_RECORD_set_readPred(loc:number)
-.decl EF_SSL3_RECORD_set_readPred(loc:number)
-.decl not_peek_eq_0(loc:number)
-.decl not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc:number)
-.decl NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc:number)
-.decl EF_NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc:number)
-.decl AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc:number)
-.decl AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl AF_SSL3_RECORD_set_readPred_T(interm_state:number,loc:number)
+.decl AF_SSL3_RECORD_set_readPred_S(loc:number)
+.decl AF_SSL3_RECORD_set_readPred(loc:number)
+.decl tem_eq_0(loc:number)
+.decl peek_neq_0(loc:number)
+.decl peek_neq_0_AND_tem_eq_0(loc:number)
+.decl peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl EF_NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl AG_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl AG_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
@@ -405,16 +399,21 @@ NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !E
 EqD(x,loc,n) :- Eq(x,loc,n).
 EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
 SSL3_RECORD_set_readPred(loc) :- State(loc), SSL3_RECORD_set_read(loc).
-EF_SSL3_RECORD_set_readPred(loc) :- control_flow(loc,tempOne), EF_SSL3_RECORD_set_readPred(tempOne).
-EF_SSL3_RECORD_set_readPred(loc) :- SSL3_RECORD_set_readPred(loc).
-not_peek_eq_0(loc) :- State(loc), NotEqD("peek",loc,0).
-not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc) :- State(loc), !not_peek_eq_0(loc).
-not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc) :- EF_SSL3_RECORD_set_readPred(loc).
-NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc) :- State(loc), !not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc).
-EF_NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc) :- control_flow(loc,tempOne), EF_NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(tempOne).
-EF_NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc) :- NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc).
-AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc) :- State(loc), !EF_NOT_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc).
-AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred_Final(loc) :- Start(loc), AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred(loc), !NotTotal(loc).
+AF_SSL3_RECORD_set_readPred_T(interm_state,loc) :- AF_SSL3_RECORD_set_readPred_T(tempOne,loc), !SSL3_RECORD_set_readPred(tempOne), control_flow(tempOne,interm_state).
+AF_SSL3_RECORD_set_readPred_T(interm_state,loc) :- !SSL3_RECORD_set_readPred(loc), control_flow(loc,interm_state).
+AF_SSL3_RECORD_set_readPred_S(loc) :- !SSL3_RECORD_set_readPred(loc), control_flow(loc,tempOne), AF_SSL3_RECORD_set_readPred_S(tempOne).
+AF_SSL3_RECORD_set_readPred_S(loc) :- AF_SSL3_RECORD_set_readPred_T(loc,loc).
+AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !AF_SSL3_RECORD_set_readPred_S(loc).
+tem_eq_0(loc) :- State(loc), Eq("tem",loc,0).
+peek_neq_0(loc) :- State(loc), NotEqD("peek",loc,0).
+peek_neq_0_AND_tem_eq_0(loc) :- peek_neq_0(loc), tem_eq_0(loc).
+peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !peek_neq_0_AND_tem_eq_0(loc).
+peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- AF_SSL3_RECORD_set_readPred(loc).
+NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc).
+EF_NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- control_flow(loc,tempOne), EF_NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(tempOne).
+EF_NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc).
+AG_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !EF_NOT_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc).
+AG_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred_Final(loc) :- Start(loc), AG_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc), !NotTotal(loc).
 .output NotEqVar
 .output Eq
 .output EqVar
@@ -423,7 +422,7 @@ AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred_Final(loc) :- Start(loc), AG_
 .output State
 .output flow
 .output Return
-.output AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred_Final(IO=stdout)
+.output AG_peek_neq_0_AND_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred_Final(IO=stdout)
 
 /* Other information 
 
@@ -432,23 +431,23 @@ AG_not_peek_eq_0_IMPLY_EF_SSL3_RECORD_set_readPred_Final(loc) :- Start(loc), AG_
 //-- Facts for Procedure <main> 
 
 Flow(41,0). //@46:1-47:5
-Flow(39,40). //@87:5-88:1
-Flow(38,39). //@82:9-87:5
-Flow(30,38). //@77:9-82:9
-Flow(27,36). //@77:13-77:13
-Flow(27,37). //@77:13-77:13
-Flow(37,28). //@77:13-79:13
-Flow(36,34). //@77:13-78:17
-Flow(36,35). //@77:13-78:17
-Flow(35,33). //@78:17-78:25
-Flow(34,30). //@78:17-77:9
-Flow(33,31). //@78:25-78:25
-Flow(33,32). //@78:25-78:25
-Flow(32,28). //@78:25-79:13
-Flow(31,30). //@78:25-77:9
-Flow(29,30). //@80:13-77:9
-Flow(28,29). //@79:13-80:13
-Flow(17,27). //@60:9-77:13
+Flow(39,40). //@86:5-87:1
+Flow(38,39). //@81:9-86:5
+Flow(30,38). //@76:9-81:9
+Flow(27,36). //@76:13-76:13
+Flow(27,37). //@76:13-76:13
+Flow(37,28). //@76:13-78:13
+Flow(36,34). //@76:13-77:17
+Flow(36,35). //@76:13-77:17
+Flow(35,33). //@77:17-77:25
+Flow(34,30). //@77:17-76:9
+Flow(33,31). //@77:25-77:25
+Flow(33,32). //@77:25-77:25
+Flow(32,28). //@77:25-78:13
+Flow(31,30). //@77:25-76:9
+Flow(29,30). //@79:13-76:9
+Flow(28,29). //@78:13-79:13
+Flow(17,27). //@60:9-76:13
 Flow(10,18). //@60:14-61:13
 Flow(11,12). //@60:14-70:13
 Flow(24,17). //@63:13-60:9
@@ -506,20 +505,20 @@ Join(24,[]).  // @63:13
 PruneNode(11,false,[ILoad(&peek,n$12),Prune(n$12, false)]). // @60:14
 PruneNode(10,true,[ILoad(&peek,n$12),Prune(!n$12, true)]). // @60:14
 Join(17,[]).  // @60:9
-Stmt_UnaryOperator(28,[ILoad(&curr_rec,n$9),IStore(&curr_rec,(n$9 + 1))]). // @79:13
-Stmt_UnaryOperator(29,[ILoad(&rr,n$8),IStore(&rr,(n$8 + 1))]). // @80:13
-PruneNode(31,false,[Prune(!(n$5 == n$7), false)]). // @78:25
-PruneNode(32,true,[Prune((n$5 == n$7), true)]). // @78:25
-Stmt_BinaryOperatorStmt(33,EQ,[ILoad(&n,n$5),ILoad(&rr,n$6),ILoad(n$6.length,n$7)]). // @78:25
-PruneNode(34,false,[ILoad(&peek,n$4),Prune(!n$4, false)]). // @78:17
-PruneNode(35,true,[ILoad(&peek,n$4),Prune(n$4, true)]). // @78:17
-PruneNode(36,false,[Prune(!(n$3 == ()0), false)]). // @77:13
-PruneNode(37,true,[Prune((n$3 == ()0), true)]). // @77:13
-Stmt_BinaryOperatorStmt(27,EQ,[ILoad(&rr,n$2),ILoad(n$2.length,n$3)]). // @77:13
-Join(30,[]).  // @77:9
-Stmt_BinaryOperatorStmt(38,AddAssign,[ILoad(&n,n$0),ILoad(&read_bytes,n$1),IStore(&read_bytes,(n$1 + n$0))]). // @82:9
-Stmt_Return(39,[IStore(&return,0)]). // @87:5
-Exit(40).  // @88:1
+Stmt_UnaryOperator(28,[ILoad(&curr_rec,n$9),IStore(&curr_rec,(n$9 + 1))]). // @78:13
+Stmt_UnaryOperator(29,[ILoad(&rr,n$8),IStore(&rr,(n$8 + 1))]). // @79:13
+PruneNode(31,false,[Prune(!(n$5 == n$7), false)]). // @77:25
+PruneNode(32,true,[Prune((n$5 == n$7), true)]). // @77:25
+Stmt_BinaryOperatorStmt(33,EQ,[ILoad(&n,n$5),ILoad(&rr,n$6),ILoad(n$6.length,n$7)]). // @77:25
+PruneNode(34,false,[ILoad(&peek,n$4),Prune(!n$4, false)]). // @77:17
+PruneNode(35,true,[ILoad(&peek,n$4),Prune(n$4, true)]). // @77:17
+PruneNode(36,false,[Prune(!(n$3 == ()0), false)]). // @76:13
+PruneNode(37,true,[Prune((n$3 == ()0), true)]). // @76:13
+Stmt_BinaryOperatorStmt(27,EQ,[ILoad(&rr,n$2),ILoad(n$2.length,n$3)]). // @76:13
+Join(30,[]).  // @76:9
+Stmt_BinaryOperatorStmt(38,AddAssign,[ILoad(&n,n$0),ILoad(&read_bytes,n$1),IStore(&read_bytes,(n$1 + n$0))]). // @81:9
+Stmt_Return(39,[IStore(&return,0)]). // @86:5
+Exit(40).  // @87:1
 Start(41). // @46:1
 */
 

@@ -40,7 +40,7 @@ typedef struct SSL
  
 } SSL;
 
-/*@ AG(!(peek = 0)   => EF(SSL3_RECORD_set_read())) 
+/*@ AG((!(peek = 0)) /\ (tem=0)   => AF(SSL3_RECORD_set_read())) 
 @*/
 
 int main() {

@@ -130,6 +130,8 @@ type rankingfunction =  (terms * regularExpr option)
 let (varSet: (string list) ref) = ref [] 
 let (handlerVar: string option ref) = ref None 
 
+let (spec_agaf: (string) option ref) = ref None 
+
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
 (* ruleDeclearation is for the non ^D predicate declrations and outoutEDB *)
@@ -505,7 +507,8 @@ let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms lis
     
   | Singleton (p, state)  -> 
     (match p with
-    | Eq(t1, t2) -> reIn, record @ [t1]
+    | Eq(t1, Basic(ANY)) -> Emp, record @ [t1]
+    | Eq(t1, t2) -> reIn, record 
     | _ -> reIn, record
     ) 
 
@@ -518,9 +521,10 @@ let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms lis
   | Guard(p1, s1) -> 
     (match p1 with 
     | Neg (Eq(t1, _))
-    | Eq(t1, _) -> if existAux stricTcompareTerm record t1 then 
-      reIn, record
-      else Singleton(p1, s1), record
+    | Eq(t1, _) -> 
+      if existAux stricTcompareTerm record t1 then 
+        Singleton(p1, s1), record 
+      else reIn, record
     | _ -> reIn, record
     )
 
@@ -1418,17 +1422,30 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   | Eq (Basic(BVAR var1), Basic(BVAR var2)) ->  
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
     [(assignKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
+
+  | Neg (Eq (Basic(BSTR var1), Basic(BVAR var2)))
+  | Neg (Eq (Basic(BSTR var1), Basic(BSTR var2)))
+  | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) ->  
+    updateRuleDeclearation ruleDeclearation notEQKeyWordVar; 
+    [(notEQKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
+
   | Eq (Basic(BSTR var), Basic (BINT t2))
   | Eq (Basic(BVAR var), Basic (BINT t2)) -> 
     updateRuleDeclearation ruleDeclearation (assignKeyWord) ;
     [(assignKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
 
+  | Neg (Eq (Basic(BSTR var), Basic(BINT t2)))
+  | Neg (Eq (Basic(BVAR var), Basic(BINT t2))) -> 
+    updateRuleDeclearation ruleDeclearation (notEQKeyWord) ;
+    [(notEQKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
+
+
   | Neg (LtEq (Basic(BSTR var), Basic(BVAR var2)))
   | Neg (LtEq (Basic(BVAR var), Basic(BVAR var2)))
   | Gt (Basic(BSTR var), Basic(BVAR var2))
   | Gt (Basic(BVAR var), Basic(BVAR var2)) -> 
-    updateRuleDeclearation ruleDeclearation (gtKeyWordVar) ;
-    [(gtKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+    updateRuleDeclearation ruleDeclearation (notEQKeyWord) ;
+    [(notEQKeyWord, [Basic(BSTR var);loc;Basic(BSTR var2)])]
 
   | Neg (LtEq (Basic(BSTR var), t2))
   | Gt (Basic(BSTR var), t2)
@@ -1559,6 +1576,10 @@ let rec expand_args (sep: string) (x:string list) =
   | [x] -> x
   | x :: xs -> x ^ sep ^ (expand_args sep xs)
 
+let existAGAF str = 
+  match !spec_agaf with 
+  | None -> false 
+  | Some s1 -> if String.compare s1 str == 0 then true else false 
 
 
 let sort_uniq cmp l =
@@ -1799,6 +1820,11 @@ let rec propositionName pi : (string ) =
     | Eq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int_shall n
     | Eq (Basic(BSTR str), Basic(BSTR str1)) 
     | Eq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_eq_" ^ str1
+
+    | Neg(Eq (Basic(BSTR str), Basic(BINT n))) -> str ^ "_neq_" ^ string_of_int_shall n
+    | Neg (Eq (Basic(BSTR str), Basic(BSTR str1))) 
+    | Neg (Eq (Basic(BSTR str), Basic(BVAR str1))) -> str ^ "_neq_" ^ str1
+
 
     | Gt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n
     | Gt (Basic(BSTR str), Basic(BSTR str1)) 
@@ -2089,12 +2115,21 @@ and translation_inner (ctl:ctl) : string * datalog =
 
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
-        updateRuleDeclearation ruleDeclearation (assignKeyWord);
+        if existAGAF assignKeyWord then 
+
+          (updateRuleDeclearation ruleDeclearation (assignKeyWord);
+
+          let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+          pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+)
+
+        else 
+        (updateRuleDeclearation ruleDeclearation (assignKeyWord);
         updateRuleDeclearation bodyDeclearation (assignKeyWord^"D");
 
         let cond = Pos (assignKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-
+)
       | Eq(Basic (BSTR x), Basic (BSTR y) ) -> 
         updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
         updateRuleDeclearation bodyDeclearation (assignKeyWordVar^"D");
@@ -2125,6 +2160,11 @@ and translation_inner (ctl:ctl) : string * datalog =
         processPair (Atom (propositionName p1, p1)) (Atom (propositionName p2, p2)) 
         (fun x1 x2 ->  x1 ^ "_OR_" ^ x2) 
         (fun (pName,newArgs) (x1,f1Args) (x2,f2Args) -> [ ( (pName, newArgs) , [Pos(x1,f1Args)] ) ; ( (pName, newArgs) , [Pos(x2,f2Args)] ) ]);
+
+      | PureAnd (p1, p2) -> 
+        processPair (Atom (propositionName p1, p1)) (Atom (propositionName p2, p2)) 
+        (fun x1 x2 ->  x1 ^ "_AND_" ^ x2) 
+        (fun (pName,newArgs) (x1,f1Args) (x2,f2Args) -> [ ( (pName, newArgs) , [Pos(x1,f1Args); Pos(x2,f2Args)]) ]);
 
 
 

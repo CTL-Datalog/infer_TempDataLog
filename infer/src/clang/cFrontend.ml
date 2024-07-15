@@ -65,7 +65,7 @@ let string_of_source_range ((s1, s2):Clang_ast_t.source_range) :string =
 let rec decomposePure p : pure list = 
   match p with 
   | PureOr (p1, p2)
-  | PureAnd (p1, p2) -> decomposePure p1 @ decomposePure p2 
+  | PureAnd (p1, p2) -> decomposePure p2 @ decomposePure p1
   | Ast_utility.TRUE -> []
   | _ -> [p]
 
@@ -2293,13 +2293,13 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
         (* if the property is AG \phi, it connect the last state with the starting state, 
            if not, it adds a loop on the last state  *)
         let fact = 
-            match specs with 
-            | [(AG _)] -> 
+            match !spec_agaf with 
+            | Some _ -> 
               (match startState with
               | None -> (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) 
               | Some startState -> 
               (flowKeyword, [Basic (BINT previousState); Basic (BINT startState (*previousState*))]) )
-            | _ -> (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) 
+            | None -> (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) 
             in 
 
         ([fact;stateFact], [])
@@ -2530,6 +2530,26 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       List.append accs [summary] )) 
   in
 
+  let () = 
+    match specifications with 
+    | [(AG (Imply (Atom(_, p), AF _)))] -> 
+      let pLi = decomposePure p in  
+      (match pLi with 
+      | [] -> ()
+      | Gt _ ::_ -> spec_agaf := Some gtKeyWord
+      | GtEq _ ::_ -> spec_agaf := Some geqKeyWord
+      | LtEq _ ::_ -> spec_agaf := Some leqKeyWord
+      | Eq _ ::_ -> spec_agaf := Some assignKeyWord
+      | Neg(Eq _ ) ::_ -> spec_agaf := Some notEQKeyWord
+      | _ -> ()
+
+      )
+      
+      
+    | _ -> () 
+
+
+  in 
 
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       (*let summary' = createNecessaryDisjunction summary specifications in*)
@@ -2566,6 +2586,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
 
      )) in 
+
+  spec_agaf:= None; 
      
   let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
 
