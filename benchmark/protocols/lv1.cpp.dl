@@ -30,7 +30,8 @@ State(15).
 Return(0,16).
 State(16).
 State(12).
-EqVar("prevClientConnection",18,"this_"). //delete this fact
+EqVar("prevClientConnection",18,"this_").
+handleHTTPCmd_notSupported(18). // add this fact
 State(18).
 EXIT(19).
 State(19).
@@ -39,7 +40,7 @@ State(20).
 EXIT(21).
 State(21).
 
-//AG((("prevClientConnection"=0∨"prevClientConnection"="this_") => AF(Return(0))))
+//AG((("prevClientConnection"=0∨"prevClientConnection"="this_") => AF(handleHTTPCmd_notSupported())))
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -49,51 +50,41 @@ State(21).
 .decl EXIT(n0:number)
 .decl Return(n0:number,n1:number)
 .decl handleHTTPCmd_notSupported(n0:number)
-.decl NotEq(x:symbol,loc:number,n:number)
-.decl NotEqVar(x:symbol,loc:number,y:symbol)
 .decl EqVar(x:symbol,loc:number,y:symbol)
 .decl Eq(x:symbol,loc:number,n:number)
-.decl EqVarD(x:symbol,loc:number,y:symbol)
-.decl EqD(x:symbol,loc:number,n:number)
-.decl ReturnPred(loc:number)
-.decl AF_ReturnPred_T(interm_state:number,loc:number)
-.decl AF_ReturnPred_S(loc:number)
-.decl AF_ReturnPred(loc:number)
+.decl handleHTTPCmd_notSupportedPred(loc:number)
+.decl AF_handleHTTPCmd_notSupportedPred_T(interm_state:number,loc:number)
+.decl AF_handleHTTPCmd_notSupportedPred_S(loc:number)
+.decl AF_handleHTTPCmd_notSupportedPred(loc:number)
 .decl prevClientConnection_eq_this_(loc:number)
 .decl prevClientConnection_eq_0(loc:number)
 .decl prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc:number)
-.decl prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
-.decl NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
-.decl EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
-.decl AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc:number)
-.decl AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc:number)
+.decl NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc:number)
+.decl EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc:number)
+.decl AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc:number)
+.decl AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
-EqVarD(x,loc,n) :- EqVar(x,loc,n).
-EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,_), !NotEqVar(x,loc,_).
-EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
-ReturnPred(loc) :- Return(_,loc).
-AF_ReturnPred_T(interm_state,loc) :- AF_ReturnPred_T(tempOne,loc), !ReturnPred(tempOne), control_flow(tempOne,interm_state).
-AF_ReturnPred_T(interm_state,loc) :- !ReturnPred(loc), control_flow(loc,interm_state).
-AF_ReturnPred_S(loc) :- !ReturnPred(loc), control_flow(loc,tempOne), AF_ReturnPred_S(tempOne).
-AF_ReturnPred_S(loc) :- AF_ReturnPred_T(loc,loc).
-AF_ReturnPred(loc) :- State(loc), !AF_ReturnPred_S(loc).
-prevClientConnection_eq_this_(loc) :- State(loc), EqVarD("prevClientConnection",loc,"this_").
-prevClientConnection_eq_0(loc) :- State(loc), EqD("prevClientConnection",loc,0).
+handleHTTPCmd_notSupportedPred(loc) :- State(loc), handleHTTPCmd_notSupported(loc).
+AF_handleHTTPCmd_notSupportedPred_T(interm_state,loc) :- AF_handleHTTPCmd_notSupportedPred_T(tempOne,loc), !handleHTTPCmd_notSupportedPred(tempOne), control_flow(tempOne,interm_state).
+AF_handleHTTPCmd_notSupportedPred_T(interm_state,loc) :- !handleHTTPCmd_notSupportedPred(loc), control_flow(loc,interm_state).
+AF_handleHTTPCmd_notSupportedPred_S(loc) :- !handleHTTPCmd_notSupportedPred(loc), control_flow(loc,tempOne), AF_handleHTTPCmd_notSupportedPred_S(tempOne).
+AF_handleHTTPCmd_notSupportedPred_S(loc) :- AF_handleHTTPCmd_notSupportedPred_T(loc,loc).
+AF_handleHTTPCmd_notSupportedPred(loc) :- State(loc), !AF_handleHTTPCmd_notSupportedPred_S(loc).
+prevClientConnection_eq_this_(loc) :- State(loc), EqVar("prevClientConnection",loc,"this_").
+prevClientConnection_eq_0(loc) :- State(loc), Eq("prevClientConnection",loc,0).
 prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc) :- prevClientConnection_eq_this_(loc).
 prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc) :- prevClientConnection_eq_0(loc).
-prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- State(loc), !prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc).
-prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- AF_ReturnPred(loc).
-NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- State(loc), !prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc).
-EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- control_flow(loc,tempOne), EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(tempOne).
-EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc).
-AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc) :- State(loc), !EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc).
-AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final(loc) :- Start(loc), AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred(loc), !NotTotal(loc).
-.output NotEq
-.output NotEqVar
+prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc) :- State(loc), !prevClientConnection_eq_0_OR_prevClientConnection_eq_this_(loc).
+prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc) :- AF_handleHTTPCmd_notSupportedPred(loc).
+NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc) :- State(loc), !prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc).
+EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc) :- control_flow(loc,tempOne), EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(tempOne).
+EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc) :- NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc).
+AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc) :- State(loc), !EF_NOT_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc).
+AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final(loc) :- Start(loc), AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred(loc), !NotTotal(loc).
 .output EqVar
 .output Eq
 .output Start
@@ -102,7 +93,7 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPre
 .output EXIT
 .output Return
 .output handleHTTPCmd_notSupported
-.output AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final(IO=stdout)
+.output AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final(IO=stdout)
 
 /* Other information 
 

@@ -835,7 +835,7 @@ let updateStakeUsingLoads intrs =
         ) 
 
 let removeDotsInVarName str =
-  let str_li =  String.split_on_chars ~on:['.';'&'] str in 
+  let str_li =  String.split_on_chars ~on:['.';'&';':'] str in 
   let rec aux li = 
     match li with 
    | [] -> ""
@@ -997,18 +997,17 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
         let funName = String.sub funName 5 (String.length funName - 5) in 
-        let temp_funName = String.split_on_chars ~on:[':';'.'] funName in 
-        let funName = List.fold_left temp_funName ~init:"" ~f:(fun acc a -> acc ^ a ^ "_") in 
+        
+        let funName =removeDotsInVarName funName in 
 
         predicateDeclearation:= (funName, argumentTermsType@["Number"]) :: !predicateDeclearation ;
         Singleton (Predicate (funName, argumentTerms), node_key), [] 
        
       | _ -> 
-        let x = String.sub x 5 (String.length x - 5) in 
-        let temp_x = String.split_on_chars ~on:[':';'.'] x in 
-        let x = List.fold_left temp_x ~init:"" ~f:(fun acc a -> acc ^ a ^ "_") in 
+        let funName = String.sub x 5 (String.length x - 5) in 
+        let funName =removeDotsInVarName funName in 
 
-        Singleton (Predicate (x, []), node_key), []
+        Singleton (Predicate (funName, []), node_key), []
       )
     
       
@@ -2576,6 +2575,30 @@ let createNecessaryDisjunction (re:regularExpr ) (specs:ctl list) : regularExpr 
   iteraterSegemnst segemants
 
   
+let rec extend_spec_agaf pLi: unit = 
+  (match pLi with 
+  | PureAnd(_, Gt (_, Basic(BINT _)))  -> spec_agaf := gtKeyWord::!spec_agaf
+  | PureAnd(_, Gt (_, Basic(BSTR _)))  -> spec_agaf := gtKeyWordVar::!spec_agaf
+
+  | PureAnd(_, GtEq (_, Basic(BINT _)))  -> spec_agaf :=  geqKeyWord::!spec_agaf
+  | PureAnd(_, GtEq (_, Basic(BSTR _)))  -> spec_agaf :=  geqKeyWordVar::!spec_agaf
+
+  | PureAnd(_, LtEq (_, Basic(BINT _)) )  -> spec_agaf :=  leqKeyWord::!spec_agaf
+  | PureAnd(_, LtEq (_, Basic(BSTR _)) )  -> spec_agaf :=  leqKeyWordVar::!spec_agaf
+
+  | PureAnd(_, Eq (_, Basic(BINT _)) ) -> spec_agaf :=  assignKeyWord::!spec_agaf
+  | PureAnd(_, Eq (_, Basic(BSTR _)) ) -> spec_agaf :=  assignKeyWordVar::!spec_agaf
+
+  | PureAnd(_, Neg(Eq (_, Basic(BINT _)) ))  -> spec_agaf :=  notEQKeyWord::!spec_agaf
+  | PureAnd(_, Neg(Eq (_, Basic(BSTR _)) ))  -> spec_agaf :=  notEQKeyWordVar::!spec_agaf
+
+  | PureOr (Eq (_, Basic(BINT _)) , Eq (_, Basic(BSTR _))) ->  
+    spec_agaf :=  assignKeyWord::!spec_agaf;
+    spec_agaf :=  assignKeyWordVar::!spec_agaf
+
+  | _ -> ()
+
+  )
 
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
@@ -2623,17 +2646,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let () = 
     match specifications with 
     | [(AG (Imply (Atom(_, p), AF _)))] -> 
-      let pLi = decomposePure p in  
-      (match pLi with 
-      | [] -> ()
-      | Gt _ ::_ -> spec_agaf := Some gtKeyWord
-      | GtEq _ ::_ -> spec_agaf := Some geqKeyWord
-      | LtEq _ ::_ -> spec_agaf := Some leqKeyWord
-      | Eq _ ::_ -> spec_agaf := Some assignKeyWord
-      | Neg(Eq _ ) ::_ -> spec_agaf := Some notEQKeyWord
-      | _ -> ()
+      
+      extend_spec_agaf p 
 
-      )
       
       
     | _ -> () 
@@ -2677,7 +2692,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
      )) in 
 
-  spec_agaf:= None; 
+  spec_agaf:= []; 
      
   let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
 

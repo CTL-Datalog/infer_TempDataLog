@@ -130,7 +130,7 @@ type rankingfunction =  (terms * regularExpr option)
 let (varSet: (string list) ref) = ref [] 
 let (handlerVar: string option ref) = ref None 
 
-let (spec_agaf: (string) option ref) = ref None 
+let (spec_agaf: (string list) ref) = ref [] 
 
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
@@ -1581,10 +1581,8 @@ let rec expand_args (sep: string) (x:string list) =
   | [x] -> x
   | x :: xs -> x ^ sep ^ (expand_args sep xs)
 
-let existAGAF str = 
-  match !spec_agaf with 
-  | None -> false 
-  | Some s1 -> if String.compare s1 str == 0 then true else false 
+let rec existAGAF str = 
+  existAux (fun a b -> String.compare a b == 0 ) !spec_agaf str
 
 
 let sort_uniq cmp l =
@@ -2120,12 +2118,19 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ]))
 
       | LtEq(Basic (BSTR x), Basic (BSTR y) ) -> 
-        updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
+      if existAGAF leqKeyWordVar then 
+      (updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
+
+        let cond = Pos (leqKeyWordVar, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+)
+      else 
+        (updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
         updateRuleDeclearation bodyDeclearation (leqKeyWordVar^"D");
 
         let cond = Pos (leqKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-
+)
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
         if existAGAF assignKeyWord then 
@@ -2144,11 +2149,17 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 )
       | Eq(Basic (BSTR x), Basic (BSTR y) ) -> 
-        updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
+      if existAGAF assignKeyWordVar then 
+        (updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
+        let cond = Pos (assignKeyWordVar, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+        )
+      else 
+        (updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
         updateRuleDeclearation bodyDeclearation (assignKeyWordVar^"D");
         let cond = Pos (assignKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-
+)
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
       if existAGAF notEQKeyWord then 
       (
