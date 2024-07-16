@@ -27,10 +27,13 @@ public:
 
 class RTPSink {
 
+
 public:
     void removeStreamSocket(int sockNum, unsigned char streamChannelId) {
 
     }
+
+    int envir() {};
 };
 
 class RTCPInstance{
@@ -47,6 +50,10 @@ public:
 void removeDestination(unsigned sessionId) {}
 };
 
+int clearServerRequestAlternativeByteHandler( int a, int b){}
+
+/*@ AG( (_dests_isTCP >0) /\ (!(fRTPSink=0))   => AF(clearServerRequestAlternativeByteHandler_())) 
+@*/
 
 int main(){
     Destinations* dests;
@@ -56,8 +63,9 @@ int main(){
     Groupsock* fRTPgs;
     Groupsock* fRTCPgs;
 
-  if (dests->isTCP) {
+  if (dests->isTCP>0) {
     if (fRTPSink != NULL) {
+      //clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
       fRTPSink->removeStreamSocket(dests->tcpSocketNum, dests->rtpChannelId);
     }
     if (fRTCPInstance != NULL) {

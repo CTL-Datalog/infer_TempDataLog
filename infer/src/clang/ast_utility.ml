@@ -2150,12 +2150,22 @@ and translation_inner (ctl:ctl) : string * datalog =
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
+      if existAGAF notEQKeyWord then 
+      (
         updateRuleDeclearation ruleDeclearation (notEQKeyWord);
+
+        let cond = Pos (notEQKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
+
+
+      )
+      else
+        (updateRuleDeclearation ruleDeclearation (notEQKeyWord);
         updateRuleDeclearation bodyDeclearation (notEQKeyWord^"D");
 
         let cond = Pos (notEQKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-
+)
       | Predicate (str, _) -> 
         if String.compare str exitKeyWord == 0 || String.compare str retKeyword == 0 then 
           ((*print_endline ("predicate 1" ^ str); *)

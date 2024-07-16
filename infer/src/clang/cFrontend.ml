@@ -544,6 +544,7 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
   match exp with 
   | Var t -> 
     let tName = (Ident.to_string t) in 
+    print_endline ("!!!expressionToTerm tName " ^ tName) ; 
     (match existStack stack stack tName with 
     | Some (Lvar t) -> Some(Basic (BVAR (Pvar.to_string t ))) (** Pure variable: it is not an lvalue *)
     | Some exp -> Some(Basic (BVAR (Exp.to_string exp )))
@@ -596,6 +597,7 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
   | Sizeof _ -> None (*Basic (BVAR ("Sizeof"))*)
 
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
+  print_endline ("expressionToPure : " ^ (Exp.to_string exp));
   match exp with 
   | BinOp (Eq, BinOp (Mod _, e1, e2), e3) ->  
     let t1 = expressionToTerm e1 stack in 
@@ -832,6 +834,15 @@ let updateStakeUsingLoads intrs =
           | _ -> acc
         ) 
 
+let removeDotsInVarName str =
+  let str_li =  String.split_on_chars ~on:['.';'&'] str in 
+  let rec aux li = 
+    match li with 
+   | [] -> ""
+   | [x] -> x
+   | x ::xs  -> x ^ "_" ^ aux xs 
+   in aux str_li
+
 let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  getNodeID node in
@@ -855,7 +866,43 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
     | Prune (e, loc, f, _):: _ ->  
       (match expressionToPure e (stack@stack') with 
       | Some p -> 
-        Guard(p, node_key)
+        let (p':pure) = 
+          match p with 
+          | Eq (Basic (BVAR v1), t2) -> 
+              let v2= removeDotsInVarName v1 in 
+              Eq (Basic (BVAR v2), t2)
+          | Neg (Eq (Basic (BVAR v1), t2)) -> 
+              let v2= removeDotsInVarName v1 in 
+              let p':pure = Neg (Eq (Basic (BVAR v2), t2)) in 
+              p'
+
+          | (Gt (Basic (BVAR v1), t2)) -> 
+              let v2= removeDotsInVarName v1 in 
+              let p':pure = (Gt (Basic (BVAR v2), t2)) in 
+              p'
+
+          | (LtEq (Basic (BVAR v1), t2)) -> 
+              let v2= removeDotsInVarName v1 in 
+              let p':pure = (LtEq (Basic (BVAR v2), t2)) in 
+              p'
+
+          | (Lt (Basic (BVAR v1), t2)) -> 
+              let v2= removeDotsInVarName v1 in 
+              let p':pure = (Gt (Basic (BVAR v2), t2)) in 
+              p'
+
+          | (GtEq (Basic (BVAR v1), t2)) -> 
+              let v2= removeDotsInVarName v1 in 
+              let p':pure = (LtEq (Basic (BVAR v2), t2)) in 
+              p'
+
+
+
+          | _ -> p 
+
+        in 
+        print_endline ("last is Prune " ^ string_of_pure p');
+        Guard(p', node_key)
       | None -> 
 
         Guard(TRUE, node_key) ), stack'
@@ -950,11 +997,17 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
         let funName = String.sub funName 5 (String.length funName - 5) in 
+        let temp_funName = String.split_on_chars ~on:[':';'.'] funName in 
+        let funName = List.fold_left temp_funName ~init:"" ~f:(fun acc a -> acc ^ a ^ "_") in 
+
         predicateDeclearation:= (funName, argumentTermsType@["Number"]) :: !predicateDeclearation ;
         Singleton (Predicate (funName, argumentTerms), node_key), [] 
        
       | _ -> 
         let x = String.sub x 5 (String.length x - 5) in 
+        let temp_x = String.split_on_chars ~on:[':';'.'] x in 
+        let x = List.fold_left temp_x ~init:"" ~f:(fun acc a -> acc ^ a ^ "_") in 
+
         Singleton (Predicate (x, []), node_key), []
       )
     
@@ -2144,7 +2197,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
     currentValuation, rel
 
-  | Gt (Basic(BVAR var), Basic t1) | LtEq (Basic(BVAR var), Basic t1) | Lt (Basic(BVAR var), Basic t1) | GtEq (Basic(BVAR var), Basic t1)  -> 
+  | Gt (Basic(BVAR var), Basic t1) | LtEq (Basic(BVAR var), Basic t1) | Lt (Basic(BVAR var), Basic t1) | GtEq (Basic(BVAR var), Basic t1) | Neg (Eq (Basic(BVAR var), Basic t1) ) -> 
     print_endline (string_of_pure p ^ "newly added ");
     let currentValuation' = currentValuation in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 

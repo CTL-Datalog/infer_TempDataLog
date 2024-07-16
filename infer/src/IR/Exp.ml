@@ -264,7 +264,15 @@ let pp f e = pp_printenv ~print_types:false Pp.text f e
 
 let pp_closure = pp_closure_ Pp.text (Typ.pp Pp.text)
 
-let to_string e = F.asprintf "%a" pp e
+let to_string e = F.asprintf "%a" pp e 
+    (*let str = 
+    let str_li =  String.split_on_chars ~on:['.';'&'] str in 
+    let rec aux li = 
+        match li with 
+        | [] -> ""
+        | x ::xs  -> x ^ "_" ^ aux xs 
+    in aux str_li
+    *)
 
 let color_wrapper ~f = if Config.print_using_diff then Pp.color_wrapper ~f else f
 
