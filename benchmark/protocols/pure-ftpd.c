@@ -22,8 +22,7 @@ int main () {
     int activated = _nondet_int(); 
     int user_quota_size = _nondet_int();
     int quota_size = _nondet_int(); 
-    int max_filesize = -1; 
-    int temp = -1; // overflow
+    int max_filesize;// = -1; 
     int ret = -1 ; 
 
     if ((
@@ -32,6 +31,10 @@ int main () {
         max_filesize >=  0 && temp < 0)) {
         overflow = 1;
         goto afterquota;
+    }
+    else {
+        if (temp < 0) {}
+        else {}
     }
 
     afterquota:

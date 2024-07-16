@@ -888,12 +888,12 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
 
           | (Lt (Basic (BVAR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = (Gt (Basic (BVAR v2), t2)) in 
+              let p':pure = (Lt (Basic (BVAR v2), t2)) in 
               p'
 
           | (GtEq (Basic (BVAR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = (LtEq (Basic (BVAR v2), t2)) in 
+              let p':pure = (GtEq (Basic (BVAR v2), t2)) in 
               p'
 
 

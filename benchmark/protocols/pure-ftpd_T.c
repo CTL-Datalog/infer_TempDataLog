@@ -23,7 +23,6 @@ int main () {
     int user_quota_size = _nondet_int();
     int quota_size = _nondet_int(); 
     int max_filesize = -1; 
-    int temp = -1; // overflow
     int ret = -1 ; 
 
     if ((
