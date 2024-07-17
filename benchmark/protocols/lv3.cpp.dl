@@ -7,172 +7,182 @@ State(2).
 EXIT(3).
 State(3).
 
-/*(Start())@36 · (((_dests_isTCP>0)@37 · ((((fRTPSink!=0))@38 · (clearServerRequestAlternativeByteHandler_())@39 · (RTPSink__removeStreamSocket_())@40 · ((((fRTCPInstance!=0))@41 · (RTCPInstance__removeStreamSocket_())@42 · (EXIT())@43) \/ ((fRTCPInstance=0)@44 · (EXIT())@45))) \/ ((fRTPSink=0)@46 · ((((fRTCPInstance!=0))@47 · (RTCPInstance__removeStreamSocket_())@48 · (EXIT())@49) \/ ((fRTCPInstance=0)@50 · (EXIT())@51))))) \/ ((_dests_isTCP<=0)@52 · ((((fRTPgs!=0))@53 · (Groupsock__removeDestination_())@54 · ((((fRTCPgs!=0))@55 · ((((fRTCPgs!=fRTPgs))@56 · (Groupsock__removeDestination_())@57 · ((((fRTCPInstance!=0))@58 · (RTCPInstance__unsetSpecificRRHandler_())@59 · (EXIT())@60) \/ ((fRTCPInstance=0)@61 · (EXIT())@62))) \/ ((fRTCPgs=fRTPgs)@63 · ((((fRTCPInstance!=0))@64 · (RTCPInstance__unsetSpecificRRHandler_())@65 · (EXIT())@66) \/ ((fRTCPInstance=0)@67 · (EXIT())@68))))) \/ ((fRTCPgs=0)@69 · ((((fRTCPInstance!=0))@70 · (RTCPInstance__unsetSpecificRRHandler_())@71 · (EXIT())@72) \/ ((fRTCPInstance=0)@73 · (EXIT())@74))))) \/ ((fRTPgs=0)@75 · ((((fRTCPgs!=0))@76 · ((((fRTCPgs!=fRTPgs))@77 · (Groupsock__removeDestination_())@78 · ((((fRTCPInstance!=0))@79 · (RTCPInstance__unsetSpecificRRHandler_())@80 · (EXIT())@81) \/ ((fRTCPInstance=0)@82 · (EXIT())@83))) \/ ((fRTCPgs=fRTPgs)@84 · ((((fRTCPInstance!=0))@85 · (RTCPInstance__unsetSpecificRRHandler_())@86 · (EXIT())@87) \/ ((fRTCPInstance=0)@88 · (EXIT())@89))))) \/ ((fRTCPgs=0)@90 · ((((fRTCPInstance!=0))@91 · (RTCPInstance__unsetSpecificRRHandler_())@92 · (EXIT())@93) \/ ((fRTCPInstance=0)@94 · (EXIT())@95))))))))*/
+/*(Start())@35 · (((_dests_isTCP>0)@36 · ((((fRTPSink!=0))@37 · (RTPSink__removeStreamSocket())@38 · ((((fRTCPInstance!=0))@39 · (RTCPInstance__removeStreamSocket())@40 · (EXIT())@41) \/ ((fRTCPInstance=0)@42 · (EXIT())@43))) \/ ((fRTPSink=0)@44 · ((((fRTCPInstance!=0))@45 · (RTCPInstance__removeStreamSocket())@46 · (EXIT())@47) \/ ((fRTCPInstance=0)@48 · (EXIT())@49))))) \/ ((_dests_isTCP<=0)@50 · ((((fRTPgs!=0))@51 · (Groupsock__removeDestination())@52 · ((((fRTCPgs!=0))@53 · ((((fRTCPgs!=fRTPgs))@54 · (Groupsock__removeDestination())@55 · ((((fRTCPInstance!=0))@56 · (RTCPInstance__unsetSpecificRRHandler())@57 · (EXIT())@58) \/ ((fRTCPInstance=0)@59 · (EXIT())@60))) \/ ((fRTCPgs=fRTPgs)@61 · ((((fRTCPInstance!=0))@62 · (RTCPInstance__unsetSpecificRRHandler())@63 · (EXIT())@64) \/ ((fRTCPInstance=0)@65 · (EXIT())@66))))) \/ ((fRTCPgs=0)@67 · ((((fRTCPInstance!=0))@68 · (RTCPInstance__unsetSpecificRRHandler())@69 · (EXIT())@70) \/ ((fRTCPInstance=0)@71 · (EXIT())@72))))) \/ ((fRTPgs=0)@73 · ((((fRTCPgs!=0))@74 · ((((fRTCPgs!=fRTPgs))@75 · (Groupsock__removeDestination())@76 · ((((fRTCPInstance!=0))@77 · (RTCPInstance__unsetSpecificRRHandler())@78 · (EXIT())@79) \/ ((fRTCPInstance=0)@80 · (EXIT())@81))) \/ ((fRTCPgs=fRTPgs)@82 · ((((fRTCPInstance!=0))@83 · (RTCPInstance__unsetSpecificRRHandler())@84 · (EXIT())@85) \/ ((fRTCPInstance=0)@86 · (EXIT())@87))))) \/ ((fRTCPgs=0)@88 · ((((fRTCPInstance!=0))@89 · (RTCPInstance__unsetSpecificRRHandler())@90 · (EXIT())@91) \/ ((fRTCPInstance=0)@92 · (EXIT())@93))))))))*/
 
+
+// clearServerRequestAlternativeByteHandler(38). // add this fact
+
+
+flow(35,36).
 flow(36,37).
 flow(37,38).
 flow(38,39).
 flow(39,40).
 flow(40,41).
-flow(41,42).
+flow(41,41).
+flow(38,42).
 flow(42,43).
 flow(43,43).
-flow(40,44).
+flow(36,44).
 flow(44,45).
-flow(45,45).
-flow(37,46).
+flow(45,46).
 flow(46,47).
-flow(47,48).
+flow(47,47).
+flow(44,48).
 flow(48,49).
 flow(49,49).
-flow(46,50).
+flow(35,50).
 flow(50,51).
-flow(51,51).
-flow(36,52).
+flow(51,52).
 flow(52,53).
 flow(53,54).
 flow(54,55).
 flow(55,56).
 flow(56,57).
 flow(57,58).
-flow(58,59).
+flow(58,58).
+flow(55,59).
 flow(59,60).
 flow(60,60).
-flow(57,61).
+flow(53,61).
 flow(61,62).
-flow(62,62).
-flow(55,63).
+flow(62,63).
 flow(63,64).
-flow(64,65).
+flow(64,64).
+flow(61,65).
 flow(65,66).
 flow(66,66).
-flow(63,67).
+flow(52,67).
 flow(67,68).
-flow(68,68).
-flow(54,69).
+flow(68,69).
 flow(69,70).
-flow(70,71).
+flow(70,70).
+flow(67,71).
 flow(71,72).
 flow(72,72).
-flow(69,73).
+flow(50,73).
 flow(73,74).
-flow(74,74).
-flow(52,75).
+flow(74,75).
 flow(75,76).
 flow(76,77).
 flow(77,78).
 flow(78,79).
-flow(79,80).
+flow(79,79).
+flow(76,80).
 flow(80,81).
 flow(81,81).
-flow(78,82).
+flow(74,82).
 flow(82,83).
-flow(83,83).
-flow(76,84).
+flow(83,84).
 flow(84,85).
-flow(85,86).
+flow(85,85).
+flow(82,86).
 flow(86,87).
 flow(87,87).
-flow(84,88).
+flow(73,88).
 flow(88,89).
-flow(89,89).
-flow(75,90).
+flow(89,90).
 flow(90,91).
-flow(91,92).
+flow(91,91).
+flow(88,92).
 flow(92,93).
 flow(93,93).
-flow(90,94).
-flow(94,95).
-flow(95,95).
-Start(36).
-Gt("_dests_isTCP",37,0).
-NotEq("fRTPSink",38,0).
-State(38).
-clearServerRequestAlternativeByteHandler_(39).
+Start(35).
+Gt("_dests_isTCP",36,0).
+NotEq("fRTPSink",37,0).
+State(37).
+RTPSink__removeStreamSocket(38).
 State(39).
-RTPSink__removeStreamSocket_(40).
+RTCPInstance__removeStreamSocket(40).
+State(40).
+EXIT(41).
 State(41).
-RTCPInstance__removeStreamSocket_(42).
+State(38).
 State(42).
 EXIT(43).
 State(43).
-State(40).
-State(44).
-EXIT(45).
+State(36).
 State(45).
-State(37).
+RTCPInstance__removeStreamSocket(46).
+State(46).
+EXIT(47).
 State(47).
-RTCPInstance__removeStreamSocket_(48).
+State(44).
 State(48).
 EXIT(49).
 State(49).
-State(46).
-State(50).
-EXIT(51).
+State(35).
 State(51).
-State(36).
-State(53).
-Groupsock__removeDestination_(54).
+Groupsock__removeDestination(52).
+State(54).
+Groupsock__removeDestination(55).
 State(56).
-Groupsock__removeDestination_(57).
+RTCPInstance__unsetSpecificRRHandler(57).
+State(57).
+EXIT(58).
 State(58).
-RTCPInstance__unsetSpecificRRHandler_(59).
+State(55).
 State(59).
 EXIT(60).
 State(60).
-State(57).
-State(61).
-EXIT(62).
+State(53).
 State(62).
-State(55).
+RTCPInstance__unsetSpecificRRHandler(63).
+State(63).
+EXIT(64).
 State(64).
-RTCPInstance__unsetSpecificRRHandler_(65).
+State(61).
 State(65).
 EXIT(66).
 State(66).
-State(63).
-State(67).
-EXIT(68).
+State(52).
 State(68).
-State(54).
+RTCPInstance__unsetSpecificRRHandler(69).
+State(69).
+EXIT(70).
 State(70).
-RTCPInstance__unsetSpecificRRHandler_(71).
+State(67).
 State(71).
 EXIT(72).
 State(72).
-State(69).
-State(73).
-EXIT(74).
-State(74).
-State(52).
+State(50).
+State(75).
+Groupsock__removeDestination(76).
 State(77).
-Groupsock__removeDestination_(78).
+RTCPInstance__unsetSpecificRRHandler(78).
+State(78).
+EXIT(79).
 State(79).
-RTCPInstance__unsetSpecificRRHandler_(80).
+State(76).
 State(80).
 EXIT(81).
 State(81).
-State(78).
-State(82).
-EXIT(83).
+State(74).
 State(83).
-State(76).
+RTCPInstance__unsetSpecificRRHandler(84).
+State(84).
+EXIT(85).
 State(85).
-RTCPInstance__unsetSpecificRRHandler_(86).
+State(82).
 State(86).
 EXIT(87).
 State(87).
-State(84).
-State(88).
-EXIT(89).
+State(73).
 State(89).
-State(75).
+RTCPInstance__unsetSpecificRRHandler(90).
+State(90).
+EXIT(91).
 State(91).
-RTCPInstance__unsetSpecificRRHandler_(92).
+State(88).
 State(92).
 EXIT(93).
 State(93).
-State(90).
+
+/*(Start())@94 · (EXIT())@95*/
+
+flow(94,95).
+flow(95,95).
+Start(94).
 State(94).
 EXIT(95).
 State(95).
@@ -240,16 +250,7 @@ State(108).
 EXIT(109).
 State(109).
 
-/*(Start())@110 · (EXIT())@111*/
-
-flow(110,111).
-flow(111,111).
-Start(110).
-State(110).
-EXIT(111).
-State(111).
-
-//AG(("_dests_isTCP">0∧("fRTPSink"!=0) => AF(clearServerRequestAlternativeByteHandler_())))
+//AG(("_dests_isTCP">0∧("fRTPSink"!=0) => AF(clearServerRequestAlternativeByteHandler())))
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -257,49 +258,49 @@ State(111).
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl EXIT(n0:number)
-.decl Groupsock__removeDestination_(n0:number)
-.decl RTCPInstance__removeStreamSocket_(n0:number)
-.decl RTCPInstance__unsetSpecificRRHandler_(n0:number)
-.decl RTPSink__removeStreamSocket_(n0:number)
-.decl clearServerRequestAlternativeByteHandler_(n0:number)
+.decl Groupsock__removeDestination(n0:number)
+.decl RTCPInstance__removeStreamSocket(n0:number)
+.decl RTCPInstance__unsetSpecificRRHandler(n0:number)
+.decl RTPSink__removeStreamSocket(n0:number)
+.decl clearServerRequestAlternativeByteHandler(n0:number)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl NotEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
-.decl clearServerRequestAlternativeByteHandler_Pred(loc:number)
-.decl AF_clearServerRequestAlternativeByteHandler_Pred_T(interm_state:number,loc:number)
-.decl AF_clearServerRequestAlternativeByteHandler_Pred_S(loc:number)
-.decl AF_clearServerRequestAlternativeByteHandler_Pred(loc:number)
+.decl clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state:number,loc:number)
+.decl AF_clearServerRequestAlternativeByteHandlerPred_S(loc:number)
+.decl AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
 .decl fRTPSink_neq_0(loc:number)
 .decl _dests_isTCP_gt_0(loc:number)
 .decl _dests_isTCP_gt_0_AND_fRTPSink_neq_0(loc:number)
-.decl _dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc:number)
-.decl NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc:number)
-.decl EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc:number)
-.decl AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc:number)
-.decl AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl _dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
-clearServerRequestAlternativeByteHandler_Pred(loc) :- State(loc), clearServerRequestAlternativeByteHandler_(loc).
-AF_clearServerRequestAlternativeByteHandler_Pred_T(interm_state,loc) :- AF_clearServerRequestAlternativeByteHandler_Pred_T(tempOne,loc), !clearServerRequestAlternativeByteHandler_Pred(tempOne), control_flow(tempOne,interm_state).
-AF_clearServerRequestAlternativeByteHandler_Pred_T(interm_state,loc) :- !clearServerRequestAlternativeByteHandler_Pred(loc), control_flow(loc,interm_state).
-AF_clearServerRequestAlternativeByteHandler_Pred_S(loc) :- !clearServerRequestAlternativeByteHandler_Pred(loc), control_flow(loc,tempOne), AF_clearServerRequestAlternativeByteHandler_Pred_S(tempOne).
-AF_clearServerRequestAlternativeByteHandler_Pred_S(loc) :- AF_clearServerRequestAlternativeByteHandler_Pred_T(loc,loc).
-AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- State(loc), !AF_clearServerRequestAlternativeByteHandler_Pred_S(loc).
+clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), clearServerRequestAlternativeByteHandler(loc).
+AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state,loc) :- AF_clearServerRequestAlternativeByteHandlerPred_T(tempOne,loc), !clearServerRequestAlternativeByteHandlerPred(tempOne), control_flow(tempOne,interm_state).
+AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state,loc) :- !clearServerRequestAlternativeByteHandlerPred(loc), control_flow(loc,interm_state).
+AF_clearServerRequestAlternativeByteHandlerPred_S(loc) :- !clearServerRequestAlternativeByteHandlerPred(loc), control_flow(loc,tempOne), AF_clearServerRequestAlternativeByteHandlerPred_S(tempOne).
+AF_clearServerRequestAlternativeByteHandlerPred_S(loc) :- AF_clearServerRequestAlternativeByteHandlerPred_T(loc,loc).
+AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !AF_clearServerRequestAlternativeByteHandlerPred_S(loc).
 fRTPSink_neq_0(loc) :- State(loc), NotEq("fRTPSink",loc,0).
 _dests_isTCP_gt_0(loc) :- State(loc), GtD("_dests_isTCP",loc,0).
 _dests_isTCP_gt_0_AND_fRTPSink_neq_0(loc) :- _dests_isTCP_gt_0(loc), fRTPSink_neq_0(loc).
-_dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- State(loc), !_dests_isTCP_gt_0_AND_fRTPSink_neq_0(loc).
-_dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- AF_clearServerRequestAlternativeByteHandler_Pred(loc).
-NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- State(loc), !_dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc).
-EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- control_flow(loc,tempOne), EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(tempOne).
-EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc).
-AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc) :- State(loc), !EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc).
-AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred_Final(loc) :- Start(loc), AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred(loc), !NotTotal(loc).
+_dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !_dests_isTCP_gt_0_AND_fRTPSink_neq_0(loc).
+_dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- AF_clearServerRequestAlternativeByteHandlerPred(loc).
+NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !_dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).
+EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- control_flow(loc,tempOne), EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(tempOne).
+EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).
+AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !EF_NOT__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).
+AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred_Final(loc) :- Start(loc), AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc), !NotTotal(loc).
 .output LtEq
 .output NotEq
 .output Gt
@@ -307,12 +308,11 @@ AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeBy
 .output State
 .output flow
 .output EXIT
-.output Groupsock__removeDestination_
-.output RTCPInstance__removeStreamSocket_
-.output RTCPInstance__unsetSpecificRRHandler_
-.output RTPSink__removeStreamSocket_
-.output clearServerRequestAlternativeByteHandler_
-.output AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandler_Pred_Final(IO=stdout)
+.output Groupsock__removeDestination
+.output RTCPInstance__removeStreamSocket
+.output RTCPInstance__unsetSpecificRRHandler
+.output RTPSink__removeStreamSocket
+.output AG__dests_isTCP_gt_0_AND_fRTPSink_neq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred_Final(IO=stdout)
 
 /* Other information 
 
@@ -323,28 +323,27 @@ Exit(0).  // @53:61
 Start(1). // @53:1
 //-- Facts for Procedure <main> 
 
-Flow(1,36). //@58:1-66:7
-Flow(20,37). //@66:3-66:3
-Flow(37,0). //@66:3-83:1
-Flow(36,34). //@66:7-66:7
-Flow(36,35). //@66:7-66:7
-Flow(35,26). //@66:7-67:9
-Flow(34,6). //@66:7-77:9
-Flow(31,20). //@71:5-66:3
-Flow(27,32). //@71:9-71:9
-Flow(27,33). //@71:9-71:9
-Flow(33,28). //@71:9-72:7
-Flow(32,31). //@71:9-71:5
-Flow(29,30). //@73:66-73:7
-Flow(30,31). //@73:7-71:5
-Flow(28,29). //@72:7-73:66
-Flow(23,27). //@67:5-71:9
-Flow(26,24). //@67:9-67:9
-Flow(26,25). //@67:9-67:9
-Flow(25,21). //@67:9-68:7
-Flow(24,23). //@67:9-67:5
-Flow(22,23). //@69:7-67:5
-Flow(21,22). //@68:7-69:7
+Flow(1,35). //@58:1-66:7
+Flow(20,36). //@66:3-66:3
+Flow(36,0). //@66:3-83:1
+Flow(35,33). //@66:7-66:7
+Flow(35,34). //@66:7-66:7
+Flow(34,25). //@66:7-67:9
+Flow(33,6). //@66:7-77:9
+Flow(30,20). //@71:5-66:3
+Flow(26,31). //@71:9-71:9
+Flow(26,32). //@71:9-71:9
+Flow(32,27). //@71:9-72:7
+Flow(31,30). //@71:9-71:5
+Flow(28,29). //@73:66-73:7
+Flow(29,30). //@73:7-71:5
+Flow(27,28). //@72:7-73:66
+Flow(22,26). //@67:5-71:9
+Flow(25,23). //@67:9-67:9
+Flow(25,24). //@67:9-67:9
+Flow(24,21). //@67:9-69:7
+Flow(23,22). //@67:9-67:5
+Flow(21,22). //@69:7-67:5
 Flow(17,20). //@79:5-66:3
 Flow(15,18). //@79:9-79:9
 Flow(15,19). //@79:9-79:9
@@ -367,41 +366,40 @@ Flow(6,5). //@77:9-77:9
 Flow(5,2). //@77:9-77:25
 Flow(4,3). //@77:9-77:5
 Flow(2,3). //@77:25-77:5
-Stmt_Call(2,_fun_Groupsock::removeDestination,[ILoad(&fRTPgs,n$60),ILoad(n$60,_),ILoad(&clientSessionId,n$62),ICall(_fun_Groupsock::removeDestination,n$60,n$62,n$63)]). // @77:25
-PruneNode(4,false,[Prune(!(n$59 != null), false)]). // @77:9
-PruneNode(5,true,[Prune((n$59 != null), true)]). // @77:9
-Stmt_BinaryOperatorStmt(6,NE,[ILoad(&fRTPgs,n$59)]). // @77:9
+Stmt_Call(2,_fun_Groupsock::removeDestination,[ILoad(&fRTPgs,n$54),ILoad(n$54,_),ILoad(&clientSessionId,n$56),ICall(_fun_Groupsock::removeDestination,n$54,n$56,n$57)]). // @77:25
+PruneNode(4,false,[Prune(!(n$53 != null), false)]). // @77:9
+PruneNode(5,true,[Prune((n$53 != null), true)]). // @77:9
+Stmt_BinaryOperatorStmt(6,NE,[ILoad(&fRTPgs,n$53)]). // @77:9
 Join(3,[]).  // @77:5
-Stmt_Call(8,_fun_Groupsock::removeDestination,[ILoad(&fRTCPgs,n$53),ILoad(n$53,_),ILoad(&clientSessionId,n$55),ICall(_fun_Groupsock::removeDestination,n$53,n$55,n$56)]). // @78:47
-PruneNode(10,false,[Prune(!(n$51 != n$52), false)]). // @78:28
-PruneNode(11,true,[Prune((n$51 != n$52), true)]). // @78:28
-Stmt_BinaryOperatorStmt(12,NE,[ILoad(&fRTCPgs,n$51),ILoad(&fRTPgs,n$52)]). // @78:28
-PruneNode(13,false,[Prune(!(n$50 != null), false)]). // @78:9
-PruneNode(14,true,[Prune((n$50 != null), true)]). // @78:9
-Stmt_BinaryOperatorStmt(7,NE,[ILoad(&fRTCPgs,n$50)]). // @78:9
+Stmt_Call(8,_fun_Groupsock::removeDestination,[ILoad(&fRTCPgs,n$47),ILoad(n$47,_),ILoad(&clientSessionId,n$49),ICall(_fun_Groupsock::removeDestination,n$47,n$49,n$50)]). // @78:47
+PruneNode(10,false,[Prune(!(n$45 != n$46), false)]). // @78:28
+PruneNode(11,true,[Prune((n$45 != n$46), true)]). // @78:28
+Stmt_BinaryOperatorStmt(12,NE,[ILoad(&fRTCPgs,n$45),ILoad(&fRTPgs,n$46)]). // @78:28
+PruneNode(13,false,[Prune(!(n$44 != null), false)]). // @78:9
+PruneNode(14,true,[Prune((n$44 != null), true)]). // @78:9
+Stmt_BinaryOperatorStmt(7,NE,[ILoad(&fRTCPgs,n$44)]). // @78:9
 Join(9,[]).  // @78:5
-Stmt_Call(16,_fun_RTCPInstance::unsetSpecificRRHandler,[ILoad(&fRTCPInstance,n$40),ILoad(n$40,_),ILoad(&dests,n$42),ILoad(n$42.addr.s_addr,n$43),ILoad(&dests,n$45),ICall(_fun_Port::Port,&0$?%__sil_tmp__temp_construct_n$44,n$45.rtcpPort,n$46),ICall(_fun_RTCPInstance::unsetSpecificRRHandler,n$40,n$43,&0$?%__sil_tmp__temp_construct_n$44,n$47)]). // @80:7
-PruneNode(18,false,[Prune(!(n$39 != null), false)]). // @79:9
-PruneNode(19,true,[Prune((n$39 != null), true)]). // @79:9
-Stmt_BinaryOperatorStmt(15,NE,[ILoad(&fRTCPInstance,n$39)]). // @79:9
+Stmt_Call(16,_fun_RTCPInstance::unsetSpecificRRHandler,[ILoad(&fRTCPInstance,n$34),ILoad(n$34,_),ILoad(&dests,n$36),ILoad(n$36.addr.s_addr,n$37),ILoad(&dests,n$39),ICall(_fun_Port::Port,&0$?%__sil_tmp__temp_construct_n$38,n$39.rtcpPort,n$40),ICall(_fun_RTCPInstance::unsetSpecificRRHandler,n$34,n$37,&0$?%__sil_tmp__temp_construct_n$38,n$41)]). // @80:7
+PruneNode(18,false,[Prune(!(n$33 != null), false)]). // @79:9
+PruneNode(19,true,[Prune((n$33 != null), true)]). // @79:9
+Stmt_BinaryOperatorStmt(15,NE,[ILoad(&fRTCPInstance,n$33)]). // @79:9
 Join(17,[]).  // @79:5
-Stmt_Call(21,_fun_clearServerRequestAlternativeByteHandler,[ILoad(&fRTPSink,n$31),ILoad(n$31,_),ICall(_fun_RTPSink::envir,n$31,n$33),ILoad(&dests,n$34),ILoad(n$34.tcpSocketNum,n$35),ICall(_fun_clearServerRequestAlternativeByteHandler,n$33,n$35,n$36)]). // @68:7
-Stmt_Call(22,_fun_RTPSink::removeStreamSocket,[ILoad(&fRTPSink,n$24),ILoad(n$24,_),ILoad(&dests,n$26),ILoad(n$26.tcpSocketNum,n$27),ILoad(&dests,n$28),ILoad(n$28.rtpChannelId,n$29),ICall(_fun_RTPSink::removeStreamSocket,n$24,n$27,n$29,n$30)]). // @69:7
-PruneNode(24,false,[Prune(!(n$23 != null), false)]). // @67:9
-PruneNode(25,true,[Prune((n$23 != null), true)]). // @67:9
-Stmt_BinaryOperatorStmt(26,NE,[ILoad(&fRTPSink,n$23)]). // @67:9
-Join(23,[]).  // @67:5
-Stmt_Call(28,_fun_RTCPInstance::removeStreamSocket,[ILoad(&fRTCPInstance,n$14),ILoad(n$14,_),ILoad(&dests,n$16),ILoad(n$16.tcpSocketNum,n$17),ILoad(&dests,n$18),ILoad(n$18.rtcpChannelId,n$19),ICall(_fun_RTCPInstance::removeStreamSocket,n$14,n$17,n$19,n$20)]). // @72:7
-Stmt_CompoundStmt(30,[ILoad(&fRTCPInstance,n$4),ILoad(n$4,_),ILoad(&dests,n$6),ILoad(n$6.tcpSocketNum,n$7),ICall(_fun_Port::Port,&0$?%__sil_tmp__temp_construct_n$8,&0$?%__sil_tmpSIL_materialize_temp__n$3,n$12),ICall(_fun_RTCPInstance::unsetSpecificRRHandler,n$4,()n$7,&0$?%__sil_tmp__temp_construct_n$8,n$13)]). // @73:7
-Stmt_Decl(29,[ILoad(&dests,n$9),ILoad(n$9.rtcpChannelId,n$10),ICall(_fun_Port::Port,&0$?%__sil_tmpSIL_materialize_temp__n$3,()n$10,n$11)]). // @73:66
-PruneNode(32,false,[Prune(!(n$2 != null), false)]). // @71:9
-PruneNode(33,true,[Prune((n$2 != null), true)]). // @71:9
-Stmt_BinaryOperatorStmt(27,NE,[ILoad(&fRTCPInstance,n$2)]). // @71:9
-Join(31,[]).  // @71:5
-PruneNode(34,false,[Prune(!(n$1 > 0), false)]). // @66:7
-PruneNode(35,true,[Prune((n$1 > 0), true)]). // @66:7
-Stmt_BinaryOperatorStmt(36,GT,[ILoad(&dests,n$0),ILoad(n$0.isTCP,n$1)]). // @66:7
-Stmt_BetweenJoinAndExit(37,[]). // @66:3
+Stmt_Call(21,_fun_RTPSink::removeStreamSocket,[ILoad(&fRTPSink,n$24),ILoad(n$24,_),ILoad(&dests,n$26),ILoad(n$26.tcpSocketNum,n$27),ILoad(&dests,n$28),ILoad(n$28.rtpChannelId,n$29),ICall(_fun_RTPSink::removeStreamSocket,n$24,n$27,n$29,n$30)]). // @69:7
+PruneNode(23,false,[Prune(!(n$23 != null), false)]). // @67:9
+PruneNode(24,true,[Prune((n$23 != null), true)]). // @67:9
+Stmt_BinaryOperatorStmt(25,NE,[ILoad(&fRTPSink,n$23)]). // @67:9
+Join(22,[]).  // @67:5
+Stmt_Call(27,_fun_RTCPInstance::removeStreamSocket,[ILoad(&fRTCPInstance,n$14),ILoad(n$14,_),ILoad(&dests,n$16),ILoad(n$16.tcpSocketNum,n$17),ILoad(&dests,n$18),ILoad(n$18.rtcpChannelId,n$19),ICall(_fun_RTCPInstance::removeStreamSocket,n$14,n$17,n$19,n$20)]). // @72:7
+Stmt_CompoundStmt(29,[ILoad(&fRTCPInstance,n$4),ILoad(n$4,_),ILoad(&dests,n$6),ILoad(n$6.tcpSocketNum,n$7),ICall(_fun_Port::Port,&0$?%__sil_tmp__temp_construct_n$8,&0$?%__sil_tmpSIL_materialize_temp__n$3,n$12),ICall(_fun_RTCPInstance::unsetSpecificRRHandler,n$4,()n$7,&0$?%__sil_tmp__temp_construct_n$8,n$13)]). // @73:7
+Stmt_Decl(28,[ILoad(&dests,n$9),ILoad(n$9.rtcpChannelId,n$10),ICall(_fun_Port::Port,&0$?%__sil_tmpSIL_materialize_temp__n$3,()n$10,n$11)]). // @73:66
+PruneNode(31,false,[Prune(!(n$2 != null), false)]). // @71:9
+PruneNode(32,true,[Prune((n$2 != null), true)]). // @71:9
+Stmt_BinaryOperatorStmt(26,NE,[ILoad(&fRTCPInstance,n$2)]). // @71:9
+Join(30,[]).  // @71:5
+PruneNode(33,false,[Prune(!(n$1 > 0), false)]). // @66:7
+PruneNode(34,true,[Prune((n$1 > 0), true)]). // @66:7
+Stmt_BinaryOperatorStmt(35,GT,[ILoad(&dests,n$0),ILoad(n$0.isTCP,n$1)]). // @66:7
+Stmt_BetweenJoinAndExit(36,[]). // @66:3
 Join(20,[]).  // @66:3
 Exit(0).  // @83:1
 Start(1). // @58:1

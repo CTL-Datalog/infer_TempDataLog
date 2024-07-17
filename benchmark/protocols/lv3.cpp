@@ -52,7 +52,7 @@ void removeDestination(unsigned sessionId) {}
 
 int clearServerRequestAlternativeByteHandler( int a, int b){}
 
-/*@ AG( (_dests_isTCP >0) /\ (!(fRTPSink=0))   => AF(clearServerRequestAlternativeByteHandler_())) 
+/*@ AG( (_dests_isTCP >0) /\ (!(fRTPSink=0))   => AF(clearServerRequestAlternativeByteHandler())) 
 @*/
 
 int main(){
@@ -65,7 +65,7 @@ int main(){
 
   if (dests->isTCP>0) {
     if (fRTPSink != NULL) {
-      clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
+      //clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
       fRTPSink->removeStreamSocket(dests->tcpSocketNum, dests->rtpChannelId);
     }
     if (fRTCPInstance != NULL) {
