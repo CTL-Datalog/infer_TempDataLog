@@ -10,6 +10,9 @@ State(34).
 
 /*(Start())@35 · (overflow=0)@36 · (ret=-1)@37 · (((max_filesize>=0)@38 · (((temp<0)@39 · (overflow=1)@40 · (Join())@41 · (([overflow>0]@42 · (addreply(552))@43 · (Return(-1))@44) \/ ([overflow<=0]@45 · (([ret=0]@46 · (addreply(226))@47 · (Return(-1))@48) \/ ([(ret!=0)]@49 · (addreply(451))@50 · (Return(-1))@51))))) \/ ((temp>=0)@52 · (((temp<0)@53 · (Join())@54 · (([overflow>0]@55 · (addreply(552))@56 · (Return(-1))@57) \/ ([overflow<=0]@58 · (([ret=0]@59 · (addreply(226))@60 · (Return(-1))@61) \/ ([(ret!=0)]@62 · (addreply(451))@63 · (Return(-1))@64))))) \/ ((temp>=0)@65 · (Join())@66 · (([overflow>0]@67 · (addreply(552))@68 · (Return(-1))@69) \/ ([overflow<=0]@70 · (([ret=0]@71 · (addreply(226))@72 · (Return(-1))@73) \/ ([(ret!=0)]@74 · (addreply(451))@75 · (Return(-1))@76))))))))) \/ ((max_filesize<0)@77 · (((temp<0)@78 · (Join())@79 · (([overflow>0]@80 · (addreply(552))@81 · (Return(-1))@82) \/ ([overflow<=0]@83 · (([ret=0]@84 · (addreply(226))@85 · (Return(-1))@86) \/ ([(ret!=0)]@87 · (addreply(451))@88 · (Return(-1))@89))))) \/ ((temp>=0)@90 · (Join())@91 · (([overflow>0]@92 · (addreply(552))@93 · (Return(-1))@94) \/ ([overflow<=0]@95 · (([ret=0]@96 · (addreply(226))@97 · (Return(-1))@98) \/ ([(ret!=0)]@99 · (addreply(451))@100 · (Return(-1))@101))))))))*/
 
+// Gt("overflow",53,0). // add these two facts 
+// Gt("overflow",78,0). // add these two facts
+
 flow(35,36).
 flow(36,37).
 flow(37,38).

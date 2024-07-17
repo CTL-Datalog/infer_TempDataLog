@@ -9,6 +9,8 @@ State(3).
 
 /*(Start())@12 · (((prevClientConnection=0)@13 · (handleHTTPCmd_notSupported())@14 · (fIsActive=0)@15 · (Return(0))@16) \/ (((prevClientConnection!=0))@17 · (((prevClientConnection=this_)@18 · (EXIT())@19) \/ (((prevClientConnection!=this_))@20 · (EXIT())@21))))*/
 
+// handleHTTPCmd_notSupported(18). // add this fact
+
 flow(12,13).
 flow(13,14).
 flow(14,15).
@@ -31,7 +33,6 @@ Return(0,16).
 State(16).
 State(12).
 EqVar("prevClientConnection",18,"this_").
-handleHTTPCmd_notSupported(18). // add this fact
 State(18).
 EXIT(19).
 State(19).
