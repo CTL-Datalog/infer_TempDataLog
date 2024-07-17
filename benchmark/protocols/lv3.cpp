@@ -65,6 +65,7 @@ int main(){
 
   if (dests->isTCP>0) {
     if (fRTPSink != NULL) {
+      // To Martin: the correct version is to uncomment the following line!
       //clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
       fRTPSink->removeStreamSocket(dests->tcpSocketNum, dests->rtpChannelId);
     }

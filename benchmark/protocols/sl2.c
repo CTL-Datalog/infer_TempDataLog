@@ -69,6 +69,7 @@ int main() {
         else {
             int tem = SSL3_RECORD_get_length(rr);
             if (tem == 0){
+                    // To Martin: the correct version is to uncomment the following line!
                     //SSL3_RECORD_set_read(rr);
                     }
         }

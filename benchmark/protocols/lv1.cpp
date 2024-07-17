@@ -31,6 +31,7 @@ int main(){
     return false;
   }
   else if (prevClientConnection == this_) {
+    // To Martin: the correct version is to uncomment the following line!
     //handleHTTPCmd_notSupported();
   }
   else {}
