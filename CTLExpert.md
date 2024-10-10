@@ -8,26 +8,27 @@ Without changing the submitted artifact, this file contains the information for:
 
 # Video Demonstration
 
-<mark> a link here for the 5 mins video </mark>
+<mark> a link here for the 5 mins video </mark> 
 
 
 # Running CTLExpert with examples in Docker
 
+- Obtain the docker image 
 ```
 $ docker pull anonymous716/ctlexpert-main:latest
 $ docker run -i -t  anonymous716/ctlexpert-main:latest
-$ cd home/infer_TempDataLog/
-$ ./compile  # This takes 3 mins from docker and up to 2 hours from scratch 
-
-Analyze the example which satisfy the property: 
-$ infer/bin/infer run -- clang -c benchmark/protocols/lv1_T.cpp # This file contains the program which satisfy the property 
+$ cd home
+$ ls 
+# there are two folders: infer_TempDataLog and symlog
 ```
 
-The following output indicates that the output Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl` 
-and the current implementation satisfy the property 
-AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(Return(0)))
-Because both state 2 and 11 satisfy it, and they are the entry states of the two functions inside. 
-
+- Analyze a program (Program 26 in Table II) which satisfy its annotated property, and the property is 
+`AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(Return(0)))`: 
+```
+$ cd infer_TempDataLog
+$ infer/bin/infer run -- clang -c benchmark/protocols/lv1_T.cpp 
+```
+By the end of the console printing, you will see the following: 
 ```
 <==
  Runing Datalog $ souffle -F. -D. /home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl 
@@ -41,6 +42,13 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPre
 Totol_execution_time: 0.074450969696 s
 ===============================================
 ```
+
+The following output from console indicates that the output Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl` 
+and the current implementation satisfy the property 
+
+Because both state 2 and 11 satisfy it, and they are the entry states of the two functions inside. 
+
+
 
 Analyze the example which does not satisfy the property: 
 
