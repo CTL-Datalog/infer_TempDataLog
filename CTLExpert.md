@@ -1,14 +1,8 @@
 # Overview
 
-Without changing the submitted artifact, this file contains the information for: 
-- A demonstration video for using CTLExpert
+**Without changing the submitted artifact**, this file contains the information for: 
 - Instructions for testing CTLExpert from Docker
 - Instructions for building CTLExpert from scratch
-
-
-# Video Demonstration
-
-<mark> a link here for the 5 mins video </mark> 
 
 
 # Running CTLExpert with examples in Docker
