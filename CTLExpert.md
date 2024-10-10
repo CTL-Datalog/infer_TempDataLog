@@ -67,6 +67,10 @@ Because the property holds at only state 2, and the second function does not sat
 
 Next, the file souffle -F. -D. `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl` is sent for repair. 
 
+```
+$ cd ../symlog
+$ python run.py lv1 /home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl tmp/lv1 AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final 12
+```
 
 After repair, the repaired Datalog files are placed at: `tmp/lv1/lv1_cpp_dl`, with the suffix being _patch_n.dl. There are two repaired Datalog files generated for this program 26. The lv1.cpp_patch_1.dl includes the 'handleHTTPCmd_notSupported(18).', which is the ground truth patch.   Executing the them generates the following output: 
  
