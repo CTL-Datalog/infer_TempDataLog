@@ -1,6 +1,6 @@
 # Overview
 
-**Without changing the submitted artifact**, this file contains the information for: 
+**Without modifying the submitted artifact**, this file contains the information for: 
 - Instructions for testing CTLExpert from Docker
 - Instructions for building CTLExpert from scratch
 
