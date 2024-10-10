@@ -1,5 +1,12 @@
+We apologise for not including the build instructions in the attached artifact. Without changing the submitted artifact, we have now attached a file that contains all the setup instructions, a Docker image for quick testing, and a demonstration video for using CTLExpert. 
 
-Running CTLExpert with examples in Docker. 
+
+# Video Demonstration
+
+<mark> a link here for the 5 mins video </mark>
+
+
+# Running CTLExpert with examples in Docker
 
 ```
 $ docker pull anonymous716/ctlexpert-main:latest
@@ -67,9 +74,11 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTT
 
 
 How to run the analysis:
+```
 $ cd CTLExpert/analysis/infer_TempDataLog-main
 $ infer/bin/infer run -- clang -c benchmark/evaluation/p1_1.8_potential_termination_1.c 
 # The analysis result is printed in the console and the output Datalog file is: benchmark/evaluation/p1_1.8_potential_termination_1.c.dl 
+```
 
 Converted facts location:
 CTLExpert/repair/ctl-symlog/tmp/
@@ -77,9 +86,10 @@ CTLExpert/repair/ctl-symlog/tmp/
 How to run the repair:
 Copy the CTL datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, remove (IO=stdout) and change all .output without (IO=stdout) into .input
 
+```
 $ cd CTLExpert/repair/ctl-symlog
 $ python tests/test_symbolic_executor.py
-
+```
 
 
 
@@ -87,7 +97,9 @@ $ python tests/test_symbolic_executor.py
 
 # Build From Scratch
 
-- SETUP INSTRUCTIONS FOR THE ANALYSIS: 
+Download and unzip the submitted artifact "CTLExpert.zip" from Zenodo: `https://zenodo.org/doi/10.5281/zenodo.13147562`. 
+
+### Setup instructions for the analysis: 
 ```
 $ apt install opam menhir cmake z3 sqlite3 
 $ opam init 
@@ -97,9 +109,12 @@ $ ./compile  # This takes 3 mins from docker and up to 2 hours from scratch
 $ infer/bin/infer --help  # Test the generation of the executable
 ```
 
-- SETUP INSTRUCTIONS FOR THE REPAIR: 
+### Setup instructions for the repair: 
 1. install conda: https://docs.anaconda.com/miniconda/miniconda-install/ 
-2. install clingo through conda: $ conda install -c potassco clingo
+2. install clingo through conda: 
+```
+$ conda install -c potassco clingo
+```
 3. install Souffle: 
 ```
 $ wget -P /tmp https://github.com/souffle-lang/souffle/releases/download/2.2/x86_64-ubuntu-2104-souffle-2.2-Linux.deb
@@ -112,8 +127,9 @@ $ cd CTLExpert/repair/ctl-symlog
 $ pip install -r requirements.txt
 $ pip install -e .
 ```
+<mark> how to test ctl-symlog is built ? </mark>
 
-- TEST CASE LOCATIONS: 
+### Test case location: 
 
 1. Table 1 (1-15): `CTLExpert/analysis/infer_TempDataLog-main/benchmark/evaluation'`
 3. Table 2 (16-25): `CTLExpert/analysis/infer_TempDataLog-main/benchmark/termination`; and
