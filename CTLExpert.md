@@ -1,4 +1,9 @@
-We apologise for not including the build instructions in the attached artifact. Without changing the submitted artifact, we have now attached a file that contains all the setup instructions, a Docker image for quick testing, and a demonstration video for using CTLExpert. 
+# Overview
+
+Without changing the submitted artifact, this file contains the information for: 
+- A demonstration video for using CTLExpert
+- Instructions for testing CTLExpert from Docker
+- Instructions for building CTLExpert from scratch
 
 
 # Video Demonstration
