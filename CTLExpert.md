@@ -16,7 +16,7 @@ $ ls
 # there are two folders: infer_TempDataLog and symlog
 ```
 
-- Analyze a program (Program 26 $\checkmark$ in Table II) which satisfy its annotated property, and the property is 
+- Analyze a program (Program 26 $\checkmark$ in Table II) that satisfy its annotated property, and the property is 
 `AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(handleHTTPCmd_notSupported()))`: 
 ```
 $ cd infer_TempDataLog
@@ -37,12 +37,12 @@ Totol_execution_time: 0.074450969696 s
 ===============================================
 ```
 
-It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl`, and the current implementation satisfy the property. 
-Because the property holds at state 2 and 11, and they are the entry states of the two functions defined in the program. 
+It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl`, and the current implementation satisfies the property. 
+Because the property holds at states 2 and 11, and they are the entry states of the two functions defined in the program. 
 
 
 
-- Analyze the buggy version of the program (Program 26  X in Table II) which does not satisfy its annotated property: 
+- Analyze the buggy version of the program (Program 26  X in Table II), which does not satisfy its annotated property: 
 
 ```
 $ infer/bin/infer run -- clang -c benchmark/protocols/lv1.cpp 
@@ -100,10 +100,10 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTT
 ```
 
 
-It indicates that there are 2 patches generated, and the patched Datalog files are: `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl` and `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl`. 
+It indicates that there are two patches generated, and the patched Datalog files are: `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl` and `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl`. 
 
 Moreover, both patched Datalog files are able to output that both functions satisfy the property now. 
-*Note that the entry state number of the second function is changed to 12 now, that's because the automatically generated control flow graph of the originally correct code and the buggy code are different.  
+*Note that the entry state number of the second function is changed to 12 now; that's because the automatically generated control flow graph of the initially correct code and the buggy code are different.  
 
 
 - How to check and interpret the repairs: 
@@ -121,7 +121,7 @@ vim /home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl
 The `lv1.cpp_patch_1.dl` repairs the program by adding the fact 'handleHTTPCmd_notSupported(18).', which is a correct patch.   
 The `lv1.cpp_patch_2.dl` repairs the program by adding the fact 'handleHTTPCmd_notSupported(19).', which is a correct patch.   
 Adding the fact 'handleHTTPCmd_notSupported(18)' or 'handleHTTPCmd_notSupported(19)', indicating to add a function call to 'handleHTTPCmd_notSupported()' in the source code's control flow graph state 18 or 19. 
-Both of them indicate to insert the call in the second if-else brach, and it solves the property violation. 
+Both indicate inserting the call in the second if-else branch solves the property violation. 
 
 
 
@@ -173,14 +173,14 @@ $ pip install -e .
 Converted facts location: `CTLExpert/repair/ctl-symlog/tmp/`
 
 How to run the repair:
-Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, remove (IO=stdout) and change all .output without (IO=stdout) into .input
+Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, remove (IO=stdout), and change all .output without (IO=stdout) into .input
 
 ```
 $ cd CTLExpert/repair/ctl-symlog
 $ python tests/test_symbolic_executor.py
 ```
 
-The output is displayed in the console, which is the solved model for the program 27. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90)` and `SSL3_RECORD_set_read(169).`
+The output, which is the solved model for program 27, is displayed in the console. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90)` and `SSL3_RECORD_set_read(169).`
 
 
 
