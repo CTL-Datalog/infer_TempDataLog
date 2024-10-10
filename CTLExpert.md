@@ -151,8 +151,6 @@ $ cd CTLExpert/repair/ctl-symlog
 $ pip install -r requirements.txt
 $ pip install -e .
 ```
-<mark> how to test ctl-symlog is built ? </mark>
-
 
 Converted facts location: `CTLExpert/repair/ctl-symlog/tmp/`
 
@@ -163,6 +161,8 @@ Copy the CTL datalog files from the ‘Test case locations’ to CTLExpert/repai
 $ cd CTLExpert/repair/ctl-symlog
 $ python tests/test_symbolic_executor.py
 ```
+
+The output is displayed in the console, which is the solved model for the program 27. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90). SSL3_RECORD_set_read(169).`
 
 
 
