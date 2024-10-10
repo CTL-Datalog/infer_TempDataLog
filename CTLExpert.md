@@ -141,7 +141,7 @@ $ cd CTLExpert/analysis/infer_TempDataLog-main
 $ ./compile  # This takes 3 mins from docker and up to 2 hours from scratch
 $ infer/bin/infer --help  # Test the generation of the executable
 ```
-To use the executable: `infer/bin/infer run -- clang -c  [input C program] `. 
+To use the executable: `infer/bin/infer run -- clang -c  [Input C Program] `. 
 For example: 
 ```
 $ infer/bin/infer run -- clang -c benchmark/protocols/pure-ftpd_T.c
@@ -161,8 +161,10 @@ $ wget -P /tmp https://github.com/souffle-lang/souffle/releases/download/2.2/x86
 $ sudo dpkg -i /tmp/x86_64-ubuntu-2104-souffle-2.2-Linux.deb
 $ sudo apt-get install -f
 $ rm /tmp/x86_64-ubuntu-2104-souffle-2.2-Linux.deb
+```
 
-install required python dependencies
+4. install required python dependencies
+```
 $ cd CTLExpert/repair/ctl-symlog
 $ pip install -r requirements.txt
 $ pip install -e .
@@ -171,14 +173,15 @@ $ pip install -e .
 Converted facts location: `CTLExpert/repair/ctl-symlog/tmp/`
 
 How to run the repair:
-Copy the CTL datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, remove (IO=stdout) and change all .output without (IO=stdout) into .input
+Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, remove (IO=stdout) and change all .output without (IO=stdout) into .input
 
 ```
 $ cd CTLExpert/repair/ctl-symlog
 $ python tests/test_symbolic_executor.py
 ```
 
-The output is displayed in the console, which is the solved model for the program 27. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90). SSL3_RECORD_set_read(169).`
+The output is displayed in the console, which is the solved model for the program 27. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90)` and `SSL3_RECORD_set_read(169).`
+
 
 
 
