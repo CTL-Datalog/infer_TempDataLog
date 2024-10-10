@@ -38,11 +38,11 @@ Totol_execution_time: 0.074450969696 s
 ```
 
 It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl`, and the current implementation satisfy the property. 
-Because the property holds at state 2 and 11, and they are the entry states of the two functions defined in the example. 
+Because the property holds at state 2 and 11, and they are the entry states of the two functions defined in the program. 
 
 
 
-- Analyze a program (Program 26  X in Table II) which does not satisfy its annotated property: 
+- Analyze the buggy version of the program (Program 26  X in Table II) which does not satisfy its annotated property: 
 
 ```
 $ infer/bin/infer run -- clang -c benchmark/protocols/lv1.cpp 
@@ -57,6 +57,9 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTT
 ===============
 2
 ===============
+
+Totol_execution_time: 0.0692870616913 s
+========================================
 ```
 
 It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl`, and the current implementation does not satisfy the property. 
@@ -73,11 +76,8 @@ $ cd ../symlog
 $ python run.py lv1 /home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl tmp/lv1 AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final 12
 ```
 
-After repair, the repaired Datalog files are placed at: `tmp/lv1/lv1_cpp_dl`, with the suffix being _patch_n.dl. There are two repaired Datalog files generated for this program 26. 
-The lv1.cpp_patch_1.dl repairs the program by adding the fact 'handleHTTPCmd_notSupported(18).', which is a correct patch.   
-The lv1.cpp_patch_2.dl repairs the program by adding the fact 'handleHTTPCmd_notSupported(19).', which is a correct patch.   
-Executing them generates the following outputs respectively: 
- 
+By the end of the console printing, you will see the following: 
+
 ```
 ============================================================
 Running lv1 with patched program tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl, producing Datalog Output: 
@@ -99,13 +99,29 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTT
 ===============
 ```
 
-Here, the repaired Datalog file is able to output that both functions satisfy the property now. Note that the entry state number of the second function is changed to 12 now, that's because the automatically generated control flow graph of the original correct code and the buggy code are different.  
+
+It indicates that there are 2 patches generated, and the patched Datalog files are: `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl` and `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl`. 
+
+Moreover, both patched Datalog files are able to output that both functions satisfy the property now. 
+*Note that the entry state number of the second function is changed to 12 now, that's because the automatically generated control flow graph of the originally correct code and the buggy code are different.  
 
 
-- How to interpret the repair result: 
+- How to check and interpret the repairs: 
 
+The added facts can be seen by the end of these two patched files: 
+```
+vim /home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl
+# the last line shows: handleHTTPCmd_notSupported(18). // updated fact
+
+vim /home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl
+# the last line shows handleHTTPCmd_notSupported(19). // updated fact
+```
+
+
+The `lv1.cpp_patch_1.dl` repairs the program by adding the fact 'handleHTTPCmd_notSupported(18).', which is a correct patch.   
+The `lv1.cpp_patch_2.dl` repairs the program by adding the fact 'handleHTTPCmd_notSupported(19).', which is a correct patch.   
 Adding the fact 'handleHTTPCmd_notSupported(18)' or 'handleHTTPCmd_notSupported(19)', indicating to add a function call to 'handleHTTPCmd_notSupported()' in the source code's control flow graph state 18 or 19. 
-Both of them indicate to insert the call in the second brach, and it solves the property violation. 
+Both of them indicate to insert the call in the second if-else brach, and it solves the property violation. 
 
 
 
