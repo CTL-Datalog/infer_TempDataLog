@@ -62,10 +62,11 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTT
 It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl`, and the current implementation does not satisfy the property. 
 Because the property holds at only state 2, and the second function does not satisfy the property. 
 
+Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl` is sent for repair. 
+
 
 - Repair via the generated Datalog program (Program 26 in Table III): 
 
-Next, the file souffle -F. -D. `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl` is sent for repair. 
 
 ```
 $ cd ../symlog
@@ -95,6 +96,10 @@ AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTT
 ===============
 ```
 
+Here, the repaired Datalog file is able to output that both functions satisfy the property now. Note that the entry state number of the second function is changed to 12 now, that's because the automatically generated control flow graph of the original correct code and the buggy code are different.  
+
+
+- How to interpret the repair result: 
 
 
 
