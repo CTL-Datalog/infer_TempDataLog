@@ -68,9 +68,21 @@ Because the property holds at only state 2, and the second function does not sat
 Next, the file souffle -F. -D. `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl` is sent for repair. 
 
 
-After repair, the expected output is: 
+After repair, the repaired Datalog files are placed at: `tmp/lv1/lv1_cpp_dl`, with the suffix being _patch_n.dl. There are two repaired Datalog files generated for this program 26. The lv1.cpp_patch_1.dl includes the 'handleHTTPCmd_notSupported(18).', which is the ground truth patch.   Executing the them generates the following output: 
+ 
 ```
-$ souffle -F. -D. /home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl 
+============================================================
+Running lv1 with patched program tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl, producing Datalog Output: 
+---------------
+AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final
+===============
+2
+12
+===============
+
+
+============================================================
+Running lv1 with patched program tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl, producing Datalog Output: 
 ---------------
 AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final
 ===============
