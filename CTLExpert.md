@@ -17,7 +17,7 @@ $ ls
 ```
 
 - Analyze a program (Program 26 $\checkmark$ in Table II) which satisfy its annotated property, and the property is 
-`AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(Return(0)))`: 
+`AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(handleHTTPCmd_notSupported()))`: 
 ```
 $ cd infer_TempDataLog
 $ infer/bin/infer run -- clang -c benchmark/protocols/lv1_T.cpp 
@@ -73,7 +73,10 @@ $ cd ../symlog
 $ python run.py lv1 /home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl tmp/lv1 AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final 12
 ```
 
-After repair, the repaired Datalog files are placed at: `tmp/lv1/lv1_cpp_dl`, with the suffix being _patch_n.dl. There are two repaired Datalog files generated for this program 26. The lv1.cpp_patch_1.dl includes the 'handleHTTPCmd_notSupported(18).', which is the ground truth patch.   Executing the them generates the following output: 
+After repair, the repaired Datalog files are placed at: `tmp/lv1/lv1_cpp_dl`, with the suffix being _patch_n.dl. There are two repaired Datalog files generated for this program 26. 
+The lv1.cpp_patch_1.dl repairs the program by adding the fact 'handleHTTPCmd_notSupported(18).', which is a correct patch.   
+The lv1.cpp_patch_2.dl repairs the program by adding the fact 'handleHTTPCmd_notSupported(19).', which is a correct patch.   
+Executing them generates the following outputs respectively: 
  
 ```
 ============================================================
@@ -100,6 +103,10 @@ Here, the repaired Datalog file is able to output that both functions satisfy th
 
 
 - How to interpret the repair result: 
+
+Adding the fact 'handleHTTPCmd_notSupported(18)' or 'handleHTTPCmd_notSupported(19)', indicating to add a function call to 'handleHTTPCmd_notSupported()' in the source code's control flow graph state 18 or 19. 
+Both of them indicate to insert the call in the second brach, and it solves the property violation. 
+
 
 
 
