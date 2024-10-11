@@ -173,14 +173,14 @@ $ pip install -e .
 Converted facts location: `CTLExpert/repair/ctl-symlog/tmp/`
 
 How to run the repair:
-Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, remove (IO=stdout), and change all .output without (IO=stdout) into .input
+Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, change all .output without (IO=stdout) into .input, and remove (IO=stdout). 
 
 ```
 $ cd CTLExpert/repair/ctl-symlog
 $ python tests/test_symbolic_executor.py
 ```
 
-The output, which is the solved model for program 27, is displayed in the console. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90)` and `SSL3_RECORD_set_read(169).`
+The output, which is the solved model for program 27, is displayed in the console. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90).` and `SSL3_RECORD_set_read(169).`
 
 
 
