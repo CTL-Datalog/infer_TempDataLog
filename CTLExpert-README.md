@@ -170,8 +170,6 @@ $ pip install -r requirements.txt
 $ pip install -e .
 ```
 
-Converted facts location: `CTLExpert/repair/ctl-symlog/tmp/`
-
 How to run the repair:
 Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, change all .output without (IO=stdout) into .input, and remove (IO=stdout). 
 
