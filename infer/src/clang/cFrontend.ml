@@ -2736,7 +2736,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
 
   Out_channel.write_lines (source_Address ^ ".dl") 
-  (factPrinting@specPrinting@datalogProgPrinting @ ["/* Other information \n"]@facts@["*/\n"] );
+  (factPrinting@specPrinting@datalogProgPrinting 
+  (*@ ["/* Other information \n"]@facts@["*/\n"] *) );
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 
