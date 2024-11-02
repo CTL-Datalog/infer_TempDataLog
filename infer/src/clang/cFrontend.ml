@@ -548,7 +548,8 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     (match existStack stack stack tName with 
     | Some (Lvar t) -> Some(Basic (BSTR (Pvar.to_string t ))) (** Pure variable: it is not an lvalue *)
     | Some exp -> Some(Basic (BSTR (Exp.to_string exp )))
-    | None  ->  Some (Basic (BSTR tName)) (** Pure variable: it is not an lvalue *)
+    | None  ->  None (* Some (Basic (BSTR tName)) *)  
+      (** Pure variable: it is not an lvalue *)
     )
   | Lvar t -> Some (Basic (BSTR (Pvar.to_string t)))  (** The address of a program variable *)
 
@@ -599,25 +600,6 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
   (*print_endline ("expressionToPure : " ^ (Exp.to_string exp)); *)
   match exp with 
-  | BinOp (Eq, BinOp (Mod _, e1, e2), e3) ->  
-    let t1 = expressionToTerm e1 stack in 
-    let t2 = expressionToTerm e2 stack in 
-    let t3 = expressionToTerm e3 stack in 
-    (match (t1, t2,  t3) with 
-    | Some (Basic(BSTR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
-    | Some(Basic(BSTR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
-    | _ -> None 
-    )
-  | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
-    let t1 = expressionToTerm e1 stack in 
-    let t2 = expressionToTerm e2 stack in 
-    let t3 = expressionToTerm e3 stack in 
-    (match (t1, t2,  t3) with 
-    | Some(Basic(BSTR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
-    | Some(Basic(BSTR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
-    | _ -> None 
-    )
-
 
   | BinOp (bop, e1, e2) -> 
 
@@ -900,8 +882,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         in 
         Guard(p', node_key)
       | None -> 
-
-        Guard(TRUE, node_key) ), stack'
+        Emp
+        (*Guard(TRUE, node_key) *) ), stack'
     | Load l :: Prune (e, loc, f, _):: _ ->  
       let stack' = (l.e, l.id) :: stack in 
       (match expressionToPure e (stack@stack') with 
@@ -977,6 +959,12 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         Singleton (Predicate (retKeyword, [Basic(BINT 0)]), node_key), []
       )
     | Call x  -> 
+    if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall x then 
+      Emp, [] 
+      (* this is when if ( *  ), we omit it. *)
+
+    else 
+
       (match instrs with 
       | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
         let (argumentTerms:terms list) =  List.fold_left arg_ts ~init:[] ~f:(fun acc (eA, _) -> 
@@ -989,6 +977,9 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           match a with 
           |  (Basic(BINT _ )) ->"Number" 
           |  (Basic(BSTR _ )) -> "Symbol" 
+          |  (Basic(BSTR _ )) -> "Symbol" 
+          |  (Basic(BSTR _ )) -> "Symbol" 
+          |  (Basic(BSTR _ )) -> "Symbol"  
           |  (Basic(BSTR _ )) -> "Symbol" 
           | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
@@ -1604,92 +1595,6 @@ let stateAfterTerminate pi =
    
 
 
-let infiniteLoopSummaryCalculus (guards:(pure*state) list ) (invariants: (pure*state) list) (re:regularExpr) =  
-  let (frameGuard:regularExpr) = List.fold_left guards ~init:Emp ~f:(fun acc a -> Concate (acc, Guard a)) in 
-  let (frameState:regularExpr) = List.fold_left (invariants) ~init:frameGuard ~f:(fun acc a -> Concate (acc, Singleton a)) in 
-
-
-  let pathConditions = getAllPathConditions re in 
-  let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
-  let (predNames:string list) = List.fold_left decomposedPathConditions ~init:[] 
-      ~f:(fun acc a -> 
-        match a with 
-        | Predicate(str, _) -> acc @ [str] 
-        | _ -> acc) 
-  in
-  if not (twoStringSetOverlap predNames [evenKeyWord; oddKeyWord])  then  Omega (frameState) (*Omega (Concate(frameState, re)) *)
-  else 
-
-
-  let rec reoccur (his:fstElem list)  f =     
-    match his with 
-    | [] -> false 
-    | hd::tail -> 
-      
-      let temp = relaxed_compareEvent hd f in 
-      (*print_endline ("comparing " ^ string_of_fst_event hd ^ " and " ^ string_of_fst_event f);
-      print_endline (string_of_bool temp); 
-      *)
-      if temp then true else  reoccur tail f 
-      
-  in 
-  let rec helper (reIn:regularExpr) (his:fstElem list) : (fstElem list) list = 
-    print_endline ("his: " ^ string_of_regularExpr (fstEleList2regularExpr his));
-
-    let (fstSet:(fstElem list)) = fst reIn in 
-    if List.length fstSet == 0 && List.length his == 0 then [his]
-    else 
-    let fstSet, reIn, his =
-      if List.length fstSet == 0 then 
-        match getLast his with 
-        | None -> raise (Failure "getLast his error ")
-        | Some (prefix, l) -> [l], re, prefix
-      else fstSet, reIn, his
-    in 
-      flattenList(List.map ~f:(fun f -> 
-        if reoccur his f then [his] 
-        else 
-          (print_endline ("f: " ^ string_of_fst_event (f));
-          print_endline ("reIn: " ^ string_of_regularExpr (reIn));
-
-          let deriv = normalise_es (derivitives_2 f reIn) in 
-          let f' = 
-            match f with 
-            | GuardEv (p, loc) -> PureEv (p, loc) 
-            | PureEv (p, loc) -> 
-              (match p with 
-              | Eq(Basic (BSTR v1), Minus (Basic (BSTR v2), Basic (BINT 1))) 
-              | Eq(Basic (BSTR v1), Plus (Basic (BSTR v2), Basic (BINT 1))) -> 
-                if String.compare v1 v2 == 0 
-                then 
-                  let revserHis = List.rev his in 
-                  if reoccur revserHis (PureEv (Predicate(evenKeyWord, [Basic (BSTR v1)]), loc)) 
-                  then (PureEv (Predicate(oddKeyWord, [Basic (BSTR v1)]), loc))
-                  else (PureEv (Predicate(evenKeyWord, [Basic (BSTR v1)]), loc))
-                else PureEv (p, loc) 
-              | _ -> PureEv (p, loc) 
-              )
-            
-            
-            | _ -> raise (Failure "loop summary with a nested loop")
-
-          in 
-          let his' = his@([f']) in 
-          helper deriv his' ) 
-
-      ) fstSet)
-
-  in 
-  let (pathes: (fstElem list) list) =  helper re [] in 
-  let (res:regularExpr list) = List.map ~f:(fun a -> 
-    let temp =  (fstEleList2regularExpr a) in 
-    let temp', _ = instantiateREStatesWithFreshNum temp [] in 
-    Omega temp' 
-    
-    ) pathes in 
-  disjunctRE res
-  
-
 let terminatingFinalState (rankingFun:rankingfunction list) persistant (reFalse:regularExpr) (reInfinite): regularExpr = 
   match rankingFun with 
   | [] -> raise (Failure "wp4Termination true but no rankingFun")
@@ -1737,14 +1642,9 @@ let leakingPath_break_return (weakestPre:pure) (rankingFuns:regularExpr) : regul
     
 
 
-let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regularExpr =  
+let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr =  
   let re = normalise_es re in
-  print_endline ("getLoopSummary path:" ^ string_of_pure path) ;
 
-  (*
-  print_endline ("reFalse:" ^ string_of_regularExpr reNonCycle) ;
-  print_endline ("loop body:\n" ^ string_of_regularExpr (re));
-  *)
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
   let pi, rankingFuns, leakingBranches, nonleakingBranches =  
     (match fstSet with 
@@ -1767,14 +1667,14 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
   in 
 
 
-  (*
+  
   print_endline ("\nRankingFuns \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun (p, re) -> string_of_ranking_function (p, re)) (rankingFuns))));   
   print_endline ("loop guard: " ^ string_of_pure pi );
-  *)
+  
 
 
                                             (* a trace,    Some(terminational wp, ranking function) *)
-  let (analyseEachTraceEachRankingFunction:(regularExpr * ((pure * rankingfunction) option)) list) = wp4Termination nonleakingBranches (PureAnd(pi, path)) rankingFuns in 
+  let (analyseEachTraceEachRankingFunction:(regularExpr * ((pure * rankingfunction) option)) list) = wp4Termination nonleakingBranches (pi) rankingFuns in 
 
   let temp = List.map analyseEachTraceEachRankingFunction ~f:(fun (reIn, res) -> 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
@@ -1782,33 +1682,14 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
     match res with 
     | None -> (* there exist no ranking function which decearces *)
-
-      let invariants = List.fold_left rankingFuns ~init:[loopGuard ] 
-        ~f:(fun acc (rf, _) -> 
-        let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-        let ntGuard =  (normalise_pure_prime (Gt(rf, Basic(BINT 0))), !allTheUniqueIDs) in 
-        acc@[(ntGuard)]) in 
-
-      let (pathConditions:pure list) = getAllPathConditions reIn in 
-
-      let (omegaGuard: (pure * state) list), omegaGuardSimple = 
-        let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-        match pathConditions with 
-        | [] -> [(Ast_utility.TRUE, !allTheUniqueIDs)], Ast_utility.TRUE
-        | p::_ -> [(p, !allTheUniqueIDs)], p
-      in 
-
-      let stateWhenNonTerminate_fixpoint = 
-        if entailConstrains (PureAnd(path, omegaGuardSimple)) FALSE then Bot 
-        else 
-        infiniteLoopSummaryCalculus (loopGuard :: omegaGuard) invariants reIn in 
-      print_endline ("!!! " ^ string_of_regularExpr reIn ^ " has no decreasing argument !");
-      print_endline ("stateWhenNonTerminate_fixpoint " ^ string_of_regularExpr stateWhenNonTerminate_fixpoint);
-
-      (stateWhenNonTerminate_fixpoint)
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      let loc2 =  !allTheUniqueIDs in 
+      Concate (Guard loopGuard , Omega(Singleton (pi, loc2)) )
 
 
-    | Some (weakestPre, (rfterm, leakingRE)) -> (* there exist a ranking function, and a termination segement leakingRE *)
+
+    | Some (weakestPre, (rfterm, leakingRE)) -> 
+    (* there exist a ranking function, and a termination segement leakingRE *)
       (*print_endline("wp4Termination weakestPre raw: " ^ string_of_pure (weakestPre));  *)
       let rf = (rfterm, leakingRE) in 
       let weakestPre = normalise_pure_prime (weakestPre) in 
@@ -1836,11 +1717,10 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let terminatingGuard = Guard (weakestPre, !allTheUniqueIDs) in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminatingGuardWRTRF = Guard (startingState, !allTheUniqueIDs) in 
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let terminatingFinalState = Singleton (Eq(rfterm, Basic(BINT 0)), !allTheUniqueIDs) in 
-      let terminatingRE1 = Concate (Guard loopGuard, Concate(terminatingGuard, Concate(terminatingGuardWRTRF, terminatingFinalState))) in 
+      let terminatingRE1 = Concate (Guard loopGuard, Concate(terminatingGuard, terminatingFinalState)) in 
       let leakingBehave = match leakingRE with | Some leakingRE -> leakingRE | None -> Emp in 
       let terminatingRE2 = Concate (terminatingRE1, Concate(leakingBehave, persistant)) in 
 
@@ -1849,16 +1729,9 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let nonTerminatingGuard = (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) in 
-      let non_terminating_fixpoint = infiniteLoopSummaryCalculus ([nonTerminatingGuard]) [loopGuard; nonTerminatingGuard] reIn in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let nonTerminatingGuardWRTRF = (normalise_pure_prime(Neg startingState), !allTheUniqueIDs) in 
-      let non_terminating_fixpointWRTRF = 
-        if entailConstrains (PureAnd(pi, Neg startingState)) FALSE then Bot 
-        else 
-        infiniteLoopSummaryCalculus ([nonTerminatingGuardWRTRF]) [loopGuard; nonTerminatingGuardWRTRF] reIn in 
 
-      print_endline ("disj 1 = " ^ string_of_regularExpr (Concate (terminatingRE2, reNonCycle)));
-      print_endline ("disj 2 = " ^ string_of_regularExpr (non_terminating_fixpoint ));
+      let non_terminating_fixpoint = Concate (Guard loopGuard, Concate(Guard nonTerminatingGuard, Singleton (startingState, !allTheUniqueIDs))) in 
 
       disjunctRE [Concate (terminatingRE2, reNonCycle); non_terminating_fixpoint(*; non_terminating_fixpointWRTRF *)]
   )
@@ -1876,62 +1749,60 @@ let rec containCycle re : bool =
   | _ -> false 
 
   
-let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * pure = 
+let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) = 
   match re with 
   
   | Disjunction(rFalse, Kleene (reIn)) 
   | Disjunction(Kleene (reIn), rFalse) -> 
-    let reIn =
-      if containCycle reIn then 
-        let reIn', _ = convertAllTheKleeneToOmega reIn path in 
-        reIn'
-      else reIn
-    in 
+    let cycleRe = convertAllTheKleeneToOmega reIn in 
+    let reNonCycle = convertAllTheKleeneToOmega rFalse in 
+    (match cycleRe, reNonCycle with 
+    | None , _ | _, None -> None 
+    | Some cycleRe, Some reNonCycle -> 
 
+      print_endline ("reNonCycle: " ^ string_of_regularExpr  reNonCycle);
+      print_endline ("Cycle: " ^ string_of_regularExpr  cycleRe);
 
-    let reNonCycle, path1 = convertAllTheKleeneToOmega rFalse path in 
-    let reNonCycle = normalise_es reNonCycle in 
-    print_endline ("reNonCycle: " ^ string_of_regularExpr  reNonCycle);
+      let fst = fst reNonCycle in 
+      let reNonCycle'  = 
+        match fst with 
+        | [(GuardEv gv)] -> normalise_es (derivitives (GuardEv gv) reNonCycle)
+        | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
+      in 
+      
+      let loopsummary = normalise_es (getLoopSummary reIn reNonCycle') in  
 
-    
-    let fst = fst reNonCycle in 
-    let reNonCycle'  = 
-      match fst with 
-      | [(GuardEv gv)] -> normalise_es (derivitives (GuardEv gv) reNonCycle)
-      | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
-      (* | [] -> reNonCycle *)
-    in 
-    let re2, path2 =  
-      let loopsummary = normalise_es (getLoopSummary reIn (normalise_pure path) reNonCycle') in  
-      print_endline ("loopsummary1: " ^ string_of_regularExpr  loopsummary);
-      loopsummary, path
-    in 
-    Disjunction(reNonCycle, re2), PureOr(path1, path2)
+      print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
 
-  | Kleene reIn -> (print_endline  "convertAllTheKleeneToOmega not possible"); 
-    let reIn =
-      if containCycle reIn then 
-        let reIn', _ = convertAllTheKleeneToOmega reIn path in 
-        reIn'
-      else reIn
-    in 
+      Some (Disjunction(reNonCycle, loopsummary))
+      
 
-    (*let normalForm = normaliseTheDisjunctions (deleteAllTheJoinNodes reIn) in *)
-    let loopsummary = getLoopSummary reIn (normalise_pure path) Emp in  
-    print_endline ("loopsummary2: " ^ string_of_regularExpr  loopsummary);
-    loopsummary, path
-    
+    )
+
+  | Kleene _ -> 
+    (print_endline  "convertAllTheKleeneToOmega not possible"); 
+    None 
   
   | Disjunction(r1, r2) -> 
-    let re1, path1 = convertAllTheKleeneToOmega r1 path in 
-    let re2, path2 = convertAllTheKleeneToOmega r2 path in 
-    Disjunction(re1, re2), PureOr(path1, path2)
+    let re1 = convertAllTheKleeneToOmega r1 in 
+    let re2 = convertAllTheKleeneToOmega r2 in 
+    (match re1, re2 with 
+    | None, _
+    | _, None -> None
+    | Some re1, Some re2 -> Some (Disjunction(re1, re2))
+    )
+    
   | Concate (r1, r2) -> 
-    let re', path' = convertAllTheKleeneToOmega r1 path in 
-    let re2', path'' = convertAllTheKleeneToOmega r2 path' in 
-    Concate(re',  re2'), path''
-  | Guard (pi', _) -> re, PureAnd(pi', path)
-  | _ -> re, path
+    let re1' = convertAllTheKleeneToOmega r1 in 
+    let re2' = convertAllTheKleeneToOmega r2 in 
+    (match re1', re2' with 
+    | None, _
+    | _, None -> None
+    | Some re1, Some re2 -> Some (Concate(re1,  re2))
+    )
+
+    
+  | _ -> Some re
 
   ;;
 
@@ -1945,35 +1816,23 @@ let rec recordTheMaxValue4RE (re:regularExpr): unit =
   | Bot | Emp -> ()
 
 
-let rec mapToOddEvenDomain (re:regularExpr): regularExpr =
-  match  re with 
-  | Singleton (Eq (Basic(BSTR var), Minus(Basic(BSTR var1),Basic(BINT 1) )), loc) -> 
-    if String.compare var var1 == 0 then 
-      let re1 = Concate (Guard(Predicate(evenKeyWord, [Basic(BSTR var)]), loc) , Singleton(Predicate(oddKeyWord, [Basic(BSTR var)]), loc)) in 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let re2 = Concate (Guard(Predicate(oddKeyWord, [Basic(BSTR var)]), !allTheUniqueIDs) , Singleton(Predicate(evenKeyWord, [Basic(BSTR var)]), !allTheUniqueIDs)) in 
-      Disjunction(re1, re2)
-    else re
-
-  | Concate (re1, re2) ->  Concate (mapToOddEvenDomain re1, mapToOddEvenDomain re2) 
-  | Disjunction (re1, re2) -> Disjunction (mapToOddEvenDomain re1, mapToOddEvenDomain re2)
-  | Omega reIn -> Omega (mapToOddEvenDomain reIn )
-  | Kleene (reIn) -> Kleene (mapToOddEvenDomain reIn )
-  | _ -> re
-
 
 
 let getAllImplicationLeft (ctls:ctl list): pure list = 
   List.fold_left ~init:[] ~f:(fun acc ctl -> acc @ getAllPureFromImplicationLeft  ctl) ctls 
 
 
-let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr = 
+let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr option = 
 
   let pass =  normalise_es (getRegularExprFromCFG procedure) in 
   
   print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
-  let pass, _ = convertAllTheKleeneToOmega pass (Ast_utility.TRUE) in 
+  let pass = convertAllTheKleeneToOmega pass in 
+  match pass with 
+  | None -> None 
+  | Some pass -> 
+
   let pass = normalise_es (pass) in  (*this is the step for sumarrizing the loop*)
 
   print_endline ("\nAfter convertAllTheKleeneToOmega:\n"^string_of_regularExpr (pass)^ "\n------------"); 
@@ -2001,7 +1860,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
  *)
 
 
-  pass
+  Some pass
   ;;
 
 
@@ -2489,9 +2348,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               (*print_endline ("Specs are \n" ^ (String.concat ~sep:" , " (List.map ~f:(fun p -> string_of_ctl p) (specs)))); 
               print_endline ("existExitKeyWord of " ^ s ^ " is " ^ string_of_bool (existExitKeyWord specs)); 
               *)  
-              (if String.compare s evenKeyWord ==0 ||  String.compare s oddKeyWord ==0 then 
-                predicateDeclearation:= (s, ["Symbold";"Number"]) :: !predicateDeclearation 
-              else if String.compare s retKeyword ==0 then 
+              (if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
               else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword] then ()
               else if String.compare s exitKeyWord ==0 && existExitKeyWord specs then ()
@@ -2678,21 +2535,23 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
     ~f:(fun accs procedure -> 
       print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
       let summary = computeSummaryFromCGF procedure specifications in 
-      List.append accs [summary] )) 
+      match summary with 
+      | Some summary -> List.append accs [summary] 
+      | None -> print_endline ("Verification Res = Unknown"); accs )) 
   in
 
+  (*
   let () = 
     match specifications with 
     | [(AG (Imply (Atom(_, p), AF _)))] -> 
       
       extend_spec_agaf p 
-
-      
       
     | _ -> () 
 
 
   in 
+  *)
 
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       (*let summary' = createNecessaryDisjunction summary specifications in*)
@@ -2737,7 +2596,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting 
-  (*@ ["/* Other information \n"]@facts@["*/\n"] *) );
+   @ ["/* Other information \n"]@facts@["*/\n"]  );
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 

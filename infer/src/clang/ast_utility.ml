@@ -28,12 +28,11 @@ let gtKeyWordVar = gtKeyWord^ postfixPurePred
 let ltKeyWordVar = ltKeyWord^ postfixPurePred
 let geqKeyWordVar = geqKeyWord^ postfixPurePred
 
-let evenKeyWord = "Even"
-let oddKeyWord = "Odd"
 
 
 
-let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
+
+let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int";"_nondet_int";"__VERIFIER_nondet_int"]
 
 
 
@@ -792,9 +791,7 @@ let rec normalise_pure (pi:pure) : pure =
   | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
   | Neg (LtEq (t1, t2)) -> Gt (t1, t2)
   | Neg (Predicate (str, termLi)) -> 
-    if String.compare str evenKeyWord == 0 then Predicate (oddKeyWord, termLi)
-    else if String.compare str oddKeyWord == 0 then Predicate (evenKeyWord, termLi)
-    else Predicate (str, List.map termLi ~f:(normalise_terms))
+    Predicate (str, List.map termLi ~f:(normalise_terms))
   | Neg piN -> Neg (normalise_pure piN)
   | PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
   | Predicate (str, termLi) -> 
@@ -862,9 +859,7 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | Neg (GtEq (t1, t2)) -> Lt (t1, t2)
   | Neg (LtEq (t1, t2)) -> Gt (t1, t2)
   | Neg (Predicate (str, termLi)) -> 
-    if String.compare str evenKeyWord == 0 then Predicate (oddKeyWord, termLi)
-    else if String.compare str oddKeyWord == 0 then Predicate (evenKeyWord, termLi)
-    else Predicate (str, List.map termLi ~f:(normalise_terms))
+    Predicate (str, List.map termLi ~f:(normalise_terms))
   | Neg piN -> Neg (normalise_pure_prime piN)
   | PureOr (pi1,pi2) -> PureAnd (normalise_pure_prime pi1, normalise_pure_prime pi2)
   | Predicate (str, termLi) -> 
@@ -1266,8 +1261,7 @@ let rec term_to_expr ctx : terms -> Z3.Expr.expr = function
   | (Basic(BSTR v))           -> Z3.Arithmetic.Real.mk_const_s ctx v
   | (Basic(BNULL))           -> Z3.Arithmetic.Real.mk_const_s ctx "nil"
   | (Basic(BRET))           -> Z3.Arithmetic.Real.mk_const_s ctx "ret"
-  | Basic ANY -> raise (Failure "term_to_expr not yet")
-
+  | Basic ANY | Basic (BVAR _) -> raise (Failure "term_to_expr not yet")
   (*
   | Gen i          -> Z3.Arithmetic.Real.mk_const_s ctx ("t" ^ string_of_int i ^ "'")
   *)
@@ -1364,12 +1358,7 @@ let entailConstrains p1 p2 =
   *)
     sat 
   in 
-  match p1, p2 with
-  | Eq(Basic(BSTR var1), Basic (BINT n)), Predicate(pred, [Basic(BSTR var2)]) -> 
-    if String.compare pred evenKeyWord == 0 && String.compare var1 var2 == 0
-    then if n%2==0 then true else false 
-    else aux p1 p2
-  | _, _ -> aux p1 p2
+  aux p1 p2
 
   
   
@@ -1445,9 +1434,6 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
 
   | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else 
     (
-    (if String.compare s evenKeyWord == 0 || String.compare s oddKeyWord == 0 then 
-    updateRuleDeclearation ruleDeclearation s
-    else ()    );
     [(s, (vartoStr terms)@[loc])])
 
   | Eq (Basic(BSTR var1), Basic(BSTR var2)) ->  
@@ -1818,8 +1804,6 @@ let negatedPredicate str: string =
   else if String.compare str notEQKeyWordVar  == 0 then  assignKeyWordVar
   else if String.compare str gtKeyWordVar  == 0 then  leqKeyWordVar
   else if String.compare str geqKeyWordVar  == 0 then ltKeyWordVar
-  else if String.compare str evenKeyWord  == 0 then oddKeyWord
-  else if String.compare str oddKeyWord  == 0 then evenKeyWord
 
   else str 
 
@@ -1834,7 +1818,7 @@ let rec propositionName pi : (string ) =
     | Eq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_eq_" ^ str1
 
     | Neg(Eq (Basic(BSTR str), Basic(BINT n))) -> str ^ "_neq_" ^ string_of_int_shall n
-    | Neg (Eq (Basic(BSTR str), Basic(BSTR str1))) -> str ^ "_neq_" ^ str1
+    | Neg(Eq (Basic(BSTR str), Basic(BSTR str1))) -> str ^ "_neq_" ^ str1
 
 
     | Gt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n
@@ -1871,15 +1855,7 @@ let reachablibilyrules head =
   updateRuleDeclearation ruleDeclearation (negBase);
 
 
-  if String.compare base evenKeyWord == 0 || String.compare base oddKeyWord == 0 then 
-    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]) ] ;
-     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), 
-      [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord)] );  
-        Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]);
-        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]); ]]
 
-  else 
     [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
      (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
@@ -1952,9 +1928,7 @@ let rec translation (ctl:ctl) : string * datalog =
       if nameContainsVar predefinedPred 3 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
       else 
-        if String.compare predefinedPred evenKeyWord == 0 || String.compare predefinedPred oddKeyWord == 0
-        then (predefinedPred, [ ("x", Symbol); (locKeyWord, Number)])
-        else  (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
+         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
     
     )
 
@@ -1964,9 +1938,7 @@ let rec translation (ctl:ctl) : string * datalog =
       if nameContainsVar predefinedPred 4 then 
         (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("y", Symbol)])
       else 
-        if String.compare predefinedPred (evenKeyWord^"D") == 0 || String.compare predefinedPred (oddKeyWord^"D") == 0
-        then (predefinedPred, [ ("x", Symbol); (locKeyWord, Number)])
-        else (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
+        (predefinedPred, [ ("x", Symbol); (locKeyWord, Number); ("n", Number)])
     
     )
 
@@ -2305,9 +2277,7 @@ and translation_inner (ctl:ctl) : string * datalog =
       ] in
 
       let negFname fName fArgs = 
-        if String.compare fName evenKeyWord == 0 then Pos(oddKeyWord,fArgs) 
-        else if String.compare fName oddKeyWord == 0 then  Pos(evenKeyWord,fArgs) 
-        else Neg (fName, fArgs)
+        Neg (fName, fArgs)
       in 
       let newRules = [
         (newName,fArgs), [Pos(stateKeyWord, [firstArg]); Neg (sName, fArgs)];
