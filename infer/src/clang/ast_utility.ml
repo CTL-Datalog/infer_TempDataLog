@@ -1872,20 +1872,20 @@ let reachablibilyrules head =
 
 
   if String.compare base evenKeyWord == 0 || String.compare base oddKeyWord == 0 then 
-    [(head, [Basic (BSTR "x"); Basic (BVAR locKeyWord)] ), [ Pos (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord)]) ] ;
-     (head, [Basic (BSTR "x"); Basic (BVAR locKeyWord)] ), 
-      [ Pos (head, [Basic (BSTR "x"); Basic (BVAR loc_inter_KeyWord)] );  
+    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]) ] ;
+     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), 
+      [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord)] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord)]);
-        Neg (negBase, [Basic (BSTR "x"); Basic (BVAR locKeyWord)]); ]]
+        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]);
+        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]); ]]
 
   else 
-    [(head, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
-     (head, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
-      [ Pos (head, [Basic (BSTR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
+    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+      [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic ANY]);
-        Neg (negBase, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
+        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]);
+        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
 
 let nameContainsVar str n : bool = 
   let l = String.length str in 

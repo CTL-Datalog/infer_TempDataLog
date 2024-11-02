@@ -24,3 +24,5 @@ int main() {
     return 0;
 }
 // (i>10\/x=1) /\ (x=y)^w   \/   (i<=10/\x!=1) /\ (ret=0)
+// delete //Gt("i",7,10).
+// delete //EqVar("x",8,"y").

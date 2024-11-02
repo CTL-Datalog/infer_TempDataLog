@@ -2159,22 +2159,18 @@ let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (
   | [] -> [] 
   | p :: xs  -> 
     (match p with 
-    | Eq (Basic( BSTR v1), Basic( BSTR v2)) -> 
-      if String.compare v1 str == 0 || String.compare v2 str == 0 then 
-      [(assignKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
-      else findrelationFromPredicatesSpec xs str loc
-    | Eq (Basic( BSTR v1), Basic( BINT v2)) -> 
-      if String.compare v1 str == 0  then 
-      [(assignKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
-      else findrelationFromPredicatesSpec xs str loc
-
+    | Eq (Basic( BSTR v1), Basic( BSTR v2)) 
     | Neg (Eq (Basic( BSTR v1), Basic( BSTR v2)) )-> 
       if String.compare v1 str == 0 || String.compare v2 str == 0 then 
-      [(notEQKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
+      [(notEQKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
+      (assignKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
       else findrelationFromPredicatesSpec xs str loc
+
+    | Eq (Basic( BSTR v1), Basic( BINT v2)) 
     | Neg (Eq (Basic( BSTR v1), Basic( BINT v2))) -> 
       if String.compare v1 str == 0  then 
-      [(notEQKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
+      [(notEQKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
+      (assignKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
       else findrelationFromPredicatesSpec xs str loc
 
 
