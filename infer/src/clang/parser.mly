@@ -24,7 +24,7 @@
 basic_type : 
 | i = INTE{      BINT ( i)
     }
-| v = VAR {BVAR v} 
+| v = VAR {BSTR v} 
 | NULL {BNULL}
 | RETURN {BRET}
 
@@ -68,21 +68,20 @@ ctl_formula:
 
   let rec propositionName pi : (string * pure) = 
     match pi with 
-    | Eq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int_shall n, (Eq (Basic(BSTR str), Basic(BINT n)))
-    | Eq (Basic(BSTR str), Basic(BSTR str1))
-    | Eq (Basic(BVAR str), Basic(BVAR str1)) -> str ^ "_eq_" ^ str1, (Eq (Basic(BSTR str), Basic(BSTR str1)))
+    | Eq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int_shall n, (Eq (Basic(BSTR str), Basic(BINT n)))
+    | Eq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_eq_" ^ str1, (Eq (Basic(BSTR str), Basic(BSTR str1)))
 
-    | Gt (Basic(BVAR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n, (Gt (Basic(BSTR str), Basic(BINT n)))
-    | Gt (Basic(BVAR str), Basic(BVAR str1)) -> str ^ "_gt_" ^ str1, (Gt (Basic(BSTR str), Basic(BSTR str1)))
+    | Gt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n, (Gt (Basic(BSTR str), Basic(BINT n)))
+    | Gt (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_gt_" ^ str1, (Gt (Basic(BSTR str), Basic(BSTR str1)))
 
-    | Lt (Basic(BVAR str), Basic(BINT n)) -> str ^ "_lt_" ^ string_of_int_shall n, (Lt (Basic(BSTR str), Basic(BINT n)))
-    | Lt (Basic(BVAR str), Basic(BVAR str1)) -> str ^ "_lt_" ^ str1, (Lt (Basic(BSTR str), Basic(BSTR str1)))
+    | Lt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lt_" ^ string_of_int_shall n, (Lt (Basic(BSTR str), Basic(BINT n)))
+    | Lt (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_lt_" ^ str1, (Lt (Basic(BSTR str), Basic(BSTR str1)))
 
-    | GtEq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_gteq_" ^ string_of_int_shall n, (GtEq (Basic(BSTR str), Basic(BINT n)))
-    | GtEq (Basic(BVAR str), Basic(BVAR str1)) -> str ^ "_gteq_" ^ str1, (GtEq (Basic(BSTR str), Basic(BSTR str1)))
+    | GtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gteq_" ^ string_of_int_shall n, (GtEq (Basic(BSTR str), Basic(BINT n)))
+    | GtEq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_gteq_" ^ str1, (GtEq (Basic(BSTR str), Basic(BSTR str1)))
 
-    | LtEq (Basic(BVAR str), Basic(BINT n)) -> str ^ "_lteq_" ^ string_of_int_shall n, (LtEq (Basic(BSTR str), Basic(BINT n)))
-    | LtEq (Basic(BVAR str), Basic(BVAR str1)) -> str ^ "_lteq_" ^ str1, (LtEq (Basic(BSTR str), Basic(BSTR str1)))
+    | LtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lteq_" ^ string_of_int_shall n, (LtEq (Basic(BSTR str), Basic(BINT n)))
+    | LtEq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_lteq_" ^ str1, (LtEq (Basic(BSTR str), Basic(BSTR str1)))
 
     | PureAnd (pi1, pi2) -> 
       let n1, p1 = propositionName pi1 in 

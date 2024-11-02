@@ -78,11 +78,11 @@ let conjunctPure (pi1:pure) (pi2:pure): pure =
     let pi1 = normalise_pure pi1 in 
     let pi2 = normalise_pure pi2 in 
     (match pi1, pi2 with 
-    | ((GtEq(Basic (BVAR var1), Basic(BINT 0))), PureAnd (pi11, LtEq(Basic (BVAR var2), Basic(BINT 0)))) -> 
-      if String.compare var1 var2 == 0 then PureAnd(Eq(Basic (BVAR var1), Basic(BINT 0)), pi11)
+    | ((GtEq(Basic (BSTR var1), Basic(BINT 0))), PureAnd (pi11, LtEq(Basic (BSTR var2), Basic(BINT 0)))) -> 
+      if String.compare var1 var2 == 0 then PureAnd(Eq(Basic (BSTR var1), Basic(BINT 0)), pi11)
       else PureAnd (pi1, pi2)
-    | ((GtEq(Basic (BVAR var1), Basic(BINT 0))), LtEq(Basic (BVAR var2), Basic(BINT 0))) -> 
-      if String.compare var1 var2 == 0 then Eq(Basic (BVAR var1), Basic(BINT 0))
+    | ((GtEq(Basic (BSTR var1), Basic(BINT 0))), LtEq(Basic (BSTR var2), Basic(BINT 0))) -> 
+      if String.compare var1 var2 == 0 then Eq(Basic (BSTR var1), Basic(BINT 0))
       else PureAnd (pi1, pi2)
 
     | _, _ -> PureAnd (pi1, pi2)
@@ -94,7 +94,7 @@ let conjunctPure (pi1:pure) (pi2:pure): pure =
       | [] -> acc 
       | px :: xs-> 
         (match px with 
-        | Eq (Basic (BVAR var), t2) -> 
+        | Eq (Basic (BSTR var), t2) -> 
 
           (match findFromRecord acc var with 
           | None -> 
@@ -213,11 +213,11 @@ let rec findIfStmtSpecFrom (specs:specification list) (piCondition: pure): (bind
   | (IfStmt (piSpec), facts):: rest -> 
     (
     match (piCondition, piSpec) with 
-    | (Lt(Basic(BVAR(t1)), Basic(BVAR(t2))), Lt(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
-    | (Gt(Basic(BVAR(t1)), Basic(BVAR(t2))), Gt(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
-    | (GtEq(Basic(BVAR(t1)), Basic(BVAR(t2))), GtEq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
-    | (LtEq(Basic(BVAR(t1)), Basic(BVAR(t2))), LtEq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
-    | (Eq(Basic(BVAR(t1)), Basic(BVAR(t2))), Eq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (Lt(Basic(BSTR(t1)), Basic(BSTR(t2))), Lt(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (Gt(Basic(BSTR(t1)), Basic(BSTR(t2))), Gt(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (GtEq(Basic(BSTR(t1)), Basic(BSTR(t2))), GtEq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (LtEq(Basic(BSTR(t1)), Basic(BSTR(t2))), LtEq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
+    | (Eq(Basic(BSTR(t1)), Basic(BSTR(t2))), Eq(Basic t3, Basic t4)) -> Some ([(t1,t3); (t2, t4)], facts)
     | _ -> findIfStmtSpecFrom rest piCondition
     )
 
@@ -544,13 +544,13 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
   match exp with 
   | Var t -> 
     let tName = (Ident.to_string t) in 
-    print_endline ("!!!expressionToTerm tName " ^ tName) ; 
+    (*print_endline ("!!!expressionToTerm tName " ^ tName) ; *)
     (match existStack stack stack tName with 
-    | Some (Lvar t) -> Some(Basic (BVAR (Pvar.to_string t ))) (** Pure variable: it is not an lvalue *)
-    | Some exp -> Some(Basic (BVAR (Exp.to_string exp )))
-    | None  ->  Some (Basic (BVAR tName)) (** Pure variable: it is not an lvalue *)
+    | Some (Lvar t) -> Some(Basic (BSTR (Pvar.to_string t ))) (** Pure variable: it is not an lvalue *)
+    | Some exp -> Some(Basic (BSTR (Exp.to_string exp )))
+    | None  ->  Some (Basic (BSTR tName)) (** Pure variable: it is not an lvalue *)
     )
-  | Lvar t -> Some (Basic (BVAR (Pvar.to_string t)))  (** The address of a program variable *)
+  | Lvar t -> Some (Basic (BSTR (Pvar.to_string t)))  (** The address of a program variable *)
 
   | Const t ->  (** Constants *)
     (match t with 
@@ -561,7 +561,7 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
   | UnOp (_, t, _) -> 
     (match expressionToTerm t stack with 
     | Some (Basic (BINT n)) -> Some(Basic (BINT ((-1) * n)))
-    | _ -> None (*Basic (BVAR ("UnOp1"))*)
+    | _ -> None (*Basic (BSTR ("UnOp1"))*)
     )
     
 
@@ -588,24 +588,24 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     | Some t1 , Some t2 -> Some (Plus (t1, t2))
     | _, _  -> None )
 
-  | BinOp _ (*_ -> Basic (BVAR ("BinOp"))*)
-  | Exn _ (*-> Basic (BVAR ("Exn"))*)
-  | Closure _ (*-> Basic (BVAR ("Closure"))*)
-  | Cast _ (*-> Basic (BVAR ("Cast"))*)
-  | Lfield _ (*-> Basic (BVAR ("Lfield"))*)
-  | Lindex _ (*-> Basic (BVAR ("Lindex"))*)
-  | Sizeof _ -> None (*Basic (BVAR ("Sizeof"))*)
+  | BinOp _ (*_ -> Basic (BSTR ("BinOp"))*)
+  | Exn _ (*-> Basic (BSTR ("Exn"))*)
+  | Closure _ (*-> Basic (BSTR ("Closure"))*)
+  | Cast _ (*-> Basic (BSTR ("Cast"))*)
+  | Lfield _ (*-> Basic (BSTR ("Lfield"))*)
+  | Lindex _ (*-> Basic (BSTR ("Lindex"))*)
+  | Sizeof _ -> None (*Basic (BSTR ("Sizeof"))*)
 
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
-  print_endline ("expressionToPure : " ^ (Exp.to_string exp));
+  (*print_endline ("expressionToPure : " ^ (Exp.to_string exp)); *)
   match exp with 
   | BinOp (Eq, BinOp (Mod _, e1, e2), e3) ->  
     let t1 = expressionToTerm e1 stack in 
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Some (Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Some (Basic(BSTR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BSTR var )), Some(Basic (BINT 2)), Some (Basic (BINT 1)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
   | BinOp (Ne, BinOp (Mod _, e1, e2), e3) ->  
@@ -613,8 +613,8 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     let t2 = expressionToTerm e2 stack in 
     let t3 = expressionToTerm e3 stack in 
     (match (t1, t2,  t3) with 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
-    | Some(Basic(BVAR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BSTR var )), Some(Basic (BINT 2)), Some(Basic (BINT 0)) -> Some (Predicate(oddKeyWord, [Basic(BSTR var )])) 
+    | Some(Basic(BSTR var )), Some(Basic (BINT 2)), Some(Basic (BINT 1)) -> Some (Predicate(evenKeyWord, [Basic(BSTR var )])) 
     | _ -> None 
     )
 
@@ -737,7 +737,6 @@ let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store 
 
 
 let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
-  print_endline ("getPureFromBinaryOperatorStmtInstructions: " ^ string_of_int (List.length instrs));
   
   if String.compare op "Assign" == 0 then 
     match instrs with 
@@ -747,10 +746,8 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
       let exp2 = s.e2 in 
       (match expressionToTerm exp1 stack, expressionToTerm exp2 stack with 
       | Some e1, Some e2 -> 
-        print_endline ("res = Some " ^ string_of_pure (Eq (e1, e2))); 
         Some (Eq (e1, e2))
       | _, _ -> 
-      print_endline ("res = None " ); 
       None 
       
       )
@@ -798,7 +795,7 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     let t2 = expressionToTerm exp2 stack in 
     (match t1, t2 with 
     | Some (Basic(BSTR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BSTR a ), Basic(BINT b )))
-    | Some (Basic(BVAR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BVAR a ), Basic(BINT b )))
+    | Some (Basic(BSTR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BSTR a ), Basic(BINT b )))
     (*
     | _ -> Some (Eq (t1, Basic ANY))  *)
     (* if it is temp=user_quota_size-quota_size, temp will be ANY *)
@@ -868,32 +865,32 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       | Some p -> 
         let (p':pure) = 
           match p with 
-          | Eq (Basic (BVAR v1), t2) -> 
+          | Eq (Basic (BSTR v1), t2) -> 
               let v2= removeDotsInVarName v1 in 
-              Eq (Basic (BVAR v2), t2)
-          | Neg (Eq (Basic (BVAR v1), t2)) -> 
+              Eq (Basic (BSTR v2), t2)
+          | Neg (Eq (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = Neg (Eq (Basic (BVAR v2), t2)) in 
+              let p':pure = Neg (Eq (Basic (BSTR v2), t2)) in 
               p'
 
-          | (Gt (Basic (BVAR v1), t2)) -> 
+          | (Gt (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = (Gt (Basic (BVAR v2), t2)) in 
+              let p':pure = (Gt (Basic (BSTR v2), t2)) in 
               p'
 
-          | (LtEq (Basic (BVAR v1), t2)) -> 
+          | (LtEq (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = (LtEq (Basic (BVAR v2), t2)) in 
+              let p':pure = (LtEq (Basic (BSTR v2), t2)) in 
               p'
 
-          | (Lt (Basic (BVAR v1), t2)) -> 
+          | (Lt (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = (Lt (Basic (BVAR v2), t2)) in 
+              let p':pure = (Lt (Basic (BSTR v2), t2)) in 
               p'
 
-          | (GtEq (Basic (BVAR v1), t2)) -> 
+          | (GtEq (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
-              let p':pure = (GtEq (Basic (BVAR v2), t2)) in 
+              let p':pure = (GtEq (Basic (BSTR v2), t2)) in 
               p'
 
 
@@ -901,7 +898,6 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           | _ -> p 
 
         in 
-        print_endline ("last is Prune " ^ string_of_pure p');
         Guard(p', node_key)
       | None -> 
 
@@ -992,7 +988,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           ~f:(fun a -> 
           match a with 
           |  (Basic(BINT _ )) ->"Number" 
-          |  (Basic(BVAR _ )) -> "Symbol" 
+          |  (Basic(BSTR _ )) -> "Symbol" 
           |  (Basic(BSTR _ )) -> "Symbol" 
           | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
@@ -1326,7 +1322,7 @@ let rec deleteallGuard (reIn:regularExpr) : regularExpr =
 
 let rec getPersistantValuation(reIn:regularExpr) : regularExpr = 
   match reIn with 
-  | Singleton(Eq(Basic (BVAR a), Basic (BINT n)), _) -> reIn 
+  | Singleton(Eq(Basic (BSTR a), Basic (BINT n)), _) -> reIn 
   | Guard _ -> Emp 
   | Disjunction (re1, re2) -> Disjunction(getPersistantValuation re1, getPersistantValuation re2)
   | Concate (re1, re2) ->  Concate(getPersistantValuation re1, getPersistantValuation re2)
@@ -1518,13 +1514,16 @@ let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:rankingfunction li
         let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
         if entailConstrains left_hand_side FALSE then 
           (
+          (*
           print_endline ("guard: " ^ string_of_pure guard); 
           print_endline ("path: " ^ string_of_pure path);   
           print_endline ("false left_hand_side: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
+          *)
     
           Some FALSE ) 
         else 
-          (print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); 
+          (
+          (*print_endline ("entailConstrains: " ^ string_of_pure left_hand_side ^ " => " ^ string_of_pure right_hand_side); *)
     
           if containUnknown rankingTerm' then Some FALSE 
           else 
@@ -1659,8 +1658,8 @@ let infiniteLoopSummaryCalculus (guards:(pure*state) list ) (invariants: (pure*s
             | GuardEv (p, loc) -> PureEv (p, loc) 
             | PureEv (p, loc) -> 
               (match p with 
-              | Eq(Basic (BVAR v1), Minus (Basic (BVAR v2), Basic (BINT 1))) 
-              | Eq(Basic (BVAR v1), Plus (Basic (BVAR v2), Basic (BINT 1))) -> 
+              | Eq(Basic (BSTR v1), Minus (Basic (BSTR v2), Basic (BINT 1))) 
+              | Eq(Basic (BSTR v1), Plus (Basic (BSTR v2), Basic (BINT 1))) -> 
                 if String.compare v1 v2 == 0 
                 then 
                   let revserHis = List.rev his in 
@@ -1754,9 +1753,10 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
       let deriv = normalise_es (derivitives f re) in 
       let leakingBranches, nonleakingBranches = devideByExitOrReturn deriv in 
 
+      (*
       print_endline ("leakingBranches: " ^ string_of_regularExpr leakingBranches) ; 
       print_endline ("nonleakingBranches: "  ^ string_of_regularExpr nonleakingBranches) ; 
-    
+    *)
       let (rankingFuns:rankingfunction list ) = makeAGuess pi leakingBranches in 
       let rankingFuns = removeRedundant rankingFuns (fun (a, _) (b , _) -> stricTcompareTerm a b ) in 
       pi, rankingFuns, leakingBranches, nonleakingBranches
@@ -1767,8 +1767,10 @@ let getLoopSummary (re:regularExpr) (path:pure) (reNonCycle:regularExpr): regula
   in 
 
 
+  (*
   print_endline ("\nRankingFuns \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun (p, re) -> string_of_ranking_function (p, re)) (rankingFuns))));   
   print_endline ("loop guard: " ^ string_of_pure pi );
+  *)
 
 
                                             (* a trace,    Some(terminational wp, ranking function) *)
@@ -1900,7 +1902,7 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) (path:pure): regularExpr * p
       (* | [] -> reNonCycle *)
     in 
     let re2, path2 =  
-      let loopsummary = getLoopSummary reIn (normalise_pure path) reNonCycle' in  
+      let loopsummary = normalise_es (getLoopSummary reIn (normalise_pure path) reNonCycle') in  
       print_endline ("loopsummary1: " ^ string_of_regularExpr  loopsummary);
       loopsummary, path
     in 
@@ -1945,11 +1947,11 @@ let rec recordTheMaxValue4RE (re:regularExpr): unit =
 
 let rec mapToOddEvenDomain (re:regularExpr): regularExpr =
   match  re with 
-  | Singleton (Eq (Basic(BVAR var), Minus(Basic(BVAR var1),Basic(BINT 1) )), loc) -> 
+  | Singleton (Eq (Basic(BSTR var), Minus(Basic(BSTR var1),Basic(BINT 1) )), loc) -> 
     if String.compare var var1 == 0 then 
-      let re1 = Concate (Guard(Predicate(evenKeyWord, [Basic(BVAR var)]), loc) , Singleton(Predicate(oddKeyWord, [Basic(BVAR var)]), loc)) in 
+      let re1 = Concate (Guard(Predicate(evenKeyWord, [Basic(BSTR var)]), loc) , Singleton(Predicate(oddKeyWord, [Basic(BSTR var)]), loc)) in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let re2 = Concate (Guard(Predicate(oddKeyWord, [Basic(BVAR var)]), !allTheUniqueIDs) , Singleton(Predicate(evenKeyWord, [Basic(BVAR var)]), !allTheUniqueIDs)) in 
+      let re2 = Concate (Guard(Predicate(oddKeyWord, [Basic(BSTR var)]), !allTheUniqueIDs) , Singleton(Predicate(evenKeyWord, [Basic(BSTR var)]), !allTheUniqueIDs)) in 
       Disjunction(re1, re2)
     else re
 
@@ -1967,25 +1969,29 @@ let getAllImplicationLeft (ctls:ctl list): pure list =
 
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr = 
 
-  let pass1 =   (getRegularExprFromCFG procedure) in 
+  let pass =  normalise_es (getRegularExprFromCFG procedure) in 
   
-  print_endline ("\nPASS1:\n"^string_of_regularExpr (pass1)^ "\n------------"); 
+  print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
-  let pass2 =  (normalise_es ( pass1)) in 
-  recordTheMaxValue4RE pass2; 
-  print_endline ("\nPASS2:\n"^string_of_regularExpr (pass2)^ "\n------------"); 
+  let pass, _ = convertAllTheKleeneToOmega pass (Ast_utility.TRUE) in 
+  let pass = normalise_es (pass) in  (*this is the step for sumarrizing the loop*)
 
-  let pass3, _ = convertAllTheKleeneToOmega pass2 (Ast_utility.TRUE) in 
-  let pass4 = normalise_es (pass3) in  (*this is the step for sumarrizing the loop*)
+  print_endline ("\nAfter convertAllTheKleeneToOmega:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
-  print_endline ("\nPASS4:\n"^string_of_regularExpr (pass4)^ "\n------------"); 
-  let pass4', _ = deletePossibleGuards (pass4) [] in  
+  let pass, _ = instantiateREStatesWithFreshNum (pass) [] in  (*this is the step for renaming the states *)
+  let pass, _ = deletePossibleGuards (pass) [] in  
+  let pass = normalise_es (pass) in  (*this is the step for sumarrizing the loop*)
 
-  print_endline ("\nPASS4':\n"^string_of_regularExpr (pass4')^ "\n------------"); 
-  let pass5, _ = instantiateREStatesWithFreshNum (pass4') [] in  (*this is the step for renaming the states *)
-  let pass6 = normalise_es_prime pass5 in 
-  print_endline ("\nPASS6:\n"^string_of_regularExpr (pass6)^ "\n------------"); 
 
+  print_endline ("\nAfter renaming and deletePossibleGuards:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+
+  (*
+
+  print_endline ("\nPASS4':\n"^string_of_regularExpr (pass)^ "\n------------"); 
+  let pass, _ = instantiateREStatesWithFreshNum (pass) [] in  (*this is the step for renaming the states *)
+  let pass = normalise_es_prime pass in 
+  print_endline ("\nPASS6:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+*)
   
 
   (*
@@ -1995,7 +2001,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
  *)
 
 
-  pass6
+  pass
   ;;
 
 
@@ -2008,15 +2014,15 @@ let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list =
 
 let rec findRelaventValueSetFromPure (p:pure) (var:string) : int list = 
   match p with 
-  | Eq (Basic (BVAR s), t2) 
-  | Gt (Basic (BVAR s), t2)  
-  | LtEq (Basic (BVAR s), t2) ->  
+  | Eq (Basic (BSTR s), t2) 
+  | Gt (Basic (BSTR s), t2)  
+  | LtEq (Basic (BSTR s), t2) ->  
     if String.compare s var == 0 then 
       let seeds = findRelaventValueSetFromTerms t2 var in 
       List.fold_left seeds ~init:[] ~f:(fun acc n -> acc @ [n; n+1])
       else [] 
-  | GtEq (Basic (BVAR s), t2) 
-  | Lt (Basic (BVAR s), t2) ->
+  | GtEq (Basic (BSTR s), t2) 
+  | Lt (Basic (BSTR s), t2) ->
     if String.compare s var == 0 then 
       let seeds = findRelaventValueSetFromTerms t2 var in 
       List.fold_left seeds ~init:[] ~f:(fun acc n -> acc @ [n; n-1])
@@ -2047,7 +2053,7 @@ let getAllPathConditionsCTL (ctls:ctl list): pure list =
 
 let rec getUnknownVars (re:regularExpr): string list = 
   match re with 
-  | Singleton (Eq (Basic(BVAR var), Basic ANY), _)  -> [var]
+  | Singleton (Eq (Basic(BSTR var), Basic ANY), _)  -> [var]
   | Concate(re1, re2) 
   | Disjunction (re1, re2) -> getUnknownVars re1 @ getUnknownVars re2
   | Omega re -> getUnknownVars re 
@@ -2092,7 +2098,7 @@ let rec getRelaventPure (p:pure) (str:string) : pure option =
 
 let rec convertSTR2VARTerms (t:terms) : terms = 
   match t with 
-  | Basic (BSTR str) ->  Basic (BVAR str)
+  | Basic (BSTR str) ->  Basic (BSTR str)
   | Minus (t1, t2) -> Minus (convertSTR2VARTerms t1, convertSTR2VARTerms t2) 
   | Plus (t1, t2) -> Plus (convertSTR2VARTerms t1, convertSTR2VARTerms t2) 
   | _ -> t 
@@ -2139,7 +2145,7 @@ let rec findCurrentValuation (currentValuation: (string * basic_type) list) (var
 let rec pureOfCurrentState (currentValuation: (string * basic_type) list) : pure = 
   match currentValuation with 
   | [] -> TRUE 
-  | (var, n):: xs-> PureAnd(Eq(Basic (BVAR var), Basic n), pureOfCurrentState xs) 
+  | (var, n):: xs-> PureAnd(Eq(Basic (BSTR var), Basic n), pureOfCurrentState xs) 
 
 let rec pureOfPathConstrints (currentValuation: (pure) list) : pure = 
   match currentValuation with 
@@ -2148,20 +2154,61 @@ let rec pureOfPathConstrints (currentValuation: (pure) list) : pure =
 
   
 let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (loc:terms): relation list = 
+
   match predicatesSpec with 
   | [] -> [] 
   | p :: xs  -> 
     (match p with 
-    | Eq(Basic( BVAR v1), Basic( BVAR v2)) | Eq (Basic( BSTR v1), Basic( BSTR v2)) -> 
+    | Eq (Basic( BSTR v1), Basic( BSTR v2)) -> 
       if String.compare v1 str == 0 || String.compare v2 str == 0 then 
-      [(assignKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
-       (notEQKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
+      [(assignKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
       else findrelationFromPredicatesSpec xs str loc
-    | Eq(Basic( BVAR v1), Basic( BINT v2)) | Eq (Basic( BSTR v1), Basic( BINT v2)) -> 
+    | Eq (Basic( BSTR v1), Basic( BINT v2)) -> 
       if String.compare v1 str == 0  then 
-      [(assignKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
-       (notEQKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
+      [(assignKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
       else findrelationFromPredicatesSpec xs str loc
+
+    | Neg (Eq (Basic( BSTR v1), Basic( BSTR v2)) )-> 
+      if String.compare v1 str == 0 || String.compare v2 str == 0 then 
+      [(notEQKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+    | Neg (Eq (Basic( BSTR v1), Basic( BINT v2))) -> 
+      if String.compare v1 str == 0  then 
+      [(notEQKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+
+
+    | Gt (Basic( BSTR v1), Basic( BSTR v2)) 
+    | LtEq (Basic( BSTR v1), Basic( BSTR v2)) -> 
+      if String.compare v1 str == 0 || String.compare v2 str == 0 then 
+      [(leqKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
+       (gtKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+
+    | Gt (Basic( BSTR v1), Basic( BINT v2)) 
+    | LtEq (Basic( BSTR v1), Basic( BINT v2)) -> 
+      if String.compare v1 str == 0  then 
+      [(leqKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
+      (gtKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+
+
+
+    | Lt (Basic( BSTR v1), Basic( BSTR v2)) 
+    | GtEq (Basic( BSTR v1), Basic( BSTR v2)) -> 
+      if String.compare v1 str == 0 || String.compare v2 str == 0 then 
+      [(geqKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
+      (ltKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+
+    | Lt (Basic( BSTR v1), Basic( BINT v2)) 
+    | GtEq (Basic( BSTR v1), Basic( BINT v2)) -> 
+      if String.compare v1 str == 0  then 
+      [(geqKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
+      (ltKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
+      else findrelationFromPredicatesSpec xs str loc
+
+
     | _ -> findrelationFromPredicatesSpec xs str loc
     )
 
@@ -2192,12 +2239,15 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   in 
   let loc = Basic(BINT state) in 
   match p with 
-  | Eq (Basic(BVAR str), Basic (ANY)) ->  
+  | Eq (Basic(BSTR str), Basic (ANY)) ->
+    print_endline (str ^ " = *" );
+    print_endline ("findrelationFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
+
     let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
     currentValuation, rel
 
-  | Gt (Basic(BVAR var), Basic t1) | LtEq (Basic(BVAR var), Basic t1) | Lt (Basic(BVAR var), Basic t1) | GtEq (Basic(BVAR var), Basic t1) | Neg (Eq (Basic(BVAR var), Basic t1) ) -> 
-    print_endline (string_of_pure p ^ "newly added ");
+  | Gt (Basic(BSTR var), Basic t1) | LtEq (Basic(BSTR var), Basic t1) | Lt (Basic(BSTR var), Basic t1) | GtEq (Basic(BSTR var), Basic t1) | Neg (Eq (Basic(BSTR var), Basic t1) ) -> 
+    (*print_endline (string_of_pure p ^ "newly added "); *)
     let currentValuation' = currentValuation in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
 *)
@@ -2218,19 +2268,22 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
           (predicates@predicatesSpec) )
         else List.filter ~f:(fun ele -> 
             let res =  entailConstrains p ele in 
-            print_endline ("entailConstrains: " ^ string_of_pure p  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
+            (*print_endline ("entailConstrains: " ^ string_of_pure p  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res); *)
             
             res
         ) (predicates@predicatesSpec) in 
-    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); 
+    (*
+    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); *)
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
+    (*
     print_endline (List.fold_left ~init:"facts': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_relation value)) facts); 
+    *)
 
     currentValuation', facts
 
 
   (* assign concret value *)
-  | Eq (Basic(BVAR var), Basic t1)  -> 
+  | Eq (Basic(BSTR var), Basic t1)  -> 
 
     let currentValuation' = updateCurrentValuation currentValuation var t1 in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
@@ -2253,8 +2306,9 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
           if relevent ele var 
           then 
             let res =  entailConstrains currentConstraint ele in 
+            (*
             print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
-            
+            *)
             res
           else false 
         ) (predicates@predicatesSpec) in 
@@ -2268,7 +2322,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     else currentValuation, [(s, terms@[loc])] 
       
 
-  | Eq (Basic(BVAR var), Plus(Basic(BVAR var1),Basic(BINT n) )) -> 
+  | Eq (Basic(BSTR var), Plus(Basic(BSTR var1),Basic(BINT n) )) -> 
     
     
     if String.compare var var1 == 0 then 
@@ -2278,11 +2332,11 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
         | Some n -> 
           let newBt = (BINT (n+1)) in 
           let currentValuation' =  updateCurrentValuation currentValuation var newBt  in 
-          getFactFromPureEv (Eq (Basic(BVAR var), Basic newBt)) state predicates predicatesSpec pathConstrint currentValuation' 
+          getFactFromPureEv (Eq (Basic(BSTR var), Basic newBt)) state predicates predicatesSpec pathConstrint currentValuation' 
 
       )
     else currentValuation, []
-  | Eq (Basic(BVAR var), Minus(Basic(BVAR var1),Basic(BINT n) )) -> 
+  | Eq (Basic(BSTR var), Minus(Basic(BSTR var1),Basic(BINT n) )) -> 
     
     
     if String.compare var var1 == 0 then 
@@ -2294,7 +2348,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
         | Some n -> 
           let newBt = (BINT (n-1)) in 
           let currentValuation' =  updateCurrentValuation currentValuation var newBt  in 
-          getFactFromPureEv (Eq (Basic(BVAR var), Basic newBt)) state predicates predicatesSpec pathConstrint currentValuation' 
+          getFactFromPureEv (Eq (Basic(BSTR var), Basic newBt)) state predicates predicatesSpec pathConstrint currentValuation' 
 
       )
     else currentValuation, []
@@ -2310,12 +2364,6 @@ let rec pureToBodies (p:pure) (state:int ): body list =
     let relations = getFactFromPure p state in 
     List.map ~f:(fun ((str, args)) -> 
       updateRuleDeclearation bodyDeclearation (str^"D");
-      (*let args' = List.map ~f:(fun a -> 
-        match a with 
-        | Basic _ -> a 
-        | Minus (t1, _) -> t1 
-        | _ -> Basic ANY) args in 
-        *)
       Pos (str^"D",args) ) relations 
 
 
@@ -2346,17 +2394,18 @@ let getStartState re : int option =
 let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
   let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
-  let (pathConditionsSpec:pure list) = getAllPathConditionsCTL specs in 
+  let (pathConditionsCTL:pure list) = getAllPathConditionsCTL specs in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
   let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
   
-  let (decomposedpathConditionsSpec:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsSpec) )) comparePure in 
+  let (decomposedpathConditionsCTL:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsCTL) )) comparePure in 
 (* decomposedPathConditions are the precicates derived from the program, whereas the 
-   decomposedpathConditionsSpec are the precicates derived from the specifiction, 
-*)
-  print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedpathConditionsSpec))));   
-  print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
+   decomposedpathConditionsCTL are the precicates derived from the specifiction, 
 
+   print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedpathConditionsCTL))));   
+  print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
+*)
+  
 
   let rec mergeResults li (acca, accb) = 
     match li with 
@@ -2364,7 +2413,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
     | (a, b) :: xs -> mergeResults xs (acca@a, accb@b )
   in     
 
-  let startState: state option = getStartState re in 
+  (*let startState: state option = getStartState re in *)
   let rec ietrater reIn (previousState:int option) (pathConstrint: ((pure * state) list)) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
     let reIn = normalise_es reIn in 
     (*print_endline ( string_of_regularExpr reIn );    *)
@@ -2380,16 +2429,6 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
         (* if the property is AG \phi, it connect the last state with the starting state, 
            if not, it adds a loop on the last state  *)
         let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) in 
-            (*
-            match !spec_agaf with 
-            | Some _ -> 
-              (match startState with
-              | None -> (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) 
-              | Some startState -> 
-              (flowKeyword, [Basic (BINT previousState); Basic (BINT startState (*previousState*))]) )
-            | None -> (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) 
-            in 
-            *)
 
         ([fact;stateFact], [])
       | _ -> ([], [])
@@ -2438,10 +2477,11 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun (p, l) -> (pureToBodies p l)) bodies))]
               )
             | None -> [], []) in 
-          let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsSpec (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
+          let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsCTL (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
           
           
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
+          
 
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original
@@ -2542,7 +2582,9 @@ let sortRules (ruleL : rule list) : rule list  =
 
 let createNecessaryDisjunction (re:regularExpr ) (specs:ctl list) : regularExpr = 
   let (allVarSpec:pure list) = flattenList (List.map ~f:(fun ctl -> getAllPureFromCTL ctl) specs) in 
+  (*
   print_endline ("allVarSpec:\n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) allVarSpec)));   
+  *)
 
   let rec partitionRE reIn :  regularExpr list = 
     match reIn with 
@@ -2560,9 +2602,9 @@ let createNecessaryDisjunction (re:regularExpr ) (specs:ctl list) : regularExpr 
       let containRelevantPure = containRelevantPureRE x allVarSpec in 
       if containRelevantPure then 
         let derivitives = iteraterSegemnst xs in  
-        print_endline ("derivitives " ^ string_of_regularExpr derivitives);  
+        (*print_endline ("derivitives " ^ string_of_regularExpr derivitives); *) 
         let derivitives1, _ = instantiateREStatesWithFreshNum (Concate (x, derivitives)) [] in 
-        print_endline ("after  " ^ string_of_regularExpr derivitives1);  
+        (*print_endline ("after  " ^ string_of_regularExpr derivitives1); *)
 
         derivitives1
 
@@ -2634,7 +2676,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
 
-  print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); 
+  (*print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); *)
 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
@@ -2785,3 +2827,4 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   
   ()
   *)
+

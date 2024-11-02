@@ -39,7 +39,7 @@ let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int"]
 
 
 
-type basic_type = BINT of int | BVAR of string | BNULL | BRET | ANY | BSTR of string
+type basic_type = BINT of int | BSTR of string | BNULL | BRET | ANY | BVAR of string
 
 type event = string * (basic_type list)
 
@@ -213,11 +213,11 @@ let get_children = function
 let string_of_basic_t v = 
   match v with 
   | BVAR name -> name
+  | BSTR name -> "\"" ^ name ^ "\""
   | BINT n -> string_of_int n
   | BNULL -> "NULL"
   | BRET -> "ret"
   | ANY -> "_"
-  | BSTR s -> "\"" ^ s ^ "\""
 
 
 
@@ -227,7 +227,7 @@ let string_of_loc n = "@" ^ string_of_int n
 let argumentsTerms2basic_types (t: (terms option) list): (basic_type list) = 
   List.fold_left t ~init:[] ~f:(fun acc a ->
     match a with 
-    | Some (Basic (BVAR str)) -> List.append acc [(BVAR str)]
+    | Some (Basic (BSTR str)) -> List.append acc [(BSTR str)]
     | _ -> acc 
   )
 
@@ -313,8 +313,7 @@ let rec string_of_regularExpr re =
 
 let compareBasic_type (bt1:basic_type) (bt2:basic_type) : bool = 
   match (bt1, bt2) with 
-  | (BSTR s1, BSTR s2)
-  | ((BVAR s1), (BVAR s2)) -> String.compare s1 s2 == 0
+  | ((BSTR s1), (BSTR s2)) -> String.compare s1 s2 == 0
   | (BINT n1, BINT n2) -> if n1 - n2 == 0 then true else false  
   | (BNULL, BNULL)
   | (ANY, ANY)
@@ -499,8 +498,41 @@ let rec derivitives_2 (f:fstElem) (eff:regularExpr) : regularExpr =
     )
 
 
+
+let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms list = 
+  match reIn with 
     
 
+  | Concate (eff1, eff2) -> 
+    let re1, record1 = deletePossibleGuards eff1 record in 
+    let re2, record2 = deletePossibleGuards eff2 record1 in 
+    Concate (re1, re2), record2
+
+
+  | Guard(TRUE, s1) -> Emp, record
+
+
+  | Disjunction (eff1, eff2) ->
+    let re1, record1 = deletePossibleGuards eff1 record in 
+    let re2, record2 = deletePossibleGuards eff2 record in 
+    Disjunction (re1, re2), record1@record2
+
+
+  
+
+    
+  | Kleene effIn          ->
+     let re1, record1 = deletePossibleGuards effIn record in 
+     Kleene re1, record1
+     
+  | Omega effIn          ->
+    let re1, record1 = deletePossibleGuards effIn record in 
+    Omega re1, record1
+
+  | _  -> reIn, record
+
+
+(*
 let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms list = 
   match reIn with 
   | Bot | Emp   -> reIn, record
@@ -548,7 +580,7 @@ let rec deletePossibleGuards reIn (record:(terms list)): regularExpr * terms lis
     let re1, record1 = deletePossibleGuards effIn record in 
     Omega re1, record1
 
-
+*)
 
 let rec lookforExistingMapping li (n:int) : int option  = None 
     (*match li with 
@@ -684,11 +716,11 @@ let normalise_terms (t:terms) : terms =
     if stricTcompareTerm _end _end1 && stricTcompareTerm b b1 then inc 
     else t 
 
-  | Minus(Plus(Basic(BVAR x),Basic( BINT n1)), Plus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))) -> 
+  | Minus(Plus(Basic(BSTR x),Basic( BINT n1)), Plus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))) -> 
     if String.compare x x1 == 0 then 
-      if (n2-n1) == 0 then Basic( BVAR y)
-      else if n2-n1 > 0 then Minus(Basic( BVAR y), Basic( BINT (n2-n1)))
-      else Plus(Basic( BVAR y), Basic( BINT (n2-n1)))
+      if (n2-n1) == 0 then Basic( BSTR y)
+      else if n2-n1 > 0 then Minus(Basic( BSTR y), Basic( BINT (n2-n1)))
+      else Plus(Basic( BSTR y), Basic( BINT (n2-n1)))
     else t
 
   
@@ -710,9 +742,9 @@ let rec normalise_pure (pi:pure) : pure =
   | FALSE -> pi
 
 
-  | LtEq (Basic(BINT n), Basic(BVAR v)) -> GtEq (Basic(BVAR v), Basic(BINT n))
-  | Lt (Basic(BINT n), Basic(BVAR v)) -> Gt (Basic(BVAR v), Basic(BINT n))
-  | Gt (Basic(BINT n), Basic(BVAR v)) -> Lt (Basic(BVAR v), Basic(BINT n))
+  | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
+  | Lt (Basic(BINT n), Basic(BSTR v)) -> Gt (Basic(BSTR v), Basic(BINT n))
+  | Gt (Basic(BINT n), Basic(BSTR v)) -> Lt (Basic(BSTR v), Basic(BINT n))
 
   | Gt (leftHandside,Basic( BINT 0)) -> 
     (match normalise_terms leftHandside with
@@ -725,7 +757,7 @@ let rec normalise_pure (pi:pure) : pure =
     
   | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
 
-  | Gt (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Lt(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  | Gt (Minus(Basic(BINT n1),Basic( BSTR v1)),Basic( BINT n2)) -> Lt(Basic(BSTR v1), Basic (BINT(n1-n2)))
   
 
 
@@ -734,9 +766,9 @@ let rec normalise_pure (pi:pure) : pure =
   | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
 
-  | LtEq (Minus(Basic(BVAR x),Basic( BINT n1)), Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))) -> 
-    if String.compare x x1 == 0 then  LtEq(Basic(BVAR y), Basic( BINT (n2-n1)))
-    else LtEq (normalise_terms (Minus(Basic(BVAR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))))
+  | LtEq (Minus(Basic(BSTR x),Basic( BINT n1)), Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))) -> 
+    if String.compare x x1 == 0 then  LtEq(Basic(BSTR y), Basic( BINT (n2-n1)))
+    else LtEq (normalise_terms (Minus(Basic(BSTR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))))
 
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
 
@@ -774,9 +806,9 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | FALSE -> pi
 
 
-  | LtEq (Basic(BINT n), Basic(BVAR v)) -> GtEq (Basic(BVAR v), Basic(BINT n))
-  | Lt (Basic(BINT n), Basic(BVAR v)) -> Gt (Basic(BVAR v), Basic(BINT n))
-  | Gt (Basic(BINT n), Basic(BVAR v)) -> Lt (Basic(BVAR v), Basic(BINT n))
+  | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
+  | Lt (Basic(BINT n), Basic(BSTR v)) -> Gt (Basic(BSTR v), Basic(BINT n))
+  | Gt (Basic(BINT n), Basic(BSTR v)) -> Lt (Basic(BSTR v), Basic(BINT n))
 
   | Gt (leftHandside,Basic( BINT 0)) -> 
     (match normalise_terms leftHandside with
@@ -786,17 +818,17 @@ let rec normalise_pure_prime (pi:pure) : pure =
     )
   | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
 
-  | Gt (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Lt(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  | Gt (Minus(Basic(BINT n1),Basic( BSTR v1)),Basic( BINT n2)) -> Lt(Basic(BSTR v1), Basic (BINT(n1-n2)))
   
   | Eq (Plus(t1, Basic( BINT n)),Basic( BINT 0)) -> Eq(t1,  Basic( BINT (-1 * n)))
   
   | Eq (Minus(t1, t2), Basic( BINT 0)) -> Eq(t1, t2)
 
-  | Eq (Minus(Basic(BINT n1),Basic( BVAR v1)),Basic( BINT n2)) -> Eq(Basic(BVAR v1), Basic (BINT(n1-n2)))
+  | Eq (Minus(Basic(BINT n1),Basic( BSTR v1)),Basic( BINT n2)) -> Eq(Basic(BSTR v1), Basic (BINT(n1-n2)))
   
-  | Eq (Basic( BVAR x), Minus(Basic( BVAR x1), Basic( BVAR y))) -> 
+  | Eq (Basic( BSTR x), Minus(Basic( BSTR x1), Basic( BSTR y))) -> 
     if String.compare x x1 ==0 then 
-    Eq(Basic( BVAR y), Basic( BINT 0))
+    Eq(Basic( BSTR y), Basic( BINT 0))
     else pi
 
 
@@ -805,9 +837,9 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
 
-  | LtEq (Minus(Basic(BVAR x),Basic( BINT n1)), Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))) -> 
-    if String.compare x x1 == 0 then  LtEq(Basic(BVAR y), Basic( BINT (n2-n1)))
-    else LtEq (normalise_terms (Minus(Basic(BVAR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BVAR x1),Basic( BVAR y)), Basic( BINT n2))))
+  | LtEq (Minus(Basic(BSTR x),Basic( BINT n1)), Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))) -> 
+    if String.compare x x1 == 0 then  LtEq(Basic(BSTR y), Basic( BINT (n2-n1)))
+    else LtEq (normalise_terms (Minus(Basic(BSTR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))))
 
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
 
@@ -944,7 +976,7 @@ let rec normalise_es (eff:regularExpr) : regularExpr =
 
 let rec varFromTerm (t:terms): string list =   
   match t with
-  | Basic (BVAR v) -> [v]
+  | Basic (BSTR v) -> [v]
   | Plus (t1, t2) 
   | Minus (t1, t2) ->  List.append (varFromTerm t1) (varFromTerm t2)
   | _ -> []
@@ -1002,9 +1034,9 @@ let instantiateRet_basic_type (bt:basic_type) (bds:bindings):  basic_type =
   | BRET -> 
     (match findRetFromBindingsRet bds with
     | None -> bt
-    | Some handler -> BVAR handler
+    | Some handler -> BSTR handler
     )
-  | BVAR str -> 
+  | BSTR str -> 
     (match findRetFromBindings bds str with
     | None -> bt
     | Some term ->  term 
@@ -1022,13 +1054,13 @@ exception FooAskz3 of string
 
 let rec convertTerm (t:terms):string = 
   match t with
-  | (Basic (BVAR name)) -> " " ^ name ^ " "
+  | (Basic (BVAR name))
+  | (Basic (BSTR name)) -> " " ^ name ^ " "
   | (Basic (BINT n)) -> " " ^ string_of_int n ^ " "
   | (Basic BRET) -> "ret"
   | (Basic (BNULL)) -> " " ^ "nil" ^ " "
   | Plus (t1, t2) -> ("(+") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
   | Minus (t1, t2) -> ("(-") ^ (convertTerm t1) ^  (convertTerm t2) ^ ")"
-  | Basic (BSTR _)
   | Basic ANY -> raise (Failure "convertTerm not yet")
   ;;
 
@@ -1076,7 +1108,7 @@ let rec convertPure (pi:pure) (acc:string):string =
 
 let rec getAllVarFromTerm (t:terms) (acc:string list):string list = 
   match t with
-| Basic (BVAR name) -> List.append acc [name]
+| Basic (BSTR name) -> List.append acc [name]
 | Plus (t1, t2) -> 
     let cur = getAllVarFromTerm t1 acc in 
     getAllVarFromTerm t2 cur
@@ -1231,8 +1263,7 @@ let rec existInhistoryTable pi table=
 
 let rec term_to_expr ctx : terms -> Z3.Expr.expr = function
   | (Basic(BINT n))        -> Z3.Arithmetic.Real.mk_numeral_i ctx n
-  | Basic (BSTR v)
-  | (Basic(BVAR v))           -> Z3.Arithmetic.Real.mk_const_s ctx v
+  | (Basic(BSTR v))           -> Z3.Arithmetic.Real.mk_const_s ctx v
   | (Basic(BNULL))           -> Z3.Arithmetic.Real.mk_const_s ctx "nil"
   | (Basic(BRET))           -> Z3.Arithmetic.Real.mk_const_s ctx "ret"
   | Basic ANY -> raise (Failure "term_to_expr not yet")
@@ -1334,7 +1365,7 @@ let entailConstrains p1 p2 =
     sat 
   in 
   match p1, p2 with
-  | Eq(Basic(BVAR var1), Basic (BINT n)), Predicate(pred, [Basic(BVAR var2)]) -> 
+  | Eq(Basic(BSTR var1), Basic (BINT n)), Predicate(pred, [Basic(BSTR var2)]) -> 
     if String.compare pred evenKeyWord == 0 && String.compare var1 var2 == 0
     then if n%2==0 then true else false 
     else aux p1 p2
@@ -1403,7 +1434,7 @@ let updateRuleDeclearation reference str : unit =
 
 let rec vartoStr (tLi:terms list) : terms list = 
   match tLi with 
-  | Basic (BVAR a) :: xs -> (Basic (BSTR a)) :: vartoStr xs 
+  | Basic (BSTR a) :: xs -> (Basic (BSTR a)) :: vartoStr xs 
   | x :: xs  -> x :: vartoStr xs 
   | [] -> []
 
@@ -1419,47 +1450,35 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     else ()    );
     [(s, (vartoStr terms)@[loc])])
 
-  | Eq (Basic(BSTR var1), Basic(BVAR var2))
-  | Eq (Basic(BSTR var1), Basic(BSTR var2))
-  | Eq (Basic(BVAR var1), Basic(BVAR var2)) ->  
+  | Eq (Basic(BSTR var1), Basic(BSTR var2)) ->  
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
     [(assignKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
 
-  | Neg (Eq (Basic(BSTR var1), Basic(BVAR var2)))
-  | Neg (Eq (Basic(BSTR var1), Basic(BSTR var2)))
-  | Neg (Eq (Basic(BVAR var1), Basic(BVAR var2))) ->  
+  | Neg (Eq (Basic(BSTR var1), Basic(BSTR var2))) ->  
     updateRuleDeclearation ruleDeclearation notEQKeyWordVar; 
     [(notEQKeyWordVar, [Basic(BSTR var1);loc;Basic(BSTR var2)])]
 
-  | Eq (Basic(BSTR var), Basic (BINT t2))
-  | Eq (Basic(BVAR var), Basic (BINT t2)) -> 
+  | Eq (Basic(BSTR var), Basic (BINT t2)) -> 
     updateRuleDeclearation ruleDeclearation (assignKeyWord) ;
     [(assignKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
 
-  | Neg (Eq (Basic(BSTR var), Basic(BINT t2)))
-  | Neg (Eq (Basic(BVAR var), Basic(BINT t2))) -> 
+  | Neg (Eq (Basic(BSTR var), Basic(BINT t2))) -> 
     updateRuleDeclearation ruleDeclearation (notEQKeyWord) ;
     [(notEQKeyWord, [Basic(BSTR var);loc;Basic (BINT t2)])]
 
 
-  | Neg (LtEq (Basic(BSTR var), Basic(BVAR var2)))
-  | Neg (LtEq (Basic(BVAR var), Basic(BVAR var2)))
-  | Gt (Basic(BSTR var), Basic(BVAR var2))
-  | Gt (Basic(BVAR var), Basic(BVAR var2)) -> 
+  | Neg (LtEq (Basic(BSTR var), Basic(BSTR var2)))
+  | Gt (Basic(BSTR var), Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (notEQKeyWord) ;
     [(notEQKeyWord, [Basic(BSTR var);loc;Basic(BSTR var2)])]
 
   | Neg (LtEq (Basic(BSTR var), t2))
-  | Gt (Basic(BSTR var), t2)
-  | Neg (LtEq (Basic(BVAR var), t2))
-  | Gt (Basic(BVAR var), t2) -> 
+  | Gt (Basic(BSTR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWord);
     [(gtKeyWord, [Basic(BSTR var);loc;t2])]
 
   | Neg (LtEq (t1, Basic(BSTR var2)))
-  | Gt (t1, Basic(BSTR var2))
-  | Neg (LtEq (t1, Basic(BVAR var2)))
-  | Gt (t1, Basic(BVAR var2)) -> 
+  | Gt (t1, Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWordVar);
     [(gtKeyWordVar, [t1;loc;Basic(BSTR var2)])]
 
@@ -1469,24 +1488,18 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     updateRuleDeclearation ruleDeclearation (gtKeyWord) ;
     [(gtKeyWord, [t1;loc;t2])]
 
-  | Neg (GtEq (Basic(BSTR var), Basic(BVAR var2)))
-  | Lt (Basic(BSTR var), Basic(BVAR var2))
-  | Neg (GtEq (Basic(BVAR var), Basic(BVAR var2)))
-  | Lt (Basic(BVAR var), Basic(BVAR var2)) -> 
+  | Neg (GtEq (Basic(BSTR var), Basic(BSTR var2)))
+  | Lt (Basic(BSTR var), Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
     [(ltKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (GtEq (Basic(BSTR var), t2))
-  | Lt (Basic(BSTR var), t2)
-  | Neg (GtEq (Basic(BVAR var), t2))
-  | Lt (Basic(BVAR var), t2) -> 
+  | Lt (Basic(BSTR var), t2)-> 
     updateRuleDeclearation ruleDeclearation (ltKeyWord);
     [(ltKeyWord, [Basic(BSTR var);loc;t2])]
 
 
   | Neg (GtEq (t1, Basic(BSTR var2)))
-  | Lt (t1, Basic(BSTR var2))
-  | Neg (GtEq (t1, Basic(BVAR var2)))
-  | Lt (t1, Basic(BVAR var2)) -> 
+  | Lt (t1, Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
     [(ltKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (GtEq (t1, t2))
@@ -1495,18 +1508,18 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     [(ltKeyWord, [t1;loc;t2])]
 
 
-  | Neg (Lt (Basic(BVAR var), Basic(BVAR var2)))
-  | GtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
+  | Neg (Lt (Basic(BSTR var), Basic(BSTR var2)))
+  | GtEq (Basic(BSTR var), Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (geqKeyWordVar);
     [(geqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
-  | Neg (Lt (Basic(BVAR var), t2))
-  | GtEq (Basic(BVAR var), t2) -> 
+  | Neg (Lt (Basic(BSTR var), t2))
+  | GtEq (Basic(BSTR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (geqKeyWord);
     [(geqKeyWord, [Basic(BSTR var);loc;t2])]
 
 
-  | Neg (Lt (t1, Basic(BVAR var2)))
-  | GtEq (t1, Basic(BVAR var2)) -> 
+  | Neg (Lt (t1, Basic(BSTR var2)))
+  | GtEq (t1, Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (geqKeyWordVar);
     [(geqKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (Lt (t1, t2))
@@ -1514,21 +1527,21 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     updateRuleDeclearation ruleDeclearation (geqKeyWord);
     [(geqKeyWord, [t1;loc;t2])]
 
-  | Neg (Gt (Basic(BVAR var), Basic(BSTR var2)))
+  | Neg (Gt (Basic(BSTR var), Basic(BSTR var2)))
   | LtEq (Basic(BSTR var), Basic(BSTR var2))
-  | LtEq (Basic(BVAR var), Basic(BSTR var2))
-  | Neg (Gt (Basic(BVAR var), Basic(BVAR var2)))
-  | LtEq (Basic(BVAR var), Basic(BVAR var2)) -> 
+  | LtEq (Basic(BSTR var), Basic(BSTR var2))
+  | Neg (Gt (Basic(BSTR var), Basic(BSTR var2)))
+  | LtEq (Basic(BSTR var), Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
     [(leqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
-  | Neg (Gt (Basic(BVAR var), t2))
-  | LtEq (Basic(BSTR var), t2) | LtEq (Basic(BVAR var), t2) -> 
+  | Neg (Gt (Basic(BSTR var), t2))
+  | LtEq (Basic(BSTR var), t2) | LtEq (Basic(BSTR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWord);
     [(leqKeyWord, [Basic(BSTR var);loc;t2])]
 
 
-  | Neg (Gt (t1, Basic(BVAR var2)))
-  | LtEq (t1, Basic(BVAR var2)) -> 
+  | Neg (Gt (t1, Basic(BSTR var2)))
+  | LtEq (t1, Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
     [(leqKeyWordVar, [t1;loc;Basic(BSTR var2)])]
   | Neg (Gt (t1, t2))
@@ -1537,10 +1550,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     [(leqKeyWord, [t1;loc;t2])]
 
 
-  | Neg (Eq (Basic(BVAR var), Basic(BVAR var2))) -> 
-    updateRuleDeclearation ruleDeclearation (notEQKeyWordVar);
-    [(notEQKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
-  | Neg (Eq (Basic(BVAR var), t2)) -> 
+  | Neg (Eq (Basic(BSTR var), t2)) -> 
     updateRuleDeclearation ruleDeclearation (notEQKeyWord);
     [(notEQKeyWord, [Basic(BSTR var);loc;t2])]
 
@@ -1753,7 +1763,7 @@ let string_of_datalog (datalog:datalog) : string =
 let rec infer_variables (pure:pure) =
   let get_variable_terms (x: terms) =
     match x with
-    Basic (BVAR x) -> [Basic (BVAR x)]
+    Basic (BSTR x) -> [Basic (BSTR x)]
     | _ -> [] in 
  let x = match pure with 
   TRUE -> []
@@ -1774,7 +1784,7 @@ let rec infer_variables (pure:pure) =
 let rec infer_params (pure:pure) : param list = 
   let get_variable_terms (x: terms) (y:basic_Type) =
     match x with
-    Basic (BVAR x) -> [x,y]
+    Basic (BSTR x) -> [x,y]
     | _ -> [] in
   let x = match pure with 
   TRUE -> []
@@ -1821,29 +1831,23 @@ let string_of_int_shall n =
 let rec propositionName pi : (string ) = 
     match pi with 
     | Eq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_eq_" ^ string_of_int_shall n
-    | Eq (Basic(BSTR str), Basic(BSTR str1)) 
-    | Eq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_eq_" ^ str1
+    | Eq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_eq_" ^ str1
 
     | Neg(Eq (Basic(BSTR str), Basic(BINT n))) -> str ^ "_neq_" ^ string_of_int_shall n
-    | Neg (Eq (Basic(BSTR str), Basic(BSTR str1))) 
-    | Neg (Eq (Basic(BSTR str), Basic(BVAR str1))) -> str ^ "_neq_" ^ str1
+    | Neg (Eq (Basic(BSTR str), Basic(BSTR str1))) -> str ^ "_neq_" ^ str1
 
 
     | Gt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gt_" ^ string_of_int_shall n
-    | Gt (Basic(BSTR str), Basic(BSTR str1)) 
-    | Gt (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_gt_" ^ str1
+    | Gt (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_gt_" ^ str1
 
     | Lt (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lt_" ^ string_of_int_shall n
-    | Lt (Basic(BSTR str), Basic(BSTR str1)) 
-    | Lt (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_lt_" ^ str1
+    | Lt (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_lt_" ^ str1
 
     | GtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_gteq_" ^ string_of_int_shall n
-    | GtEq (Basic(BSTR str), Basic(BSTR str1)) 
-    | GtEq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_gteq_" ^ str1
+    | GtEq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_gteq_" ^ str1
 
     | LtEq (Basic(BSTR str), Basic(BINT n)) -> str ^ "_lteq_" ^ string_of_int_shall n
-    | LtEq (Basic(BSTR str), Basic(BSTR str1)) 
-    | LtEq (Basic(BSTR str), Basic(BVAR str1)) -> str ^ "_lteq_" ^ str1
+    | LtEq (Basic(BSTR str), Basic(BSTR str1)) -> str ^ "_lteq_" ^ str1
 
     | PureAnd (pi1, pi2) -> 
       let n1 = propositionName pi1 in 
@@ -1868,20 +1872,20 @@ let reachablibilyrules head =
 
 
   if String.compare base evenKeyWord == 0 || String.compare base oddKeyWord == 0 then 
-    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]) ] ;
-     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord)] ), 
-      [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord)] );  
+    [(head, [Basic (BSTR "x"); Basic (BVAR locKeyWord)] ), [ Pos (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord)]) ] ;
+     (head, [Basic (BSTR "x"); Basic (BVAR locKeyWord)] ), 
+      [ Pos (head, [Basic (BSTR "x"); Basic (BVAR loc_inter_KeyWord)] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]);
-        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord)]); ]]
+        Neg (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord)]);
+        Neg (negBase, [Basic (BSTR "x"); Basic (BVAR locKeyWord)]); ]]
 
   else 
-    [(head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
-     (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
-      [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
+    [(head, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), [ Pos (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]) ] ;
+     (head, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
+      [ Pos (head, [Basic (BSTR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]);
-        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
+        Neg (base, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic ANY]);
+        Neg (negBase, [Basic (BSTR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
 
 let nameContainsVar str n : bool = 
   let l = String.length str in 
@@ -2013,10 +2017,10 @@ and process_args (args:terms list) =
     sort_uniq 
     (fun x y -> 
       match (x,y) with
-      | (Basic (BVAR x), Basic (BVAR y)) -> String.compare x y
+      | (Basic (BSTR x), Basic (BSTR y)) -> String.compare x y
       | _ -> raise (Failure "Arguments should only be variables")
       )
-    (List.filter ~f:(fun x -> match x with  Basic (BVAR x) -> true | _ -> false ) args ) 
+    (List.filter ~f:(fun x -> match x with  Basic (BSTR x) -> true | _ -> false ) args ) 
 
 
 and makeNegationPostiveWhenPosible (ctl:ctl) : ctl = 
@@ -2406,7 +2410,7 @@ let rec getAllPureFromCTL (ctl:ctl): pure list  =
   | Atom (_, Predicate _ ) -> []
   | Atom (_, p) -> 
     (match p with
-    | Eq (Basic(BSTR v), Basic(BINT n)) -> [Eq (Basic(BVAR v), Basic(BINT n))]
+    | Eq (Basic(BSTR v), Basic(BINT n)) -> [Eq (Basic(BSTR v), Basic(BINT n))]
     | _ -> [p]
     )
   | AX c 
@@ -2427,7 +2431,7 @@ let rec getAllPureFromImplicationLeft (ctl:ctl): pure list  =
   | Atom (_, Predicate _ ) -> []
   | Atom (_, p) -> 
     (match p with
-    | Eq (Basic(BSTR v), Basic(BINT n)) -> [Eq (Basic(BVAR v), Basic(BINT n))]
+    | Eq (Basic(BSTR v), Basic(BINT n)) -> [Eq (Basic(BSTR v), Basic(BINT n))]
     | _ -> [p]
     )
   | AX c 
@@ -2449,8 +2453,8 @@ let rec containRelevantPureRE (re:regularExpr) (allVarSpec:pure list): bool  =
   match re with 
   | Singleton (p, _)  -> 
     (match p with 
-    | Eq (Basic(BVAR _), Basic (BINT _ )) 
-    | Eq (Basic(BVAR _), Basic (BVAR _ )) ->  
+    | Eq (Basic(BSTR _), Basic (BINT _ )) 
+    | Eq (Basic(BSTR _), Basic (BSTR _ )) ->  
       let shouldDisjunct = List.fold_left ~init:false ~f:(fun acc pred -> if entailConstrains p pred then true else acc) allVarSpec in 
       if shouldDisjunct then true 
       else false 
