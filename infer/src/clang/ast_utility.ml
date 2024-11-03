@@ -120,7 +120,7 @@ type ctl =
   | EU of ctl * ctl 
 
 
-type rankingfunction =  (terms * regularExpr option)
+type rankingfunction =  (terms * regularExpr) (* the term and the leacking behaviour *)
 
 (* Global States *)
 let (varSet: (string list) ref) = ref [] 
@@ -648,11 +648,8 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
     )
 
 let string_of_ranking_function (p, re): string = 
-  string_of_terms p ^ " :: " ^ 
-  (match re with 
-  | None -> "none"
-  | Some re -> string_of_regularExpr re
-  )
+  string_of_terms p ^ " :: " ^ string_of_regularExpr re
+
 
 
 let eventToRe (ev:fstElem) : regularExpr = 
@@ -797,6 +794,8 @@ let rec normalise_pure_prime (pi:pure) : pure =
     | t -> Gt(t, Basic( BINT 0))
     )
   | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
+  | GtEq (Minus(t1, t2),Basic( BINT 0)) -> GtEq(t1, t2)
+
 
   | Gt (Minus(Basic(BINT n1),Basic( BSTR v1)),Basic( BINT n2)) -> Lt(Basic(BSTR v1), Basic (BINT(n1-n2)))
   
