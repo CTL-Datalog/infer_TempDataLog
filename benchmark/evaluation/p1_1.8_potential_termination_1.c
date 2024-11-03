@@ -9,12 +9,9 @@
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
 int main() {
-    int i;
-    int x;
-    int y;
-    y = 1;
-    i = __VERIFIER_nondet_int(); 
-    x = __VERIFIER_nondet_int(); 
+    int i= __VERIFIER_nondet_int(); 
+    int x= __VERIFIER_nondet_int(); 
+    int y = 1;
 
     if (i > 10) { 
         x = 1;

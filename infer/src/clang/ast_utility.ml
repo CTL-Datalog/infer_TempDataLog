@@ -2,8 +2,6 @@ open Z3
 let flowKeyword = "flow"
 let controlFlowKeyword = "control_flow"
 let retKeyword = "Return"
-let joinKeyword = "Join"
-let skipKeyword = "Join"
 let exitKeyWord = "EXIT"
 let entryKeyWord = "Start"
 let stateKeyWord = "State"
@@ -98,7 +96,6 @@ type regularExpr =
 
 type fstElem = 
     PureEv of (pure * state) 
-  | Delimiter of state
   | GuardEv of (pure * state) 
   | KleeneEv of regularExpr
   | OmegaEv of regularExpr
@@ -367,7 +364,6 @@ let rec nullable (eff:regularExpr) : bool =
 let string_of_fst_event (ele:fstElem) : string = 
   match ele with 
   | PureEv (p, s) -> string_of_pure p ^ string_of_loc s 
-  | Delimiter (s) -> skipKeyword ^ string_of_loc s 
   | GuardEv (p, s) -> "[" ^string_of_pure p ^ "]" ^ string_of_loc s 
   | KleeneEv re -> "(" ^ string_of_regularExpr re ^ ")^*"
   | OmegaEv re -> "(" ^ string_of_regularExpr re ^ ")^w"
@@ -377,9 +373,7 @@ let rec fst (eff:regularExpr) : (fstElem list) =
   | Bot             -> []   
   | Emp  -> []
   | Singleton (Predicate(s, args), loc) -> 
-    if String.compare s joinNodeKeyWord == 0  || String.compare s skipKeyword == 0  
-    then [Delimiter loc] 
-    else [PureEv (Predicate(s, args), loc)]
+    [PureEv (Predicate(s, args), loc)]
 
   | Singleton s     -> [(PureEv s)]
   | Guard s         -> [(GuardEv s)]
@@ -416,7 +410,6 @@ let rec getStatesFromFstEle (li:fstElem list): int list  =
   | x :: xs  -> 
     (match x with 
     | PureEv  (_, s) 
-    | Delimiter s 
     | GuardEv (_, s) -> [s] 
     | _ -> []
     ) @ getStatesFromFstEle xs 
@@ -437,7 +430,6 @@ let rec compareRE re1 re2 : bool =
 
 let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
   match (ev1, ev2) with 
-  | (Delimiter s1, Delimiter s2) -> s1 == s2 
   | (PureEv (p1, s1), PureEv(p2, s2))
   | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2 && s1 == s2 
   | (OmegaEv re1, OmegaEv re2)
@@ -446,7 +438,6 @@ let compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
 
 let relaxed_compareEvent (ev1:fstElem) (ev2:fstElem) : bool  = 
   match (ev1, ev2) with 
-  | (Delimiter s1, Delimiter s2) -> true
   | (PureEv (p1, s1), PureEv(p2, s2))
   | (GuardEv (p1, s1), GuardEv(p2, s2)) -> comparePure p1 p2  
   | (OmegaEv re1, OmegaEv re2)
@@ -475,7 +466,6 @@ let rec derivitives_2 (f:fstElem) (eff:regularExpr) : regularExpr =
   | Singleton (p1, s1) -> 
     (match f with 
     | PureEv (p2, s2) -> if comparePure p1 p2  then Emp else Bot
-    | Delimiter s2 -> if comparePure p1 (Predicate(skipKeyword, [])) && s1 == s2 then Emp else Bot
     | _  -> Bot 
     )
   | Guard (p1, s1) -> 
@@ -638,7 +628,6 @@ let rec derivitives (f:fstElem) (eff:regularExpr) : regularExpr =
   | Singleton (p1, s1) -> 
     (match f with 
     | PureEv (p2, s2) -> if comparePure p1 p2 && s1 == s2 then Emp else Bot
-    | Delimiter s2 -> if comparePure p1 (Predicate(skipKeyword, [])) && s1 == s2 then Emp else Bot
     | _  -> Bot 
     )
   | Guard (p1, s1) -> 
@@ -669,7 +658,6 @@ let string_of_ranking_function (p, re): string =
 let eventToRe (ev:fstElem) : regularExpr = 
   match ev with 
   | PureEv s -> Singleton s 
-  | Delimiter s -> Singleton ((Predicate(skipKeyword, [])), s) 
   | GuardEv s -> Guard s 
   | KleeneEv re -> Kleene re
   | OmegaEv re -> Omega re
@@ -679,10 +667,6 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
     (match fst re with 
     | [f] -> 
       (match f with 
-      | Delimiter state -> 
-        let deriv = (derivitives f re) in 
-        Some (state, Emp, deriv)
-
       | _ -> 
         let deriv = (derivitives f re) in 
         (match findTheFirstJoint deriv with 
@@ -697,8 +681,7 @@ let rec findTheFirstJoint (re:regularExpr) : (int * regularExpr * regularExpr) o
 
 let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr = 
   match re with 
-  | Singleton (Predicate (s, _), state) -> 
-    if String.compare s joinNodeKeyWord == 0  || String.compare s skipKeyword == 0  then Emp else re 
+  | Singleton (Predicate (s, _), state) -> re 
   | Kleene (reIn) -> Kleene (deleteAllTheJoinNodes reIn)
   | Disjunction(r1, r2) -> Disjunction(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
   | Concate (r1, r2) -> Concate(deleteAllTheJoinNodes r1, deleteAllTheJoinNodes r2)
@@ -1227,6 +1210,17 @@ let rec getAllNumFromPure (pi:pure):int list =
   ;;
 
 
+let rec addStateAfterCondition (re:regularExpr) : regularExpr = 
+  match re with 
+  | Emp | Bot | Singleton _ -> re  
+  | Guard(p, state) -> Concate (re, Singleton(p, state))
+  | Disjunction(r1, r2) -> Disjunction(addStateAfterCondition r1, addStateAfterCondition r2)
+  | Concate (r1, r2) -> Concate(addStateAfterCondition r1, addStateAfterCondition r2)
+  | Omega (reIn) -> Omega (addStateAfterCondition reIn)
+  | Kleene _ -> raise (Failure "addStateAfterCondition not posible")
+  ;;
+
+
 let rec getProgramValues (re:regularExpr) : int list = 
   match re with 
   | Emp | Bot -> [] 
@@ -1432,7 +1426,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   let loc = Basic(BINT state) in 
   match p with 
 
-  | Predicate (s, terms) -> if String.compare s joinKeyword == 0 then [] else 
+  | Predicate (s, terms) -> 
     (
     [(s, (vartoStr terms)@[loc])])
 

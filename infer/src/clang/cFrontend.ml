@@ -835,7 +835,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
   | Exit_node ->  Singleton (Predicate (exitKeyWord, []), node_key), []
   | Join_node ->  (*Singleton(Predicate (joinKeyword, []), node_key)*)Emp , []
-  | Skip_node _ ->  Singleton(Predicate (skipKeyword, []), node_key) , []
+  | Skip_node _ -> (*Singleton(Predicate (skipKeyword, []), node_key)*) Emp, []
   | Prune_node (f,_,_) ->  
     let loads, last = partitionFromLast instrs in 
     let stack' = updateStakeUsingLoads loads in 
@@ -1443,7 +1443,6 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
             else (Bot, eventToRe f) 
 
           | PureEv _
-          | Delimiter _ 
           | GuardEv _ -> (Bot, eventToRe f) 
           | OmegaEv reIn -> (Omega reIn, Bot)
           | _ ->  raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
@@ -1837,6 +1836,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
 
   print_endline ("\nAfter convertAllTheKleeneToOmega:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
+  let pass = addStateAfterCondition (pass) in  (* add a sybolic state after conditioal *)
+
   let pass, _ = instantiateREStatesWithFreshNum (pass) [] in  (*this is the step for renaming the states *)
   let pass, _ = deletePossibleGuards (pass) [] in  
   let pass = normalise_es (pass) in  (*this is the step for sumarrizing the loop*)
@@ -1844,20 +1845,6 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
 
   print_endline ("\nAfter renaming and deletePossibleGuards:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
-  (*
-
-  print_endline ("\nPASS4':\n"^string_of_regularExpr (pass)^ "\n------------"); 
-  let pass, _ = instantiateREStatesWithFreshNum (pass) [] in  (*this is the step for renaming the states *)
-  let pass = normalise_es_prime pass in 
-  print_endline ("\nPASS6:\n"^string_of_regularExpr (pass)^ "\n------------"); 
-*)
-  
-
-  (*
-  let (pathConditionsSpecOnTheLeft:pure list) = getAllImplicationLeft specs in 
-  
-  print_endline ("pathConditionsSpecOnTheLeft \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditionsSpecOnTheLeft))));   
- *)
 
 
   Some pass
@@ -2247,12 +2234,10 @@ let getStartState re : int option =
   | _ ->  None 
 
 let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
-  let (doneDelimiters:int list ref) = ref[] in 
   let pathConditions = getAllPathConditions re in 
   let (pathConditionsCTL:pure list) = getAllPathConditionsCTL specs in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
   let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
-  
   let (decomposedpathConditionsCTL:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsCTL) )) comparePure in 
 (* decomposedPathConditions are the precicates derived from the program, whereas the 
    decomposedpathConditionsCTL are the precicates derived from the specifiction, 
@@ -2272,6 +2257,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
   let rec ietrater reIn (previousState:int option) (pathConstrint: ((pure * state) list)) (currentValuation: (string * basic_type) list) : (relation list * rule list) = 
     let reIn = normalise_es reIn in 
     (*print_endline ( string_of_regularExpr reIn );    *)
+    let pathConstrint = [] in 
 
     
     let fstSet = removeRedundant (fst reIn) compareEvent in 
@@ -2280,44 +2266,13 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
       (match previousState with 
       | Some previousState -> 
         let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
-        
-        (* if the property is AG \phi, it connect the last state with the starting state, 
-           if not, it adds a loop on the last state  *)
         let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT previousState )]) in 
-
         ([fact;stateFact], [])
       | _ -> ([], [])
       )
     | li -> 
       List.fold_left li ~init:([], []) ~f:(fun (reAcc, ruAcc) f -> 
         match f with 
-        | Delimiter state -> 
-          
-          let (reAcc, ruAcc) = 
-            (match previousState with 
-            | Some previousState -> 
-              let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
-
-              let fact = (flowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
-              let fact' = (controlFlowKeyword, [Basic (BINT previousState); Basic (BINT state)]) in 
-
-              (match pathConstrint with 
-              | [] -> [stateFact; fact], []
-              | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun (p, l) -> (pureToBodies p l)) bodies))]
-              )
-              
-
-            | None  -> [], []
-            )
-          in 
-          let (reAcc'', ruAcc'') = 
-            if existAux (==) !doneDelimiters state then [], []
-            else 
-              (doneDelimiters := state:: !doneDelimiters;
-              ietrater (derivitives f reIn) (Some state) [] currentValuation) in 
-          
-          mergeResults [(reAcc, ruAcc); (reAcc'', ruAcc'')] ([], [])
-
 
         | PureEv (p, state) -> 
           let (reAcc', ruAcc')  = 
@@ -2329,9 +2284,11 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               let stateFact = (stateKeyWord, [Basic (BINT previousState)]) in 
               (match pathConstrint with 
               | [] -> [stateFact; fact], []
-              | bodies -> [stateFact], [(fact', flattenList(List.map ~f:(fun (p, l) -> (pureToBodies p l)) bodies))]
+              | bodies -> [stateFact], 
+              [(fact', flattenList(List.map ~f:(fun (p, l) -> (pureToBodies p l)) bodies))]
               )
-            | None -> [], []) in 
+            | None -> [], []) 
+          in 
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsCTL (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
           
           
@@ -2345,22 +2302,24 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
           let pathConstrint' = 
             match p with 
             | Predicate (s, _) -> 
-              (*print_endline ("Specs are \n" ^ (String.concat ~sep:" , " (List.map ~f:(fun p -> string_of_ctl p) (specs)))); 
-              print_endline ("existExitKeyWord of " ^ s ^ " is " ^ string_of_bool (existExitKeyWord specs)); 
-              *)  
               (if String.compare s retKeyword ==0 then 
                 predicateDeclearation:= (s, ["Number";"Number"]) :: !predicateDeclearation 
-              else if twoStringSetOverlap [s] [entryKeyWord;skipKeyword;retKeyword] then ()
+              else if twoStringSetOverlap [s] [entryKeyWord;retKeyword] then ()
               else if String.compare s exitKeyWord ==0 && existExitKeyWord specs then ()
               else 
                 predicateDeclearation:=  !predicateDeclearation@ [(s, ["Number"])] ;
               );
-              if String.compare s joinKeyword == 0 then [] else pathConstrint
+              pathConstrint
             | _ -> pathConstrint
           in 
 
           let (reAcc'', ruAcc'') = ietrater derivitives (Some state) pathConstrint' currentValuation' in 
-          mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (valueFacts, []); (reAcc'', ruAcc'')] ([], [])
+          mergeResults 
+          [(reAcc, ruAcc);  (* accumulator program *)
+           (reAcc', ruAcc'); (* structural facts: flow, state *)
+           (valueFacts, []);  (* symbolic facts *)
+           (reAcc'', ruAcc'')  (* rest program *)
+           ] ([], [])
 
           
         | GuardEv (guard, state) ->  
@@ -2380,6 +2339,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               )
             | None -> [], []) 
           in 
+
           let (pathConstrint': ((pure * state) list)) = 
             match previousState with 
             | None -> pathConstrint
@@ -2387,13 +2347,16 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
               match pathConstrint, guard  with 
               | [], TRUE -> ([])
               | bodies, TRUE -> (bodies)
-
               | [], _ -> ([(guard, previousState)])
               | bodies, _ -> (bodies @ [(guard, previousState)])
           in 
 
           let (reAcc'', ruAcc'') = ietrater (derivitives f reIn) (Some state) pathConstrint' currentValuation in 
-          mergeResults [(reAcc, ruAcc); (reAcc', ruAcc'); (reAcc'', ruAcc'')] ([], [])
+          mergeResults 
+          [(reAcc, ruAcc); (* accumulator program *)
+          (reAcc', ruAcc'); (* structural facts: flow, state *)
+          (reAcc'', ruAcc'') (* rest program *)
+          ] ([], [])
 
         (* ietrater recycle previousState *)
         | KleeneEv _ ->  raise (Failure "having a kleene after the loop summarisation")
