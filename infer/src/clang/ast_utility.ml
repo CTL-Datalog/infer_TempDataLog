@@ -1749,7 +1749,7 @@ let string_of_datalog (datalog:datalog) : string =
 let rec infer_variables (pure:pure) =
   let get_variable_terms (x: terms) =
     match x with
-    Basic (BSTR x) -> [Basic (BSTR x)]
+    Basic (BVAR x) -> [Basic (BVAR x)]
     | _ -> [] in 
  let x = match pure with 
   TRUE -> []
@@ -1770,7 +1770,7 @@ let rec infer_variables (pure:pure) =
 let rec infer_params (pure:pure) : param list = 
   let get_variable_terms (x: terms) (y:basic_Type) =
     match x with
-    Basic (BSTR x) -> [x,y]
+    Basic (BVAR x) -> [x,y]
     | _ -> [] in
   let x = match pure with 
   TRUE -> []
