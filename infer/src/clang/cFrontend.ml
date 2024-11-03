@@ -1500,12 +1500,10 @@ let rec containUnknown (term:terms) : bool =
   | Minus(t1, t2) | Plus(t1,  t2) -> containUnknown t1 || containUnknown t2
 
 (* return the first meaningful wpc and the corresponding ranking function *)
-let wp4Termination (re:regularExpr) (guard:pure) (rankingFuns:rankingfunction list) : 
+let wp4Termination (transitionSummaries:transitionSummary) (guard:pure) (rankingFuns:rankingfunction list) : 
 pure * rankingfunction 
 = 
   print_endline ("wp4Termination"); 
-  let (alldisjunctiveTransitions:regularExpr list) = decomposeRE re in 
-  let transitionSummaries = flattenList (List.map alldisjunctiveTransitions ~f:transitionSummary) in  
 
   let rec helper rf : (pure * rankingfunction) = 
     let (rankingTerm, _) = rf in 
@@ -1572,17 +1570,33 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
     )
 
   
-let stateAfterTerminate pi = 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      Singleton(pi, !allTheUniqueIDs) 
-   
+
+
+let computerNonTerminating (transitionSummaries:transitionSummary) upperbound rankingTerm guard: pure = 
+  let (wpcForNT: pure) = List.fold_left transitionSummaries ~init:upperbound
+  ~f:(fun acc (path, stateLi) ->  
+    print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
+
+    let (pureIter:pure) = 
+      let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
+      let left_hand_side = PureAnd (guard, path) in 
+      let right_hand_side = LtEq(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
+      if containUnknown rankingTerm' then  Ast_utility.FALSE 
+      else 
+        if entailConstrains left_hand_side right_hand_side then (Ast_utility.TRUE)  
+        else right_hand_side
+    in 
+
+    PureAnd(acc, pureIter)
+
+  ) 
+
+  in 
+  wpcForNT
 
 
 
-
-
-
-let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr =  
+let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option  =  
   let re = normalise_es re in
 
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
@@ -1616,41 +1630,53 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr =
 
 
   if List.length rankingFuns == 0 then 
-    Concate (Guard loopGuard, Omega (Singleton loopGuard))
+    Some (Concate (Guard loopGuard, Omega (Singleton loopGuard)))
 
   else 
   
 
+  let (alldisjunctiveTransitions:regularExpr list) = decomposeRE re in 
+  let transitionSummaries = flattenList (List.map alldisjunctiveTransitions ~f:transitionSummary) in  
 
                                 (* a trace,    Some(terminational wp, ranking function) *)
-  let (weakestPre, (rfterm, leakingRE)) = wp4Termination nonleakingBranches (pi) rankingFuns in 
+  let (weakestPreTerm, (rfterm, leakingRE)) = wp4Termination transitionSummaries (pi) rankingFuns in 
   
   
-  let weakestPre = normalise_pure_prime (weakestPre) in 
+  let weakestPreTerm = normalise_pure_prime (weakestPreTerm) in 
   let terminating = 
-    if entailConstrains weakestPre FALSE then Bot 
+    if entailConstrains weakestPreTerm FALSE then Bot 
     else 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminatingGuard = Guard (weakestPre, !allTheUniqueIDs) in 
+      let terminatingGuard = Guard (weakestPreTerm, !allTheUniqueIDs) in 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
       let terminatingFinalState = Singleton (Lt(rfterm, Basic(BINT 0)), !allTheUniqueIDs) in 
       Concate(terminatingGuard, Concate (terminatingFinalState, leakingRE))
   
   in 
+  let weakestPreNT = computerNonTerminating transitionSummaries (Neg weakestPreTerm) rfterm pi in 
+
+
   let non_terminating = 
-    
     let nonTerminatingGuard = 
-      if entailConstrains TRUE (Neg weakestPre) then Emp 
+      if entailConstrains TRUE (weakestPreNT) then Emp 
       else 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-        Guard (normalise_pure_prime(Neg weakestPre), !allTheUniqueIDs) 
+        Guard (normalise_pure_prime(weakestPreNT), !allTheUniqueIDs) 
     in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let nonTerminatingFinalState = Singleton (normalise_pure_prime(GtEq(rfterm, Basic(BINT 0))), !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     Concate (nonTerminatingGuard, Omega(nonTerminatingFinalState))
   in 
-  Concate (Guard loopGuard, Disjunction(terminating, non_terminating) )
+
+  
+
+  let allPath = normalise_pure (PureOr(weakestPreTerm, weakestPreNT)) in 
+
+
+  if entailConstrains TRUE allPath then 
+    Some (Concate (Guard loopGuard, Disjunction(terminating, non_terminating) ))
+  else None 
 
 
 
@@ -1685,14 +1711,14 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) =
         | [(GuardEv gv)] -> normalise_es (derivitives (GuardEv gv) reNonCycle)
         | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
       in 
-      
-      let loopsummary = normalise_es (getLoopSummary reIn reNonCycle') in  
+      (match (getLoopSummary reIn reNonCycle') with 
+      | None -> None 
+      | Some loopsummary -> 
+        let loopsummary = normalise_es loopsummary in 
+        print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
 
-      print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
-
-      Some (Disjunction(reNonCycle, loopsummary))
-      
-
+        Some (Disjunction(reNonCycle, loopsummary))
+      )
     )
 
   | Kleene _ -> 

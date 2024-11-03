@@ -773,7 +773,7 @@ let rec normalise_pure (pi:pure) : pure =
   | Neg (Predicate (str, termLi)) -> 
     Predicate (str, List.map termLi ~f:(normalise_terms))
   | Neg piN -> Neg (normalise_pure piN)
-  | PureOr (pi1,pi2) -> PureAnd (normalise_pure pi1, normalise_pure pi2)
+  | PureOr (pi1,pi2) -> PureOr (normalise_pure pi1, normalise_pure pi2)
   | Predicate (str, termLi) -> 
     Predicate (str, List.map termLi ~f:(normalise_terms))
 
@@ -1345,10 +1345,10 @@ let entailConstrains p1 p2 =
 *)
   let aux pi1 pi2 = 
     let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
-  (*
-  print_string (string_of_pure pi1 ^" -> " ^ string_of_pure pi2 ^" == ");
-  print_string (string_of_bool (sat) ^ "\n");
-  *)
+  
+    print_string (string_of_pure pi1 ^" -> " ^ string_of_pure pi2 ^" == ");
+    print_string (string_of_bool (sat) ^ "\n");
+  
     sat 
   in 
   aux p1 p2

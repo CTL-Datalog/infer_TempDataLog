@@ -26,10 +26,10 @@ flow(28,28).
 Start(6).
 State(6).
 LtEq("i",7,10).
-Gt("i",7,10). // delete this 
+Gt("i",7,10). // delete 
 State(7).
 NotEqVar("x",8,"y").
-EqVar("x",8,"y"). // delete this 
+EqVar("x",8,"y"). // delete 
 State(8).
 State(10).
 Gt("i",11,10).
