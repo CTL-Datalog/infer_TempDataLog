@@ -1984,10 +1984,10 @@ and process_args (args:terms list) =
     sort_uniq 
     (fun x y -> 
       match (x,y) with
-      | (Basic (BSTR x), Basic (BSTR y)) -> String.compare x y
+      | (Basic (BVAR x), Basic (BVAR y)) -> String.compare x y
       | _ -> raise (Failure "Arguments should only be variables")
       )
-    (List.filter ~f:(fun x -> match x with  Basic (BSTR x) -> true | _ -> false ) args ) 
+    (List.filter ~f:(fun x -> match x with  Basic (BVAR x) -> true | _ -> false ) args ) 
 
 
 and makeNegationPostiveWhenPosible (ctl:ctl) : ctl = 
@@ -2221,9 +2221,11 @@ and translation_inner (ctl:ctl) : string * datalog =
         let fParams = get_params declarations in
         let fArgs = get_args rules in
         let arg = Basic (BVAR "tempOne") in
-        let firstArg, fNewArgs = match fArgs with
+        let firstArg, fNewArgs = 
+          match fArgs with
           [] -> raise (Failure "confused") 
-          | x :: xs -> x, arg :: xs in
+          | x :: xs -> x, arg :: xs 
+        in
         newName,(  (newName,fParams) :: declarations, 
         [
           ( (newName,fArgs), [Pos (fName,fArgs) ]);

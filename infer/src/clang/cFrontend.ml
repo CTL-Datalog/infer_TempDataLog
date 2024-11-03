@@ -1630,7 +1630,7 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
 
 
   if List.length rankingFuns == 0 then 
-    Some (Concate (Guard loopGuard, Omega (Singleton loopGuard)))
+    Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, re))))
 
   else 
   
@@ -1706,9 +1706,9 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) =
       print_endline ("Cycle: " ^ string_of_regularExpr  cycleRe);
 
       let fst = fst reNonCycle in 
-      let reNonCycle'  = 
+      let (reNonCyclePure, _), reNonCycle'  = 
         match fst with 
-        | [(GuardEv gv)] -> normalise_es (derivitives (GuardEv gv) reNonCycle)
+        | [(GuardEv gv)] -> gv, normalise_es (derivitives (GuardEv gv) reNonCycle)
         | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
       in 
       (match (getLoopSummary reIn reNonCycle') with 
@@ -1716,8 +1716,8 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) =
       | Some loopsummary -> 
         let loopsummary = normalise_es loopsummary in 
         print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
-
-        Some (Disjunction(reNonCycle, loopsummary))
+        if entailConstrains reNonCyclePure FALSE then Some loopsummary
+        else Some (Disjunction(reNonCycle, loopsummary))
       )
     )
 
