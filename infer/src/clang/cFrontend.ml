@@ -1401,7 +1401,7 @@ let updateStateBasedOnCurrentValues (state:((terms * terms)list)) (target:terms)
   ;;
 
 let transitionSummary (re:regularExpr) : transitionSummary = 
-  print_endline ("transitionSummary input : " ^ string_of_regularExpr re);
+  (*print_endline ("transitionSummary input : " ^ string_of_regularExpr re); *)
   let updateTransitionPath acc pi = List.map acc ~f:(fun (pAcc, state) -> (PureAnd(pAcc, pi), state)) in 
   let updateTransitionStates acc pi = 
     match pi with 
@@ -1510,8 +1510,8 @@ pure * rankingfunction
 
     let (precondition: pure) = List.fold_left transitionSummaries ~init:(Ast_utility.TRUE)    
       ~f:(fun acc (path, stateLi) ->  
-      print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
-
+      (*print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
+*)
       let (pureIter:pure) = 
         let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
         let left_hand_side = PureAnd (guard, path) in 
@@ -1575,8 +1575,8 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
 let computerNonTerminating (transitionSummaries:transitionSummary) upperbound rankingTerm guard: pure = 
   let (wpcForNT: pure) = List.fold_left transitionSummaries ~init:upperbound
   ~f:(fun acc (path, stateLi) ->  
-    print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
-
+    (*print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
+*)
     let (pureIter:pure) = 
       let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
       let left_hand_side = PureAnd (guard, path) in 
@@ -2432,32 +2432,26 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let () = predicateDeclearation := [] in 
 
+  (*
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
 
-  (*print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); *)
+  print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); *)
 
+  let flag = ref true in 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
       print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
       let summary = computeSummaryFromCGF procedure specifications in 
       match summary with 
       | Some summary -> List.append accs [summary] 
-      | None -> print_endline ("Verification Res = Unknown"); accs )) 
+      | None -> 
+      flag := false; 
+      print_endline ("Verification Res = Unknown"); accs )) 
   in
 
-  (*
-  let () = 
-    match specifications with 
-    | [(AG (Imply (Atom(_, p), AF _)))] -> 
-      
-      extend_spec_agaf p 
-      
-    | _ -> () 
-
-
-  in 
-  *)
+  if !flag == false then ()
+  else 
 
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       (*let summary' = createNecessaryDisjunction summary specifications in*)
@@ -2502,7 +2496,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting 
-   @ ["/* Other information \n"]@facts@["*/\n"]  );
+   (* @ ["/* Other information \n"]@facts@["*/\n"] *) );
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 

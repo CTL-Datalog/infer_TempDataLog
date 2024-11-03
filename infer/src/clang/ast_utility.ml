@@ -1346,8 +1346,10 @@ let entailConstrains p1 p2 =
   let aux pi1 pi2 = 
     let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
   
+    (*
     print_string (string_of_pure pi1 ^" -> " ^ string_of_pure pi2 ^" == ");
     print_string (string_of_bool (sat) ^ "\n");
+    *)
   
     sat 
   in 
