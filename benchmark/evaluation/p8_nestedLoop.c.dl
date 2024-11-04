@@ -1,0 +1,218 @@
+/*(Start())@36 · (step=8)@37 · (((([(step-m)>(step-0)]@41 · [step>m]@42 · (step=m)@43 · (m=0)@44 · ((m<step)@45 · (⊥)@46 · (m=(m+1))@47 · (n=(n-1))@48)^w) \/ (((([(step-m)<=(step-0)]@50 · ((step-m)<=(step-0))@51 · (m=0)@52 · [m>=step]@53)^w) \/ (([step<=m]@55 · (step<=m)@56 · (m=0)@57 · [m>=step]@58)^w))))) \/ ((([step>m]@61 · (step=m)@62 · (m=0)@63 · ((m<step)@64 · (⊥)@65 · (m=(m+1))@66 · (n=(n-1))@67)^w) \/ (([step<=m]@79 · (step<=m)@80 · (m=0)@81 · [m<step]@82 · [step>m]@84 · (step=m)@85 · (m=(m+1))@86 · (n=(n-1))@87)^w))))*/
+
+flow(36,37).
+flow(48,48).
+flow(48,45).
+flow(53,53).
+flow(53,50).
+flow(58,58).
+flow(58,55).
+flow(67,67).
+flow(67,64).
+flow(87,87).
+flow(87,79).
+Start(36).
+Gt((step-m),36,(step-0)).
+LtEq((step-m),36,(step-0)).
+GtEqVar("m",36,"step").
+LtEqVar("step",36,"m").
+LtVar("m",36,"step").
+GtVar("step",36,"m").
+State(36).
+State(41).
+State(42).
+GtEqVar("m",43,"step").
+LtEqVar("step",43,"m").
+State(43).
+LtEq((step-m),44,(step-0)).
+GtEqVar("m",44,"step").
+LtEqVar("step",44,"m").
+State(44).
+State(45).
+State(46).
+LtEq((step-m),47,(step-0)).
+GtEqVar("m",47,"step").
+LtEqVar("step",47,"m").
+State(47).
+State(48).
+State(50).
+State(51).
+LtEq((step-m),52,(step-0)).
+LtVar("m",52,"step").
+GtVar("step",52,"m").
+State(52).
+State(53).
+State(55).
+State(56).
+LtEq((step-m),57,(step-0)).
+LtVar("m",57,"step").
+GtVar("step",57,"m").
+State(57).
+State(58).
+State(61).
+GtEqVar("m",62,"step").
+LtEqVar("step",62,"m").
+State(62).
+LtEq((step-m),63,(step-0)).
+GtEqVar("m",63,"step").
+LtEqVar("step",63,"m").
+State(63).
+State(64).
+State(65).
+LtEq((step-m),66,(step-0)).
+GtEqVar("m",66,"step").
+LtEqVar("step",66,"m").
+State(66).
+State(67).
+State(37).
+State(79).
+State(80).
+LtEq((step-m),81,(step-0)).
+LtVar("m",81,"step").
+GtVar("step",81,"m").
+State(81).
+State(82).
+State(84).
+LtEq((step-m),85,(step-0)).
+GtEqVar("m",85,"step").
+LtEqVar("step",85,"m").
+State(85).
+LtEq((step-m),86,(step-0)).
+GtEqVar("m",86,"step").
+LtEqVar("step",86,"m").
+State(86).
+State(87).
+control_flow(37,41) :- GtD((step-m),37,(step-0)).
+control_flow(41,42) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(42,43) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(43,44) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(44,45) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(45,46) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(46,47) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(47,48) :- GtD((step-m),37,(step-0)), GtVarD("step",41,"m").
+control_flow(37,50) :- LtEqD((step-m),37,(step-0)).
+control_flow(50,51) :- LtEqD((step-m),37,(step-0)).
+control_flow(51,52) :- LtEqD((step-m),37,(step-0)).
+control_flow(52,53) :- LtEqD((step-m),37,(step-0)), GtEqVarD("m",52,"step").
+control_flow(37,55) :- LtEqVarD("step",37,"m").
+control_flow(55,56) :- LtEqVarD("step",37,"m").
+control_flow(56,57) :- LtEqVarD("step",37,"m").
+control_flow(57,58) :- LtEqVarD("step",37,"m"), GtEqVarD("m",57,"step").
+control_flow(37,61) :- GtVarD("step",37,"m").
+control_flow(61,62) :- GtVarD("step",37,"m").
+control_flow(62,63) :- GtVarD("step",37,"m").
+control_flow(63,64) :- GtVarD("step",37,"m").
+control_flow(64,65) :- GtVarD("step",37,"m").
+control_flow(65,66) :- GtVarD("step",37,"m").
+control_flow(66,67) :- GtVarD("step",37,"m").
+control_flow(37,79) :- LtEqVarD("step",37,"m").
+control_flow(79,80) :- LtEqVarD("step",37,"m").
+control_flow(80,81) :- LtEqVarD("step",37,"m").
+control_flow(81,82) :- LtEqVarD("step",37,"m"), LtVarD("m",81,"step").
+control_flow(82,84) :- LtEqVarD("step",37,"m"), LtVarD("m",81,"step"), GtVarD("step",82,"m").
+control_flow(84,85) :- LtEqVarD("step",37,"m"), LtVarD("m",81,"step"), GtVarD("step",82,"m").
+control_flow(85,86) :- LtEqVarD("step",37,"m"), LtVarD("m",81,"step"), GtVarD("step",82,"m").
+control_flow(86,87) :- LtEqVarD("step",37,"m"), LtVarD("m",81,"step"), GtVarD("step",82,"m").
+//AF(EXIT())
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl GtVar(x:symbol,loc:number,y:symbol)
+.decl LtVar(x:symbol,loc:number,y:symbol)
+.decl LtEqVar(x:symbol,loc:number,y:symbol)
+.decl GtEqVar(x:symbol,loc:number,y:symbol)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl LtVarD(x:symbol,loc:number,y:symbol)
+.decl LtEqVarD(x:symbol,loc:number,y:symbol)
+.decl GtEqVarD(x:symbol,loc:number,y:symbol)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtVarD(x:symbol,loc:number,y:symbol)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl EXIT(loc:number)
+.decl AF_EXIT_T(interm_state:number,loc:number)
+.decl AF_EXIT_S(loc:number)
+.decl AF_EXIT(loc:number)
+.decl AF_EXIT_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+LtVarD(x,loc,n) :- LtVar(x,loc,n).
+LtVarD(x,loc,n) :- LtVarD(x,locI,n), control_flow(locI,loc), !LtVar(x,loc,_), !GtEqVar(x,loc,_).
+LtEqVarD(x,loc,n) :- LtEqVar(x,loc,n).
+LtEqVarD(x,loc,n) :- LtEqVarD(x,locI,n), control_flow(locI,loc), !LtEqVar(x,loc,_), !GtVar(x,loc,_).
+GtEqVarD(x,loc,n) :- GtEqVar(x,loc,n).
+GtEqVarD(x,loc,n) :- GtEqVarD(x,locI,n), control_flow(locI,loc), !GtEqVar(x,loc,_), !LtVar(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+GtVarD(x,loc,n) :- GtVar(x,loc,n).
+GtVarD(x,loc,n) :- GtVarD(x,locI,n), control_flow(locI,loc), !GtVar(x,loc,_), !LtEqVar(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+EXIT(loc) :- Return(_,loc).
+AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
+AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
+AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
+AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
+AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
+AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+.output GtVar
+.output LtVar
+.output LtEqVar
+.output GtEqVar
+.output LtEq
+.output Gt
+.output Start
+.output State
+.output flow
+.output AF_EXIT_Final(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(17,0). //@5:1-8:3
+Flow(1,15). //@9:3-9:10
+Flow(1,16). //@9:3-9:10
+Flow(16,2). //@9:10-10:6
+Flow(15,8). //@9:10-20:1
+Flow(3,14). //@11:6-11:13
+Flow(14,12). //@11:13-11:13
+Flow(14,13). //@11:13-11:13
+Flow(13,11). //@11:13-12:13
+Flow(12,1). //@11:13-9:3
+Flow(6,3). //@12:9-11:6
+Flow(11,9). //@12:13-12:13
+Flow(11,10). //@12:13-12:13
+Flow(10,7). //@12:13-13:13
+Flow(9,4). //@12:13-15:12
+Flow(7,8). //@13:13-20:1
+Flow(5,6). //@16:12-12:9
+Flow(4,5). //@15:12-16:12
+Flow(2,3). //@10:6-11:6
+Flow(0,1). //@8:3-9:3
+Stmt_Decl(0,[IStore(&step,8)]). // @8:3
+Stmt_BinaryOperatorStmt(2,Assign,[IStore(&m,0)]). // @10:6
+Stmt_BinaryOperatorStmt(4,Assign,[ILoad(&m,n$5),IStore(&m,(n$5 + 1))]). // @15:12
+Stmt_BinaryOperatorStmt(5,Assign,[ILoad(&n,n$4),IStore(&n,(n$4 - 1))]). // @16:12
+Stmt_Return(7,[]). // @13:13
+PruneNode(9,false,[Prune(!(n$2 < 0), false)]). // @12:13
+PruneNode(10,true,[Prune((n$2 < 0), true)]). // @12:13
+Stmt_BinaryOperatorStmt(11,LT,[ILoad(&n,n$2)]). // @12:13
+Join(6,[]).  // @12:9
+PruneNode(12,false,[Prune(!(n$0 < n$1), false)]). // @11:13
+PruneNode(13,true,[Prune((n$0 < n$1), true)]). // @11:13
+Stmt_BinaryOperatorStmt(14,LT,[ILoad(&m,n$0),ILoad(&step,n$1)]). // @11:13
+Join(3,[]).  // @11:6
+PruneNode(15,false,[Prune(!1, false)]). // @9:10
+PruneNode(16,true,[Prune(1, true)]). // @9:10
+Join(1,[]).  // @9:3
+Exit(8).  // @20:1
+Start(17). // @5:1
+*/
+
