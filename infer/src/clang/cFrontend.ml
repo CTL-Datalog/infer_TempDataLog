@@ -1517,10 +1517,14 @@ pure * rankingfunction
 
     let (precondition: pure) = List.fold_left transitionSummaries ~init:(Ast_utility.TRUE)    
       ~f:(fun acc (path, stateLi) ->  
-      (*print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
-*)
+      print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
+
+
+
       let (pureIter:pure) = 
         let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
+        print_endline ("rankingTerm' = " ^ string_of_terms rankingTerm');
+
         let left_hand_side = PureAnd (guard, path) in 
         let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
         if containUnknown rankingTerm' then  Ast_utility.FALSE 
@@ -1529,6 +1533,7 @@ pure * rankingfunction
           else right_hand_side
       in 
 
+      print_endline (string_of_pure  pureIter);
       PureAnd(acc, pureIter)
 
       ) 
@@ -1607,7 +1612,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let re = normalise_es re in
 
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
-  let pi, rankingFuns, deriv =  
+  let pi, rankingFuns, nonleakingBranches =  
     (match fstSet with 
     | [GuardEv (pi, loc)] ->  
       let f = GuardEv (pi, loc) in 
@@ -1620,7 +1625,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
     
       let (rankingFuns:rankingfunction list ) = makeAGuess pi leakingBranches reNonCycle in 
       let rankingFuns = removeRedundant rankingFuns (fun (a, _) (b , _) -> stricTcompareTerm a b ) in 
-      pi, rankingFuns, deriv
+      pi, rankingFuns, nonleakingBranches 
 
     | [PureEv (_, _)] -> raise (Failure "loop starting with PureEv") 
     | _-> raise (Failure "loop starting with more than one fst")
@@ -1636,7 +1641,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let loopGuard =  (pi, !allTheUniqueIDs) in 
 
 
-  let deriv_of_concern = compute_deriv_of_concern deriv ctl in 
+  let deriv_of_concern = compute_deriv_of_concern nonleakingBranches ctl in 
 
   if List.length rankingFuns == 0 then 
     Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv_of_concern))))
@@ -1644,7 +1649,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   else 
   
 
-  let (alldisjunctiveTransitions:regularExpr list) = decomposeRE deriv in 
+  let (alldisjunctiveTransitions:regularExpr list) = decomposeRE nonleakingBranches in 
   let transitionSummaries = flattenList (List.map alldisjunctiveTransitions ~f:transitionSummary) in  
 
                                 (* a trace,    Some(terminational wp, ranking function) *)
@@ -1965,14 +1970,14 @@ let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (
       if String.compare v1 str == 0 || String.compare v2 str == 0 then 
       [(notEQKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
       (assignKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
-      else findrelationFromPredicatesSpec xs str loc
+      else []
 
     | Eq (Basic( BSTR v1), Basic( BINT v2)) 
     | Neg (Eq (Basic( BSTR v1), Basic( BINT v2))) -> 
       if String.compare v1 str == 0  then 
       [(notEQKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
       (assignKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
-      else findrelationFromPredicatesSpec xs str loc
+      else []
 
 
     | Gt (Basic( BSTR v1), Basic( BSTR v2)) 
@@ -1980,14 +1985,14 @@ let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (
       if String.compare v1 str == 0 || String.compare v2 str == 0 then 
       [(leqKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
        (gtKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
-      else findrelationFromPredicatesSpec xs str loc
+      else []
 
     | Gt (Basic( BSTR v1), Basic( BINT v2)) 
     | LtEq (Basic( BSTR v1), Basic( BINT v2)) -> 
       if String.compare v1 str == 0  then 
       [(leqKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
       (gtKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
-      else findrelationFromPredicatesSpec xs str loc
+      else []
 
 
 
@@ -1996,18 +2001,19 @@ let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (
       if String.compare v1 str == 0 || String.compare v2 str == 0 then 
       [(geqKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)]);
       (ltKeyWordVar, [Basic( BSTR v1) ; loc ; Basic( BSTR v2)])]
-      else findrelationFromPredicatesSpec xs str loc
+      else []
 
     | Lt (Basic( BSTR v1), Basic( BINT v2)) 
     | GtEq (Basic( BSTR v1), Basic( BINT v2)) -> 
       if String.compare v1 str == 0  then 
       [(geqKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)]);
       (ltKeyWord, [Basic( BSTR v1) ; loc ; Basic( BINT v2)])]
-      else findrelationFromPredicatesSpec xs str loc
+      else []
 
 
-    | _ -> findrelationFromPredicatesSpec xs str loc
+    | _ -> []
     )
+    @findrelationFromPredicatesSpec xs str loc
 
 (* predicates are the precicates derived from the program, whereas the 
    predicatesSpec are the precicates derived from the specifiction, 
@@ -2037,12 +2043,16 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   let loc = Basic(BINT state) in 
   match p with 
   | Eq (Basic(BSTR str), Basic (ANY)) ->
-    (*
+    
     print_endline (str ^ " = *" );
     print_endline ("findrelationFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
     (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
-*)
+
     let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
+    print_endline ("relationsFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
+    (List.map ~f:(fun p -> string_of_relation p) rel)));   
+
+
     currentValuation, rel
 
   | Gt (Basic(BSTR var), Basic t1) 
@@ -2506,6 +2516,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       
       @ (List.map predicateDeclearation ~f:(fun (a, _) -> ".output " ^ a) )
       @ [".output "^ fname ^ outputShellKeyWord ^ "(IO=stdout)\n"]
+      @ [".output NotTotal(IO=stdout)\n"]
       
 
 

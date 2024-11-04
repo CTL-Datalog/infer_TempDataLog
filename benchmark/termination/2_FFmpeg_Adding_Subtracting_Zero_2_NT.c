@@ -11,7 +11,7 @@ termination: false
 
 int ff_subtitles_next_line(char *ptr){
   int n = __VERIFIER_nondet_int(); // strcspn(ptr,"\r\n");
-  ptr = ptr + n; 
+  ptr = __VERIFIER_nondet_int(); // strcspn(ptr,"\r\n");
   if (*ptr == '\r') { 
      ptr++; 
      n++; }
@@ -22,7 +22,7 @@ int ff_subtitles_next_line(char *ptr){
 
 int main()
 {
-    int inc;
+    int inc = __VERIFIER_nondet_int();
     int b = __VERIFIER_nondet_int();
     int end = __VERIFIER_nondet_int();
     if( b < 0 || end < 0 )

@@ -785,6 +785,12 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | FALSE -> pi
 
 
+  | Gt (Minus(Basic (BSTR t1),Basic (BSTR t2)),Minus(Basic (BSTR t3), t4)) -> 
+    if String.compare t1 t3 == 0 then normalise_pure_prime (Lt(Basic (BSTR t2), t4))
+    else pi
+  | Lt(Basic (BSTR t1), Plus(Basic (BSTR t2), t3)) -> 
+    if String.compare t1 t2 == 0 then (Gt(t3, Basic (BINT 0)))
+    else pi
 
   | Gt (Minus(t1,Basic( BINT 1)),Minus(Minus(t3, t4),Basic( BINT 1))) -> 
     if stricTcompareTerm t1 t3 then Gt(t4, Basic( BINT 0))
@@ -1860,8 +1866,8 @@ let reachablibilyrules head =
      (head, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")] ), 
       [ Pos (head, [Basic (BVAR "x"); Basic (BVAR loc_inter_KeyWord); Basic (BVAR "n")] );  
         Pos (controlFlowKeyword, [Basic (BVAR loc_inter_KeyWord); Basic (BVAR locKeyWord)]); 
-        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]);
-        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic ANY]); ]]
+        Neg (base, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]);
+        Neg (negBase, [Basic (BVAR "x"); Basic (BVAR locKeyWord); Basic (BVAR "n")]); ]]
 
 let nameContainsVar str n : bool = 
   let l = String.length str in 

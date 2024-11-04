@@ -24,6 +24,8 @@ Start(0).
 State(0).
 NotEq("flag",1,1).
 State(1).
+GtEq("i",2,0).
+Lt("i",2,0).
 NotEq("i",2,0).
 Eq("i",2,0).
 State(3).
@@ -63,67 +65,71 @@ control_flow(7,8) :- EqD("i",7,0).
 control_flow(7,12) :- NotEqD("i",7,0).
 control_flow(13,14) :- LtD("i",13,0).
 control_flow(13,17) :- GtEqD("i",13,0).
-/*(Start())@24 · ("b"=_)@25 · ("end"=_)@26 · ((["b"<0]@27 · ("b"<0)@28 · (Return(0))@29) \/ (["b">=0]@30 · ("b">=0)@31 · ((["end"<0]@32 · ("end"<0)@33 · (Return(0))@34) \/ (["end">=0]@35 · ("end">=0)@36 · ((["b">="end"]@37 · ("b">="end")@38 · (Return(0))@39) \/ (["b"<"end"]@40 · ("b"<"end")@41 · [⊥]@42 · (⊥)@43 · (("inc">=0)@44)^w))))))*/
+/*(Start())@22 · ("b"=_)@23 · ("end"=_)@24 · ((["b"<0]@25 · ("b"<0)@26 · (Return(0))@27) \/ (["b">=0]@28 · ("b">=0)@29 · ((["end"<0]@30 · ("end"<0)@31 · (Return(0))@32) \/ (["end">=0]@33 · ("end">=0)@34 · ((["b">="end"]@35 · ("b">="end")@36 · (Return(0))@37) \/ (["b"<"end"]@38 · ("b"<"end")@39 · ("end"="b")@40 · (Return(0))@41))))))*/
 
-flow(24,25).
+flow(22,23).
+flow(23,24).
 flow(25,26).
-flow(27,28).
+flow(26,27).
+flow(27,27).
 flow(28,29).
-flow(29,29).
 flow(30,31).
-flow(32,33).
+flow(31,32).
+flow(32,32).
 flow(33,34).
-flow(34,34).
 flow(35,36).
-flow(37,38).
+flow(36,37).
+flow(37,37).
 flow(38,39).
-flow(39,39).
+flow(39,40).
 flow(40,41).
-flow(42,43).
-flow(43,44).
-flow(44,44).
-Start(24).
-State(24).
-GtEq("b",25,0).
-Lt("b",25,0).
+flow(41,41).
+Start(22).
+State(22).
+GtEqVar("b",23,"end").
+LtVar("b",23,"end").
+GtEq("b",23,0).
+Lt("b",23,0).
+State(23).
+GtEqVar("b",24,"end").
+LtVar("b",24,"end").
+GtEq("end",24,0).
+Lt("end",24,0).
 State(25).
-GtEq("end",26,0).
-Lt("end",26,0).
-State(27).
-Lt("b",28,0).
-State(28).
-Return(0,29).
-State(29).
+Lt("b",26,0).
 State(26).
+Return(0,27).
+State(27).
+State(24).
+State(28).
+GtEq("b",29,0).
 State(30).
-GtEq("b",31,0).
-State(32).
-Lt("end",33,0).
-State(33).
-Return(0,34).
-State(34).
+Lt("end",31,0).
 State(31).
+Return(0,32).
+State(32).
+State(29).
+State(33).
+GtEq("end",34,0).
 State(35).
-GtEq("end",36,0).
-State(37).
-GtEqVar("b",38,"end").
-State(38).
-Return(0,39).
-State(39).
+GtEqVar("b",36,"end").
 State(36).
+Return(0,37).
+State(37).
+State(34).
+State(38).
+LtVar("b",39,"end").
+State(39).
+GtEqVar("b",40,"end").
 State(40).
-LtVar("b",41,"end").
+Return(0,41).
 State(41).
-control_flow(41,42).
-State(42).
-State(43).
-State(44).
-control_flow(26,27) :- LtD("b",26,0).
-control_flow(26,30) :- GtEqD("b",26,0).
-control_flow(31,32) :- LtD("end",31,0).
-control_flow(31,35) :- GtEqD("end",31,0).
-control_flow(36,37) :- GtEqVarD("b",36,"end").
-control_flow(36,40) :- LtVarD("b",36,"end").
+control_flow(24,25) :- LtD("b",24,0).
+control_flow(24,28) :- GtEqD("b",24,0).
+control_flow(29,30) :- LtD("end",29,0).
+control_flow(29,33) :- GtEqD("end",29,0).
+control_flow(34,35) :- GtEqVarD("b",34,"end").
+control_flow(34,38) :- LtVarD("b",34,"end").
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
