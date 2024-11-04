@@ -2,11 +2,11 @@
 // -domain polyhedra
 // -precondition "x >= y"
 
-/*@ AU(x > y, x<=y) @*/
+/*@ AU(x > y, x=y) @*/
 
 int main() {
     // assume x > y
-    int x = __VERIFIER_nondet_int();
+    int x ; 
     int y = __VERIFIER_nondet_int();
     while (x > y) {
         x = x - 1;

@@ -1,42 +1,39 @@
 /*𝝐 */
 
 
-/*(Start())@2 · ("x"=_)@3 · ("y"=_)@4 · ((["x"<="y"]@5 · ("x"<="y")@6 · (Return(0))@7) \/ (["x">"y"]@8 · ("x">"y")@9 · ("x"=("x"-1))@10 · ("x"<="y")@11 · (Return(0))@12))*/
+/*(Start())@2 · ("y"=_)@3 · ((["x"<="y"]@4 · ("x"<="y")@5 · (Return(0))@6) \/ (["x">"y"]@7 · ("x">"y")@8 · ("x"=("x"-1))@9 · ("x"="y")@10 · (Return(0))@11))*/
 
 flow(2,3).
-flow(3,4).
+flow(4,5).
 flow(5,6).
-flow(6,7).
-flow(7,7).
+flow(6,6).
+flow(7,8).
 flow(8,9).
 flow(9,10).
 flow(10,11).
-flow(11,12).
-flow(12,12).
+flow(11,11).
 Start(2).
 State(2).
-LtEqVar("x",3,"y").
+LtEqVar("x",3,"y"). // delete this line 
 GtVar("x",3,"y").
-State(3).
-LtEqVar("x",4,"y").
-GtVar("x",4,"y").
-State(5).
-LtEqVar("x",6,"y").
-State(6).
-Return(0,7).
-State(7).
 State(4).
+LtEqVar("x",5,"y").
+State(5).
+Return(0,6).
+State(6).
+State(3).
+State(7).
+GtVar("x",8,"y").
 State(8).
-GtVar("x",9,"y").
 State(9).
+LtEqVar("x",10,"y").
+EqVar("x",10,"y").
 State(10).
-LtEqVar("x",11,"y").
+Return(0,11).
 State(11).
-Return(0,12).
-State(12).
-control_flow(4,5) :- LtEqVarD("x",4,"y").
-control_flow(4,8) :- GtVarD("x",4,"y").
-//AU("x">"y","x"<="y")
+control_flow(3,4) :- LtEqVarD("x",3,"y").
+control_flow(3,7) :- GtVarD("x",3,"y").
+//AU("x">"y","x"="y")
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -44,51 +41,60 @@ control_flow(4,8) :- GtVarD("x",4,"y").
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
+.decl NotEqVar(x:symbol,loc:number,y:symbol)
+.decl EqVar(x:symbol,loc:number,y:symbol)
 .decl GtVar(x:symbol,loc:number,y:symbol)
 .decl LtEqVar(x:symbol,loc:number,y:symbol)
+.decl EqVarD(x:symbol,loc:number,y:symbol)
 .decl GtVarD(x:symbol,loc:number,y:symbol)
 .decl LtEqVarD(x:symbol,loc:number,y:symbol)
-.decl x_lteq_y(loc:number)
+.decl x_eq_y(loc:number)
+.decl NOT_x_eq_y(loc:number)
 .decl x_gt_y(loc:number)
-.decl x_gt_y_AND_x_lteq_y(loc:number)
-.decl x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc:number)
-.decl NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc:number)
-.decl AF_x_lteq_y_T(interm_state:number,loc:number)
-.decl AF_x_lteq_y_S(loc:number)
-.decl AF_x_lteq_y(loc:number)
-.decl AF_x_lteq_y_AND_NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc:number)
-.decl x_gt_y_AU_x_lteq_y(loc:number)
-.decl x_gt_y_AU_x_lteq_y_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl x_gt_y_AND_NOT_x_eq_y(loc:number)
+.decl NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc:number)
+.decl NOT_NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc:number)
+.decl AF_x_eq_y_T(interm_state:number,loc:number)
+.decl AF_x_eq_y_S(loc:number)
+.decl AF_x_eq_y(loc:number)
+.decl AF_x_eq_y_AND_NOT_NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc:number)
+.decl x_gt_y_AU_x_eq_y(loc:number)
+.decl x_gt_y_AU_x_eq_y_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
+EqVarD(x,loc,n) :- EqVar(x,loc,n).
+EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,_), !NotEqVar(x,loc,_).
 GtVarD(x,loc,n) :- GtVar(x,loc,n).
 GtVarD(x,loc,n) :- GtVarD(x,locI,n), control_flow(locI,loc), !GtVar(x,loc,_), !LtEqVar(x,loc,_).
 LtEqVarD(x,loc,n) :- LtEqVar(x,loc,n).
 LtEqVarD(x,loc,n) :- LtEqVarD(x,locI,n), control_flow(locI,loc), !LtEqVar(x,loc,_), !GtVar(x,loc,_).
-x_lteq_y(loc) :- State(loc), GtVarD("x",loc,"y").
+x_eq_y(loc) :- State(loc), EqVarD("x",loc,"y").
+NOT_x_eq_y(loc) :- State(loc), !x_eq_y(loc).
 x_gt_y(loc) :- State(loc), LtEqVarD("x",loc,"y").
-x_gt_y_AND_x_lteq_y(loc) :- x_gt_y(loc), x_lteq_y(loc).
-x_lteq_y(loc) :- State(loc), GtVarD("x",loc,"y").
-x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_lteq_y(loc), control_flow(loc,tempOne), x_lteq_y_EU_x_gt_y_AND_x_lteq_y(tempOne).
-x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- x_gt_y_AND_x_lteq_y(loc).
-NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- State(loc), !x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
-x_lteq_y(loc) :- State(loc), LtEqVarD("x",loc,"y").
-AF_x_lteq_y_T(interm_state,loc) :- AF_x_lteq_y_T(tempOne,loc), !x_lteq_y(tempOne), control_flow(tempOne,interm_state).
-AF_x_lteq_y_T(interm_state,loc) :- !x_lteq_y(loc), control_flow(loc,interm_state).
-AF_x_lteq_y_S(loc) :- !x_lteq_y(loc), control_flow(loc,tempOne), AF_x_lteq_y_S(tempOne).
-AF_x_lteq_y_S(loc) :- AF_x_lteq_y_T(loc,loc).
-AF_x_lteq_y(loc) :- State(loc), !AF_x_lteq_y_S(loc).
-AF_x_lteq_y_AND_NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc) :- AF_x_lteq_y(loc), NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
-x_gt_y_AU_x_lteq_y(loc) :- AF_x_lteq_y_AND_NOT_x_lteq_y_EU_x_gt_y_AND_x_lteq_y(loc).
-x_gt_y_AU_x_lteq_y_Final(loc) :- Start(loc), x_gt_y_AU_x_lteq_y(loc), !NotTotal(loc).
+x_gt_y_AND_NOT_x_eq_y(loc) :- x_gt_y(loc), NOT_x_eq_y(loc).
+x_eq_y(loc) :- State(loc), EqVarD("x",loc,"y").
+NOT_x_eq_y(loc) :- State(loc), !x_eq_y(loc).
+NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc) :- NOT_x_eq_y(loc), control_flow(loc,tempOne), NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(tempOne).
+NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc) :- x_gt_y_AND_NOT_x_eq_y(loc).
+NOT_NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc) :- State(loc), !NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc).
+x_eq_y(loc) :- State(loc), EqVarD("x",loc,"y").
+AF_x_eq_y_T(interm_state,loc) :- AF_x_eq_y_T(tempOne,loc), !x_eq_y(tempOne), control_flow(tempOne,interm_state).
+AF_x_eq_y_T(interm_state,loc) :- !x_eq_y(loc), control_flow(loc,interm_state).
+AF_x_eq_y_S(loc) :- !x_eq_y(loc), control_flow(loc,tempOne), AF_x_eq_y_S(tempOne).
+AF_x_eq_y_S(loc) :- AF_x_eq_y_T(loc,loc).
+AF_x_eq_y(loc) :- State(loc), !AF_x_eq_y_S(loc).
+AF_x_eq_y_AND_NOT_NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc) :- AF_x_eq_y(loc), NOT_NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc).
+x_gt_y_AU_x_eq_y(loc) :- AF_x_eq_y_AND_NOT_NOT_x_eq_y_EU_x_gt_y_AND_NOT_x_eq_y(loc).
+x_gt_y_AU_x_eq_y_Final(loc) :- Start(loc), x_gt_y_AU_x_eq_y(loc), !NotTotal(loc).
+.output NotEqVar
+.output EqVar
 .output GtVar
 .output LtEqVar
 .output Start
 .output State
 .output flow
 .output Return
-.output x_gt_y_AU_x_lteq_y_Final(IO=stdout)
+.output x_gt_y_AU_x_eq_y_Final(IO=stdout)
 
-.output control_flow(IO=stdout)
