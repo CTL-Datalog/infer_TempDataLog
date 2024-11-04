@@ -1429,7 +1429,10 @@ let transitionSummary (re:regularExpr) : transitionSummary =
     | Concate (re1, re2) -> 
       let acc' = helper acc re1 in 
       helper acc' re2
-    | Omega _ | Kleene _ -> raise (Failure "there is a cycly inside a cycle")
+    | Omega _ | Kleene _ -> 
+      acc
+    
+    (*raise (Failure "there is a cycly inside a cycle") *)
    
   in 
   helper [(TRUE, [])] re
@@ -1897,28 +1900,7 @@ let rec getRelaventPure (p:pure) (str:string) : pure option =
   | _ -> None 
 
 
-let rec convertSTR2VARTerms (t:terms) : terms = 
-  match t with 
-  | Basic (BSTR str) ->  Basic (BSTR str)
-  | Minus (t1, t2) -> Minus (convertSTR2VARTerms t1, convertSTR2VARTerms t2) 
-  | Plus (t1, t2) -> Plus (convertSTR2VARTerms t1, convertSTR2VARTerms t2) 
-  | _ -> t 
 
-let rec convertSTR2VAR (pi:pure) : pure = 
-  match pi with
-  | Eq (t1, t2) ->  Eq (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
-  | Gt (t1, t2)  ->  Gt (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
-  | Lt (t1, t2) ->  Lt (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
-  | GtEq (t1, t2) ->  GtEq (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
-  | LtEq (t1, t2) ->  LtEq (convertSTR2VARTerms t1, convertSTR2VARTerms t2)
-  | Neg p -> Neg (convertSTR2VAR p)
-  | PureAnd (pi1, pi2) -> PureAnd (convertSTR2VAR pi1, convertSTR2VAR pi2)
-  | PureOr (pi1,pi2) -> PureOr (convertSTR2VAR pi1, convertSTR2VAR pi2)
-  | Predicate (str, terms) -> Predicate (str, List.map terms ~f:convertSTR2VARTerms)
-  | _ -> pi
-
-
-  ;;
 
 let rec pathConditionRelatedToVar str (pathConditions:pure list): pure list = 
   List.fold_left pathConditions ~init:[] ~f:(fun acc p -> 
@@ -2015,11 +1997,11 @@ let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (
    where as predicatesSpec only matters to generate facts for PureEv
 *)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
-  (*
-  print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
- *)
-  (*print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
-*)
+  
+  print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
+ 
+  print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
+
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2043,8 +2025,12 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
     currentValuation, rel
 
-  | Gt (Basic(BSTR var), Basic t1) | LtEq (Basic(BSTR var), Basic t1) | Lt (Basic(BSTR var), Basic t1) | GtEq (Basic(BSTR var), Basic t1) | Neg (Eq (Basic(BSTR var), Basic t1) ) -> 
-    (*print_endline (string_of_pure p ^ "newly added "); *)
+  | Gt (Basic(BSTR var), Basic t1) 
+  | LtEq (Basic(BSTR var), Basic t1) 
+  | Lt (Basic(BSTR var), Basic t1) 
+  | GtEq (Basic(BSTR var), Basic t1) 
+  | Neg (Eq (Basic(BSTR var), Basic t1) ) -> 
+    print_endline (string_of_pure p ^ "newly added "); 
     let currentValuation' = currentValuation in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
 *)
@@ -2060,7 +2046,6 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
         then 
           (
           List.filter ~f:(fun ele -> 
-          let ele = convertSTR2VAR ele in 
           relevent ele var && entailConstrains pureOfCurrentState ele) 
           (predicates@predicatesSpec) )
         else List.filter ~f:(fun ele -> 
@@ -2069,8 +2054,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
             
             res
         ) (predicates@predicatesSpec) in 
-    (*
-    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); *)
+    
+    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); 
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     (*
     print_endline (List.fold_left ~init:"facts': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_relation value)) facts); 
@@ -2095,17 +2080,15 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
         if entailConstrains currentConstraint FALSE 
         (* this is because sometimes the actual valuation of the state and the path constaint conjuncs to false, in that case, we only keep the structure *)
         then List.filter ~f:(fun ele -> 
-          let ele = convertSTR2VAR ele in 
           relevent ele var && entailConstrains pureOfCurrentState ele) 
           (predicates@predicatesSpec) 
         else List.filter ~f:(fun ele -> 
-          let ele = convertSTR2VAR ele in 
           if relevent ele var 
           then 
             let res =  entailConstrains currentConstraint ele in 
-            (*
+            
             print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
-            *)
+            
             res
           else false 
         ) (predicates@predicatesSpec) in 

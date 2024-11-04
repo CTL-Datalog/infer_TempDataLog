@@ -1428,8 +1428,7 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
   match p with 
 
   | Predicate (s, terms) -> 
-    (
-    [(s, (vartoStr terms)@[loc])])
+    ([(s, (vartoStr terms)@[loc])])
 
   | Eq (Basic(BSTR var1), Basic(BSTR var2)) ->  
     updateRuleDeclearation ruleDeclearation assignKeyWordVar; 
@@ -1450,19 +1449,19 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
 
   | Neg (LtEq (Basic(BSTR var), Basic(BSTR var2)))
   | Gt (Basic(BSTR var), Basic(BSTR var2)) -> 
-    updateRuleDeclearation ruleDeclearation (notEQKeyWord) ;
-    [(notEQKeyWord, [Basic(BSTR var);loc;Basic(BSTR var2)])]
+    updateRuleDeclearation ruleDeclearation (gtKeyWordVar) ;
+    [(gtKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
 
-  | Neg (LtEq (Basic(BSTR var), t2))
-  | Gt (Basic(BSTR var), t2) -> 
-    updateRuleDeclearation ruleDeclearation (gtKeyWord);
-    [(gtKeyWord, [Basic(BSTR var);loc;t2])]
 
   | Neg (LtEq (t1, Basic(BSTR var2)))
   | Gt (t1, Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (gtKeyWordVar);
     [(gtKeyWordVar, [t1;loc;Basic(BSTR var2)])]
 
+  | Neg (LtEq (Basic(BSTR var), t2))
+  | Gt (Basic(BSTR var), t2) -> 
+    updateRuleDeclearation ruleDeclearation (gtKeyWord);
+    [(gtKeyWord, [Basic(BSTR var);loc;t2])]
 
   | Neg (LtEq (t1, t2))
   | Gt (t1, t2) -> 
@@ -1509,14 +1508,11 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
     [(geqKeyWord, [t1;loc;t2])]
 
   | Neg (Gt (Basic(BSTR var), Basic(BSTR var2)))
-  | LtEq (Basic(BSTR var), Basic(BSTR var2))
-  | LtEq (Basic(BSTR var), Basic(BSTR var2))
-  | Neg (Gt (Basic(BSTR var), Basic(BSTR var2)))
   | LtEq (Basic(BSTR var), Basic(BSTR var2)) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
     [(leqKeyWordVar, [Basic(BSTR var);loc;Basic(BSTR var2)])]
   | Neg (Gt (Basic(BSTR var), t2))
-  | LtEq (Basic(BSTR var), t2) | LtEq (Basic(BSTR var), t2) -> 
+  | LtEq (Basic(BSTR var), t2) -> 
     updateRuleDeclearation ruleDeclearation (leqKeyWord);
     [(leqKeyWord, [Basic(BSTR var);loc;t2])]
 
@@ -1538,12 +1534,9 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
 
   | PureOr (p1, p2) 
   | PureAnd (p1, p2) -> getFactFromPure p1 state @ getFactFromPure p2 state
-  | Neg _  
-  | FALSE | TRUE 
-  -> [] 
+  | Neg _ | FALSE | TRUE -> [] 
   | _ -> 
     print_endline (string_of_pure p ^ "left out from getFactFromPure ");  
-
     []
 
 

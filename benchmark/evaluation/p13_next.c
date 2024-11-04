@@ -1,11 +1,11 @@
 // -ctl_str "AX{x==0}"
 // -precondition "x==1"
 
-/*@ AX(AX(x=0)) @*/
+/*@ AF(AX(AX(x=0))) @*/
 
 
 int main() {
-    int x;
+    int x = __VERIFIER_nondet_int();
     if (x==1) {
         x = 0;
     }

@@ -1,28 +1,39 @@
-/*(Start())@9 · (([x=1]@10 · (x=0)@11 · (EXIT())@12) \/ ([(x!=1)]@13 · (x=(x-1))@14 · (EXIT())@15))*/
+/*𝝐 */
 
-flow(12,12).
-flow(15,15).
-Start(9).
-Eq("x",9,1).
-NotEq("x",9,1).
-State(10).
-NotEq("x",11,1).
-Eq("x",11,0).
-State(11).
-EXIT(12).
-State(12).
+
+/*(Start())@0 · ("x"=_)@1 · ((["x"=1]@2 · ("x"=1)@3 · ("x"=0)@4 · (EXIT())@5) \/ ([("x"!=1)]@6 · (("x"!=1))@7 · ("x"=("x"-1))@8 · (EXIT())@9))*/
+
+flow(0,1).
+flow(2,3).
+flow(3,4).
+flow(4,5).
+flow(5,5).
+flow(6,7).
+flow(7,8).
+flow(8,9).
+flow(9,9).
+Start(0).
+State(0).
+NotEq("x",1,1). // delete this fact
+Eq("x",1,1).
+State(2).
+Eq("x",3,1).
+State(3).
+NotEq("x",4,1).
+Eq("x",4,0).
+State(4).
+EXIT(5).
+State(5).
+State(1).
+State(6).
+NotEq("x",7,1).
+State(7).
+State(8).
+EXIT(9).
 State(9).
-State(13).
-State(14).
-EXIT(15).
-State(15).
-control_flow(9,10) :- EqD("x",9,1).
-control_flow(10,11) :- EqD("x",9,1).
-control_flow(11,12) :- EqD("x",9,1).
-control_flow(9,13) :- NotEqD("x",9,1).
-control_flow(13,14) :- NotEqD("x",9,1).
-control_flow(14,15) :- NotEqD("x",9,1).
-//AX(AX("x"=0))
+control_flow(1,2) :- EqD("x",1,1).
+control_flow(1,6) :- NotEqD("x",1,1).
+//AF(AX(AX("x"=0)))
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -41,7 +52,10 @@ control_flow(14,15) :- NotEqD("x",9,1).
 .decl NOT_AX_x_eq_0(loc:number)
 .decl EX_NOT_AX_x_eq_0(loc:number)
 .decl AX_AX_x_eq_0(loc:number)
-.decl AX_AX_x_eq_0_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl AF_AX_AX_x_eq_0_T(interm_state:number,loc:number)
+.decl AF_AX_AX_x_eq_0_S(loc:number)
+.decl AF_AX_AX_x_eq_0(loc:number)
+.decl AF_AX_AX_x_eq_0_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
@@ -57,36 +71,17 @@ AX_x_eq_0(loc) :- State(loc), !EX_NOT_x_eq_0(loc).
 NOT_AX_x_eq_0(loc) :- State(loc), !AX_x_eq_0(loc).
 EX_NOT_AX_x_eq_0(loc) :- control_flow(loc,tempOne), NOT_AX_x_eq_0(tempOne).
 AX_AX_x_eq_0(loc) :- State(loc), !EX_NOT_AX_x_eq_0(loc).
-AX_AX_x_eq_0_Final(loc) :- Start(loc), AX_AX_x_eq_0(loc), !NotTotal(loc).
+AF_AX_AX_x_eq_0_T(interm_state,loc) :- AF_AX_AX_x_eq_0_T(tempOne,loc), !AX_AX_x_eq_0(tempOne), control_flow(tempOne,interm_state).
+AF_AX_AX_x_eq_0_T(interm_state,loc) :- !AX_AX_x_eq_0(loc), control_flow(loc,interm_state).
+AF_AX_AX_x_eq_0_S(loc) :- !AX_AX_x_eq_0(loc), control_flow(loc,tempOne), AF_AX_AX_x_eq_0_S(tempOne).
+AF_AX_AX_x_eq_0_S(loc) :- AF_AX_AX_x_eq_0_T(loc,loc).
+AF_AX_AX_x_eq_0(loc) :- State(loc), !AF_AX_AX_x_eq_0_S(loc).
+AF_AX_AX_x_eq_0_Final(loc) :- Start(loc), AF_AX_AX_x_eq_0(loc), !NotTotal(loc).
 .output NotEq
 .output Eq
 .output Start
 .output State
 .output flow
 .output EXIT
-.output AX_AX_x_eq_0_Final(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <main> 
-
-Flow(8,5). //@7:1-9:9
-Flow(1,6). //@9:5-9:5
-Flow(6,7). //@9:5-14:1
-Flow(5,3). //@9:9-9:9
-Flow(5,4). //@9:9-9:9
-Flow(4,2). //@9:9-10:9
-Flow(3,0). //@9:9-13:10
-Flow(2,1). //@10:9-9:5
-Flow(0,1). //@13:10-9:5
-Stmt_BinaryOperatorStmt(0,Assign,[ILoad(&x,n$1),IStore(&x,(n$1 - 1))]). // @13:10
-Stmt_BinaryOperatorStmt(2,Assign,[IStore(&x,0)]). // @10:9
-PruneNode(3,false,[Prune(!(n$0 == 1), false)]). // @9:9
-PruneNode(4,true,[Prune((n$0 == 1), true)]). // @9:9
-Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&x,n$0)]). // @9:9
-Stmt_BetweenJoinAndExit(6,[]). // @9:5
-Join(1,[]).  // @9:5
-Exit(7).  // @14:1
-Start(8). // @7:1
-*/
+.output AF_AX_AX_x_eq_0_Final(IO=stdout)
 
