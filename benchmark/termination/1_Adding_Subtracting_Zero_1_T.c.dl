@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@6 · ("linesToRead"=_)@7 · ((["linesToRead"<=0]@8 · ("linesToRead"<=0)@9 · (Return(0))@10) \/ (["linesToRead">0]@11 · ("linesToRead">0)@12 · ("h"=_)@13 · ((["h"<=0]@14 · ("h"<=0)@15 · (Return(0))@16) \/ (["h">0]@17 · ("h">0)@18 · ((["linesToRead">0]@19 · ("linesToRead">0)@20 · (("h"-1)<0)@21 · (Return(0))@22) \/ (["h">0∧"linesToRead"<=0∧"h"<=0∧"linesToRead"<=0]@23 · ("h">0∧"linesToRead"<=0∧"h"<=0∧"linesToRead"<=0)@24 · (("h">=1)@25)^w))))))*/
+/*(Start())@6 · ("linesToRead"=_)@7 · ((["linesToRead"<=0]@8 · ("linesToRead"<=0)@9 · (Return(0))@10) \/ (["linesToRead">0]@11 · ("linesToRead">0)@12 · ("h"=_)@13 · ((["h"<=0]@14 · ("h"<=0)@15 · (Return(0))@16) \/ (["h">0]@17 · ("h">0)@18 · ((["linesToRead">0]@19 · ("linesToRead">0)@20 · (("h"-1)<0)@21 · (Return(0))@22) \/ (["h">0∧"linesToRead"<=0]@23 · ("h">0∧"linesToRead"<=0)@24 · (("h">=1)@25)^w))))))*/
 
 flow(6,7).
 flow(8,9).
@@ -59,7 +59,7 @@ control_flow(7,11) :- GtD("linesToRead",7,0).
 control_flow(13,14) :- LtEqD("h",13,0).
 control_flow(13,17) :- GtD("h",13,0).
 control_flow(18,19) :- GtD("linesToRead",18,0).
-control_flow(18,23) :- GtD("h",18,0), LtEqD("linesToRead",18,0), LtEqD("h",18,0), LtEqD("linesToRead",18,0).
+control_flow(18,23) :- GtD("h",18,0), LtEqD("linesToRead",18,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
