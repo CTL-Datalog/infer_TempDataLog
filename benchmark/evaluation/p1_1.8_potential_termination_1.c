@@ -4,7 +4,7 @@
  * -ctl "EF{exit: true}"
  */
 
-/*@ AF(y=5) @*/
+/*@ AF(EXIT()) @*/
 
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
@@ -17,7 +17,6 @@ int main() {
         x = 1;
     }   
     while (x == y) {} // non-term : true 
-    y = 5; 
     return 0;
 }
 // (i>10\/x=1) /\ (x=y)^w   \/   (i<=10/\x!=1) /\ (ret=0)

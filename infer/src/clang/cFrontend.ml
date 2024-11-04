@@ -833,7 +833,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   in 
   match node_kind with
   | Start_node -> Singleton (Predicate (entryKeyWord, []), node_key), []
-  | Exit_node ->  Singleton (Predicate (exitKeyWord, []), node_key), []
+  | Exit_node ->  Singleton (Predicate ((retKeyword, [Basic(BINT 0)])), node_key), []
   | Join_node ->  (*Singleton(Predicate (joinKeyword, []), node_key)*)Emp , []
   | Skip_node _ -> (*Singleton(Predicate (skipKeyword, []), node_key)*) Emp, []
   | Prune_node (f,_,_) ->  
@@ -1655,7 +1655,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
     if entailConstrains weakestPreTerm FALSE then Bot 
     else 
       let terminatingGuard = 
-        if entailConstrains TRUE weakestPreTerm then Emp
+        if entailConstrains pi weakestPreTerm then Emp
         else 
           let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
           Guard (weakestPreTerm, !allTheUniqueIDs) 
@@ -1674,7 +1674,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
     else 
 
     let nonTerminatingGuard = 
-      if entailConstrains TRUE (weakestPreNT) then Emp 
+      if entailConstrains pi (weakestPreNT) then Emp 
       else 
         let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
         Guard (normalise_pure_prime(weakestPreNT), !allTheUniqueIDs) 
@@ -2240,8 +2240,9 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
           let currentValuation', valueFacts = getFactFromPureEv p state decomposedPathConditions decomposedpathConditionsCTL (List.map pathConstrint ~f:(fun (a, _)-> a)) currentValuation in 
           
           
+          (*
           print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
-          
+          *)
 
           let (derivitives:regularExpr) = 
             let original = (derivitives f reIn) in original

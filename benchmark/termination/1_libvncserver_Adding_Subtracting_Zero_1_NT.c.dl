@@ -22,7 +22,7 @@ flow(24,25).
 flow(25,25).
 Start(6).
 State(6).
-GtEq("linesToRead",7,0).
+// GtEq("linesToRead",7,0).
 Lt("linesToRead",7,0).
 State(8).
 Lt("linesToRead",9,0).

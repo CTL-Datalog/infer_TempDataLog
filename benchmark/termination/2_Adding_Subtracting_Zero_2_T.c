@@ -9,9 +9,9 @@ termination: true
 
 /*@ AF(EXIT()) @*/
 
-int flag = 0;
 int ff_subtitles_next_line()
 {
+    int flag = 0;
     int i = __VERIFIER_nondet_int();
     i = i % 1000;
     if( flag == 1 )

@@ -19,9 +19,9 @@ RTSPClientConnection* _nondet_int(void);
 
 
 int main(){
-  RTSPClientConnection *prevClientConnection;
+  RTSPClientConnection *prevClientConnection =  _nondet_int();
   bool fIsActive;
-  RTSPClientConnection *this_ ; //=  _nondet_int(); 
+  RTSPClientConnection *this_ ; //; 
 
   
   if (prevClientConnection == NULL) { 
