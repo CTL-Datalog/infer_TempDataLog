@@ -688,9 +688,10 @@ let rec deleteAllTheJoinNodes (re:regularExpr) : regularExpr =
 
 
 
-let normalise_terms (t:terms) : terms = 
+let rec normalise_terms (t:terms) : terms = 
   match t with 
 
+  | Minus (t1, Basic( BINT 0)) -> normalise_terms t1
   | Minus (Minus(_end, b), Minus(_end1, Plus(b1, inc))) -> 
     if stricTcompareTerm _end _end1 && stricTcompareTerm b b1 then inc 
     else t 
@@ -702,6 +703,7 @@ let normalise_terms (t:terms) : terms =
       else Plus(Basic( BSTR y), Basic( BINT (n2-n1)))
     else t
 
+  
   
   | Minus (t1, t2) -> 
     if stricTcompareTerm t1 t2 then Basic(BINT 0)
@@ -783,6 +785,13 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | FALSE -> pi
 
 
+
+  | Gt (Minus(t1,Basic( BINT 1)),Minus(Minus(t3, t4),Basic( BINT 1))) -> 
+    if stricTcompareTerm t1 t3 then Gt(t4, Basic( BINT 0))
+    else (Gt (t1, Minus(t3, t4)))
+  | LtEq (Minus(t1,Basic( BINT 1)),Minus(Minus(t3, t4),Basic( BINT 1))) -> 
+    if stricTcompareTerm t1 t3 then LtEq(t4, Basic( BINT 0))
+    else (LtEq (t1, Minus(t3, t4)))
   | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
   | Lt (Basic(BINT n), Basic(BSTR v)) -> Gt (Basic(BSTR v), Basic(BINT n))
   | Gt (Basic(BINT n), Basic(BSTR v)) -> Lt (Basic(BSTR v), Basic(BINT n))

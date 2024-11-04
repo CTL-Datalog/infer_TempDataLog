@@ -1,63 +1,65 @@
-/*(Join())@21*/
+/*𝝐 */
 
-flow(21,21).
+
+/*(Start())@6 · ("linesToRead"=_)@7 · ((["linesToRead"<=0]@8 · ("linesToRead"<=0)@9 · (Return(0))@10) \/ (["linesToRead">0]@11 · ("linesToRead">0)@12 · ("h"=_)@13 · ((["h"<=0]@14 · ("h"<=0)@15 · (Return(0))@16) \/ (["h">0]@17 · ("h">0)@18 · ((["linesToRead">0]@19 · ("linesToRead">0)@20 · (("h"-1)<0)@21 · (Return(0))@22) \/ (["h">0∧"linesToRead"<=0∧"h"<=0∧"linesToRead"<=0]@23 · ("h">0∧"linesToRead"<=0∧"h"<=0∧"linesToRead"<=0)@24 · (("h">=1)@25)^w))))))*/
+
+flow(6,7).
+flow(8,9).
+flow(9,10).
+flow(10,10).
+flow(11,12).
+flow(12,13).
+flow(14,15).
+flow(15,16).
+flow(16,16).
+flow(17,18).
+flow(19,20).
+flow(20,21).
+flow(21,22).
+flow(22,22).
+flow(23,24).
+flow(24,25).
+flow(25,25).
+Start(6).
+State(6).
+LtEq("linesToRead",7,0).
+Gt("linesToRead",7,0).
+State(8).
+LtEq("linesToRead",9,0).
+State(9).
+Return(0,10).
+State(10).
+State(7).
+State(11).
+Gt("linesToRead",12,0).
+State(12).
+LtEq("h",13,0).
+Gt("h",13,0).
+State(14).
+LtEq("h",15,0).
+State(15).
+Return(0,16).
+State(16).
+State(13).
+State(17).
+Gt("h",18,0).
+State(19).
+Gt("linesToRead",20,0).
+State(20).
 State(21).
-
-/*(Start())@34 · (linesToRead=_)@35 · (([linesToRead<=0]@36 · (Return(0))@37) \/ ([linesToRead>0]@38 · (h=_)@39 · (([h<=0]@40 · (Return(0))@41) \/ ((([h>0]@42 · [h>0]@44 · (h=0)@45 · (linesToRead=h)@46 · (h=(h-linesToRead))@47 · (Return(0))@48) \/ ([h>0]@52 · [h>0]@54 · (h=0)@55 · (h=(h-linesToRead))@56 · (Return(0))@57))))))*/
-
-flow(34,35).
-flow(37,37).
-flow(41,41).
-flow(48,48).
-flow(57,57).
-Start(34).
-LtEq("linesToRead",34,0).
-LtEq("h",34,0).
-Gt("linesToRead",34,0).
-Gt("h",34,0).
-State(34).
-State(36).
-Return(0,37).
-State(37).
-State(35).
-State(38).
-State(40).
-Return(0,41).
-State(41).
-State(42).
-State(44).
-LtEq("h",45,0).
-State(45).
-LtEq("linesToRead",46,0).
-State(46).
-State(47).
-Return(0,48).
-State(48).
-State(39).
-State(52).
-State(54).
-LtEq("h",55,0).
-State(55).
-State(56).
-Return(0,57).
-State(57).
-control_flow(35,36) :- LtEqD("linesToRead",35,0).
-control_flow(36,37) :- LtEqD("linesToRead",35,0).
-control_flow(35,38) :- GtD("linesToRead",35,0).
-control_flow(38,39) :- GtD("linesToRead",35,0).
-control_flow(39,40) :- GtD("linesToRead",35,0), LtEqD("h",39,0).
-control_flow(40,41) :- GtD("linesToRead",35,0), LtEqD("h",39,0).
-control_flow(39,42) :- GtD("linesToRead",35,0), GtD("h",39,0).
-control_flow(42,44) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
-control_flow(44,45) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
-control_flow(45,46) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
-control_flow(46,47) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
-control_flow(47,48) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",42,0).
-control_flow(39,52) :- GtD("linesToRead",35,0), GtD("h",39,0).
-control_flow(52,54) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
-control_flow(54,55) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
-control_flow(55,56) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
-control_flow(56,57) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
+Return(0,22).
+State(22).
+State(18).
+State(23).
+State(24).
+Gt("h",25,0).
+State(25).
+control_flow(7,8) :- LtEqD("linesToRead",7,0).
+control_flow(7,11) :- GtD("linesToRead",7,0).
+control_flow(13,14) :- LtEqD("h",13,0).
+control_flow(13,17) :- GtD("h",13,0).
+control_flow(18,19) :- GtD("linesToRead",18,0).
+control_flow(18,23) :- GtD("h",18,0), LtEqD("linesToRead",18,0), LtEqD("h",18,0), LtEqD("linesToRead",18,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -70,11 +72,11 @@ control_flow(56,57) :- GtD("linesToRead",35,0), GtD("h",39,0), GtD("h",52,0).
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
 .decl LtEqD(x:symbol,loc:number,n:number)
-.decl EXIT(loc:number)
-.decl AF_EXIT_T(interm_state:number,loc:number)
-.decl AF_EXIT_S(loc:number)
-.decl AF_EXIT(loc:number)
-.decl AF_EXIT_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl EXITPred(loc:number)
+.decl AF_EXITPred_T(interm_state:number,loc:number)
+.decl AF_EXITPred_S(loc:number)
+.decl AF_EXITPred(loc:number)
+.decl AF_EXITPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
@@ -83,68 +85,18 @@ GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
 LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
-EXIT(loc) :- Return(_,loc).
-AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
-AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
-AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
-AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
-AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
-AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
+EXITPred(loc) :- Return(_,loc).
+AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
+AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
+AF_EXITPred_S(loc) :- !EXITPred(loc), control_flow(loc,tempOne), AF_EXITPred_S(tempOne).
+AF_EXITPred_S(loc) :- AF_EXITPred_T(loc,loc).
+AF_EXITPred(loc) :- State(loc), !AF_EXITPred_S(loc).
+AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 .output Gt
 .output LtEq
 .output Start
 .output State
 .output flow
 .output Return
-.output AF_EXIT_Final(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <__VERIFIER_nondet_int> 
-
-//-- Facts for Procedure <main> 
-
-Flow(19,0). //@11:1-14:5
-Flow(16,3). //@24:5-26:1
-Flow(8,18). //@18:5-18:12
-Flow(18,15). //@18:12-18:12
-Flow(18,17). //@18:12-18:12
-Flow(17,13). //@18:12-20:13
-Flow(15,16). //@18:12-24:5
-Flow(14,8). //@22:9-18:5
-Flow(10,14). //@20:9-22:9
-Flow(13,11). //@20:13-20:13
-Flow(13,12). //@20:13-20:13
-Flow(12,9). //@20:13-21:13
-Flow(11,10). //@20:13-20:9
-Flow(9,10). //@21:13-20:9
-Flow(7,8). //@17:5-18:5
-Flow(5,7). //@15:5-17:5
-Flow(1,4). //@15:9-15:9
-Flow(1,6). //@15:9-15:9
-Flow(6,2). //@15:9-16:9
-Flow(4,5). //@15:9-15:5
-Flow(2,3). //@16:9-26:1
-Flow(0,1). //@14:5-15:9
-Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$13),IStore(&linesToRead,n$13)]). // @14:5
-Stmt_Return(2,[IStore(&return,0)]). // @16:9
-PruneNode(4,false,[Prune(!(n$10 <= 0), false)]). // @15:9
-PruneNode(6,true,[Prune((n$10 <= 0), true)]). // @15:9
-Stmt_BinaryOperatorStmt(1,LE,[ILoad(&linesToRead,n$10)]). // @15:9
-Join(5,[]).  // @15:5
-Stmt_Decl(7,[ICall(_fun___VERIFIER_nondet_int,,n$9),IStore(&h,n$9)]). // @17:5
-Stmt_BinaryOperatorStmt(9,Assign,[ILoad(&h,n$5),IStore(&linesToRead,n$5)]). // @21:13
-PruneNode(11,false,[Prune(!(n$3 > n$4), false)]). // @20:13
-PruneNode(12,true,[Prune((n$3 > n$4), true)]). // @20:13
-Stmt_BinaryOperatorStmt(13,GT,[ILoad(&linesToRead,n$3),ILoad(&h,n$4)]). // @20:13
-Join(10,[]).  // @20:9
-Stmt_BinaryOperatorStmt(14,SubAssign,[ILoad(&linesToRead,n$1),ILoad(&h,n$2),IStore(&h,(n$2 - n$1))]). // @22:9
-PruneNode(15,false,[Prune(!(n$0 > 0), false)]). // @18:12
-PruneNode(17,true,[Prune((n$0 > 0), true)]). // @18:12
-Stmt_BinaryOperatorStmt(18,GT,[ILoad(&h,n$0)]). // @18:12
-Join(8,[]).  // @18:5
-Stmt_Return(16,[IStore(&return,0)]). // @24:5
-Exit(3).  // @26:1
-Start(19). // @11:1
-*/
+.output AF_EXITPred_Final(IO=stdout)
 

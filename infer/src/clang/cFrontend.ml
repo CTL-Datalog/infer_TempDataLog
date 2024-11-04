@@ -1284,12 +1284,12 @@ let rec makeAGuessFromPureRelaxed (pi:pure) : terms list =
 
 let rec makeAGuessFromPure (pi:pure) : terms list = 
   match pi with 
-  | GtEq (t1,  Basic (BINT 0)) -> [t1] 
-  | GtEq (t1, t2) ->   [(Minus(t1, t2))]
-  | Gt   (t1, t2) ->   [(Minus(Minus(t1, t2), Basic (BINT 1)))]
-  | LtEq (t1, t2) ->   [(Minus(t2, t1))]
-  | Lt   (t1, t2) ->   [(Minus(Minus(t2, t1), Basic (BINT 1)))]
-  | Eq   (t1, t2) ->   [(Minus(t1, t2)); (Minus(t2, t1))]
+  | GtEq (t1,  Basic (BINT 0)) -> [(normalise_terms t1)] 
+  | GtEq (t1, t2) ->   [normalise_terms(Minus(t1, t2))]
+  | Gt   (t1, t2) ->   [normalise_terms(Minus(normalise_terms (Minus(t1, t2)), Basic (BINT 1)))]
+  | LtEq (t1, t2) ->   [normalise_terms(Minus(t2, t1))]
+  | Lt   (t1, t2) ->   [normalise_terms(Minus(Minus(t2, t1), Basic (BINT 1)))]
+  | Eq   (t1, t2) ->   [normalise_terms(Minus(t1, t2)); (Minus(t2, t1))]
   | PureAnd (p1, p2) -> 
     makeAGuessFromPure p1 @ makeAGuessFromPure p2
   | _ -> [] 
@@ -1535,15 +1535,8 @@ pure * rankingfunction
 
     in 
 
-    precondition, rf 
-      (*match precondition with 
-      | None -> 
-        print_endline("wp4Termination " ^ string_of_pure (TRUE)); 
-        TRUE, (rankingTerm, leakBehaves) 
-      | Some pre -> 
-        if entailConstrains pre FALSE then FALSE, (rankingTerm, leakBehaves) 
-        else pre, (rankingTerm, leakBehaves)
-        *)
+    normalise_pure (normalise_pure_prime (normalise_pure precondition)), rf 
+
   in 
 
 
@@ -1580,30 +1573,36 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
 
 
 let computerNonTerminating (transitionSummaries:transitionSummary) upperbound rankingTerm guard: pure = 
-  let (wpcForNT: pure) = List.fold_left transitionSummaries ~init:upperbound
+  let (wpcForNT: pure) = List.fold_left transitionSummaries ~init:Ast_utility.TRUE
   ~f:(fun acc (path, stateLi) ->  
-    (*print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
-*)
+
     let (pureIter:pure) = 
       let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
+      print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
+      print_endline ("rankingTerm' = " ^ string_of_terms rankingTerm');
       let left_hand_side = PureAnd (guard, path) in 
-      let right_hand_side = LtEq(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
+      let right_hand_side = normalise_pure_prime (LtEq(rankingTerm, rankingTerm')) in 
       if containUnknown rankingTerm' then  Ast_utility.FALSE 
       else 
         if entailConstrains left_hand_side right_hand_side then (Ast_utility.TRUE)  
         else right_hand_side
     in 
 
-    PureAnd(acc, pureIter)
+    PureOr(acc, pureIter)
 
   ) 
 
   in 
-  wpcForNT
+  PureAnd (upperbound, wpcForNT)
+
+let compute_deriv_of_concern re (ctl:ctl list) = 
+  match ctl with 
+  | [AF(Atom (str, _) )] -> if String.compare str "EXIT" == 0 then Emp else re 
+  | _ -> re
 
 
 
-let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option  =  
+let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr): regularExpr option  =  
   let re = normalise_es re in
 
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
@@ -1636,8 +1635,10 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
   let loopGuard =  (pi, !allTheUniqueIDs) in 
 
 
+  let deriv_of_concern = compute_deriv_of_concern deriv ctl in 
+
   if List.length rankingFuns == 0 then 
-    Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv))))
+    Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv_of_concern))))
 
   else 
   
@@ -1661,11 +1662,11 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
       in 
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminatingFinalState = Concate(deriv, Singleton (Lt(rfterm, Basic(BINT 0)), !allTheUniqueIDs)) in 
+      let terminatingFinalState = Concate(deriv_of_concern , Singleton (Lt(rfterm, Basic(BINT 0)), !allTheUniqueIDs)) in 
       Concate(terminatingGuard, Concate (terminatingFinalState, leakingRE))
   
   in 
-  let weakestPreNT = computerNonTerminating transitionSummaries (Neg weakestPreTerm) rfterm pi in 
+  let weakestPreNT = computerNonTerminating transitionSummaries (PureAnd (pi, (Neg weakestPreTerm))) rfterm pi in 
 
 
   let non_terminating = 
@@ -1686,10 +1687,16 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
 
   
 
-  let allPath = normalise_pure (PureOr(weakestPreTerm, weakestPreNT)) in 
+  
+  let allPath = normalise_pure (PureAnd(pi, PureOr(weakestPreTerm, weakestPreNT))) in 
+  
+  print_endline ("weakestPreTerm:" ^ string_of_pure weakestPreTerm);
+  print_endline ("weakestPreNT:" ^ string_of_pure weakestPreNT);
 
 
-  if entailConstrains TRUE allPath then 
+  print_endline (string_of_pure (PureAnd(pathAcc, pi)) ^  " => " ^ string_of_pure allPath);
+
+  if entailConstrains (PureAnd(pathAcc, pi)) allPath then 
     Some (Concate (Guard loopGuard, Disjunction(terminating, non_terminating) ))
   else None 
 
@@ -1706,15 +1713,15 @@ let rec containCycle re : bool =
   | _ -> false 
 
   
-let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) = 
+let rec convertAllTheKleeneToOmega (pathAcc:pure) (re:regularExpr) ctl: (regularExpr option) *  pure  = 
   match re with 
   
   | Disjunction(rFalse, Kleene (reIn)) 
   | Disjunction(Kleene (reIn), rFalse) -> 
-    let cycleRe = convertAllTheKleeneToOmega reIn in 
-    let reNonCycle = convertAllTheKleeneToOmega rFalse in 
+    let cycleRe, _ = convertAllTheKleeneToOmega pathAcc reIn ctl in 
+    let reNonCycle, _ = convertAllTheKleeneToOmega pathAcc rFalse ctl in 
     (match cycleRe, reNonCycle with 
-    | None , _ | _, None -> None 
+    | None , _ | _, None -> None,  pathAcc
     | Some cycleRe, Some reNonCycle -> 
 
       print_endline ("reNonCycle: " ^ string_of_regularExpr  reNonCycle);
@@ -1726,40 +1733,41 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) =
         | [(GuardEv gv)] -> gv, normalise_es (derivitives (GuardEv gv) reNonCycle)
         | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
       in 
-      (match (getLoopSummary cycleRe reNonCycle') with 
-      | None -> None 
+      (match (getLoopSummary ctl pathAcc cycleRe reNonCycle') with 
+      | None -> None,  pathAcc
       | Some loopsummary -> 
         let loopsummary = normalise_es loopsummary in 
         print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
-        if entailConstrains reNonCyclePure FALSE then Some loopsummary
-        else Some (Disjunction(reNonCycle, loopsummary))
+        if entailConstrains reNonCyclePure FALSE then Some loopsummary, pathAcc
+        else Some (Disjunction(reNonCycle, loopsummary)), pathAcc
       )
     )
 
   | Kleene _ -> 
     (print_endline  "convertAllTheKleeneToOmega not possible"); 
-    None 
+    None, pathAcc 
   
   | Disjunction(r1, r2) -> 
-    let re1 = convertAllTheKleeneToOmega r1 in 
-    let re2 = convertAllTheKleeneToOmega r2 in 
+    let re1, pathAcc1 = convertAllTheKleeneToOmega pathAcc r1 ctl in 
+    let re2, pathAcc2 = convertAllTheKleeneToOmega pathAcc r2 ctl in 
     (match re1, re2 with 
     | None, _
-    | _, None -> None
-    | Some re1, Some re2 -> Some (Disjunction(re1, re2))
+    | _, None -> None, pathAcc
+    | Some re1, Some re2 -> Some (Disjunction(re1, re2)), PureOr(pathAcc1, pathAcc2)
     )
     
   | Concate (r1, r2) -> 
-    let re1' = convertAllTheKleeneToOmega r1 in 
-    let re2' = convertAllTheKleeneToOmega r2 in 
-    (match re1', re2' with 
+    let re1, pathAcc1 = convertAllTheKleeneToOmega pathAcc r1 ctl in 
+    let re2, pathAcc2 = convertAllTheKleeneToOmega pathAcc1 r2 ctl in 
+    (match re1, re2 with 
     | None, _
-    | _, None -> None
-    | Some re1, Some re2 -> Some (Concate(re1,  re2))
+    | _, None -> None, pathAcc
+    | Some re1, Some re2 -> Some (Concate(re1,  re2)), pathAcc2
     )
 
+  | Guard (p, s) -> Some re, PureAnd(pathAcc, p)
     
-  | _ -> Some re
+  | _ -> Some re, pathAcc
 
   ;;
 
@@ -1785,7 +1793,7 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   
   print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
-  let pass = convertAllTheKleeneToOmega pass in 
+  let pass, _= convertAllTheKleeneToOmega TRUE pass specs in 
   match pass with 
   | None -> None 
   | Some pass -> 
@@ -1998,10 +2006,10 @@ let rec findrelationFromPredicatesSpec (predicatesSpec:pure list) (str:string) (
 *)
 let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicatesSpec:pure list) (pathConstrint: (pure list)) (currentValuation: (string * basic_type) list): (((string * basic_type) list) * relation list)= 
   
-  print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
- 
-  print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
-
+  (*print_endline ("predicates getFactFromPureEv \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
+ *)
+  (*print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
+*)
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2019,9 +2027,11 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   let loc = Basic(BINT state) in 
   match p with 
   | Eq (Basic(BSTR str), Basic (ANY)) ->
+    (*
     print_endline (str ^ " = *" );
-    print_endline ("findrelationFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
-
+    print_endline ("findrelationFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
+    (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
+*)
     let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
     currentValuation, rel
 
@@ -2030,7 +2040,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   | Lt (Basic(BSTR var), Basic t1) 
   | GtEq (Basic(BSTR var), Basic t1) 
   | Neg (Eq (Basic(BSTR var), Basic t1) ) -> 
-    print_endline (string_of_pure p ^ "newly added "); 
+    (*print_endline (string_of_pure p ^ "newly added "); *)
     let currentValuation' = currentValuation in 
     (*print_endline (List.fold_left ~init:"currentValuation' " ~f:(fun acc (var, value) -> acc ^ (", " ^ var ^"=" ^ string_of_basic_t value)) currentValuation'); 
 *)
@@ -2054,8 +2064,8 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
             
             res
         ) (predicates@predicatesSpec) in 
-    
-    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); 
+    (*
+    print_endline (List.fold_left ~init:"predicates': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_pure value)) predicates'); *)
     let facts = flattenList (List.map ~f:(fun ele -> getFactFromPure ele state) predicates') in 
     (*
     print_endline (List.fold_left ~init:"facts': " ~f:(fun acc ( value) -> acc ^ (", " ^ string_of_relation value)) facts); 
@@ -2087,8 +2097,9 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
           then 
             let res =  entailConstrains currentConstraint ele in 
             
+            (*
             print_endline ("entailConstrains: " ^ string_of_pure currentConstraint  ^" => "^ string_of_pure ele  ^ ", is "^string_of_bool res);
-            
+            *)
             res
           else false 
         ) (predicates@predicatesSpec) in 
@@ -2123,7 +2134,6 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
       (
         match findCurrentValuation currentValuation var with 
         | None ->  
-          print_endline ("findCurrentValuation none for " ^  string_of_pure p);
           currentValuation, []
         | Some n -> 
           let newBt = (BINT (n-1)) in 
