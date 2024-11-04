@@ -1,13 +1,13 @@
-/*(Start())@0 · (EXIT())@1*/
+/*(Start())@0 · (Return(0))@1*/
 
 flow(0,1).
 flow(1,1).
 Start(0).
 State(0).
-EXIT(1).
+Return(0,1).
 State(1).
 
-/*(Start())@8 · ("x"=_)@9 · ("y"=_)@10 · ((["y"<=0]@11 · ("y"<=0)@12 · ((["x"<0]@13 · ("x"<0)@14 · (Return(0))@15) \/ (["x">=0]@16 · ("x">=0)@17 · ((["y">0]@18 · ("y">0)@19 · ("x"<0)@20 · (Return(0))@21) \/ (["y"<=0]@22 · ("y"<=0)@23 · (("x">=0)@24)^w))))) \/ (["y">0]@25 · ("y">0)@26 · (Return(0))@27))*/
+/*(Start())@8 · ("x"=_)@9 · ("y"=_)@10 · ((["y"<=0]@11 · ("y"<=0)@12 · ((["x"<0]@13 · ("x"<0)@14 · (Return(0))@15) \/ (["x">=0]@16 · ("x">=0)@17 · ((["y">0]@18 · ("y">0)@19 · ("x"=("x"-"y"))@20 · ("x"<0)@21 · (Return(0))@22) \/ (["x">=0∧"y"<=0]@23 · ("x">=0∧"y"<=0)@24 · (("x">=0)@25)^w))))) \/ (["y">0]@26 · ("y">0)@27 · (Return(0))@28))*/
 
 flow(8,9).
 flow(9,10).
@@ -19,13 +19,14 @@ flow(16,17).
 flow(18,19).
 flow(19,20).
 flow(20,21).
-flow(21,21).
-flow(22,23).
+flow(21,22).
+flow(22,22).
 flow(23,24).
-flow(24,24).
-flow(25,26).
+flow(24,25).
+flow(25,25).
 flow(26,27).
-flow(27,27).
+flow(27,28).
+flow(28,28).
 Start(8).
 State(8).
 GtEq("x",9,0).
@@ -46,28 +47,28 @@ GtEq("x",17,0).
 State(18).
 Gt("y",19,0).
 State(19).
-Lt("x",20,0).
 State(20).
-Return(0,21).
+Lt("x",21,0).
 State(21).
-State(17).
+Return(0,22).
 State(22).
-LtEq("y",23,0).
+State(17).
 State(23).
-GtEq("x",24,0).
 State(24).
-State(10).
+GtEq("x",25,0).
 State(25).
-Gt("y",26,0).
+State(10).
 State(26).
-Return(0,27).
+Gt("y",27,0).
 State(27).
+Return(0,28).
+State(28).
 control_flow(10,11) :- LtEqD("y",10,0).
 control_flow(12,13) :- LtD("x",12,0).
 control_flow(12,16) :- GtEqD("x",12,0).
 control_flow(17,18) :- GtD("y",17,0).
-control_flow(17,22) :- LtEqD("y",17,0).
-control_flow(10,25) :- GtD("y",10,0).
+control_flow(17,23) :- GtEqD("x",17,0), LtEqD("y",17,0).
+control_flow(10,26) :- GtD("y",10,0).
 //AF("x"<0)
 .decl Start(x:number)
 .decl State(x:number)
@@ -75,7 +76,6 @@ control_flow(10,25) :- GtD("y",10,0).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl EXIT(n0:number)
 .decl Return(n0:number,n1:number)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl GtEq(x:symbol,loc:number,n:number)
@@ -116,7 +116,6 @@ AF_x_lt_0_Final(loc) :- Start(loc), AF_x_lt_0(loc), !NotTotal(loc).
 .output Start
 .output State
 .output flow
-.output EXIT
 .output Return
 .output AF_x_lt_0_Final(IO=stdout)
 

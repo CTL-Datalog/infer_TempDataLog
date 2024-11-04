@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@2 · ("x"=_)@3 · ("y"=_)@4 · ((["x"<="y"]@5 · ("x"<="y")@6 · (EXIT())@7) \/ (["x">"y"]@8 · ("x">"y")@9 · ("x"=("x"-1))@10 · ((("x"-"y")-1)<0)@11 · (EXIT())@12))*/
+/*(Start())@2 · ("x"=_)@3 · ("y"=_)@4 · ((["x"<="y"]@5 · ("x"<="y")@6 · (Return(0))@7) \/ (["x">"y"]@8 · ("x">"y")@9 · ("x"=("x"-1))@10 · ("x"<="y")@11 · (Return(0))@12))*/
 
 flow(2,3).
 flow(3,4).
@@ -23,15 +23,16 @@ GtVar("x",4,"y").
 State(5).
 LtEqVar("x",6,"y").
 State(6).
-EXIT(7).
+Return(0,7).
 State(7).
 State(4).
 State(8).
 GtVar("x",9,"y").
 State(9).
 State(10).
+LtEqVar("x",11,"y").
 State(11).
-EXIT(12).
+Return(0,12).
 State(12).
 control_flow(4,5) :- LtEqVarD("x",4,"y").
 control_flow(4,8) :- GtVarD("x",4,"y").
@@ -42,7 +43,7 @@ control_flow(4,8) :- GtVarD("x",4,"y").
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl EXIT(n0:number)
+.decl Return(n0:number,n1:number)
 .decl GtVar(x:symbol,loc:number,y:symbol)
 .decl LtEqVar(x:symbol,loc:number,y:symbol)
 .decl GtVarD(x:symbol,loc:number,y:symbol)
@@ -87,6 +88,7 @@ x_gt_y_AU_x_lteq_y_Final(loc) :- Start(loc), x_gt_y_AU_x_lteq_y(loc), !NotTotal(
 .output Start
 .output State
 .output flow
-.output EXIT
+.output Return
 .output x_gt_y_AU_x_lteq_y_Final(IO=stdout)
 
+.output control_flow(IO=stdout)

@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@0 · ("x"=_)@1 · ((["x"=1]@2 · ("x"=1)@3 · ("x"=0)@4 · (EXIT())@5) \/ ([("x"!=1)]@6 · (("x"!=1))@7 · ("x"=("x"-1))@8 · (EXIT())@9))*/
+/*(Start())@0 · ("x"=_)@1 · ((["x"=1]@2 · ("x"=1)@3 · ("x"=0)@4 · (Return(0))@5) \/ ([("x"!=1)]@6 · (("x"!=1))@7 · ("x"=("x"-1))@8 · (Return(0))@9))*/
 
 flow(0,1).
 flow(2,3).
@@ -14,7 +14,7 @@ flow(8,9).
 flow(9,9).
 Start(0).
 State(0).
-NotEq("x",1,1). // delete this fact
+NotEq("x",1,1). // delete this 
 Eq("x",1,1).
 State(2).
 Eq("x",3,1).
@@ -22,14 +22,14 @@ State(3).
 NotEq("x",4,1).
 Eq("x",4,0).
 State(4).
-EXIT(5).
+Return(0,5).
 State(5).
 State(1).
 State(6).
 NotEq("x",7,1).
 State(7).
 State(8).
-EXIT(9).
+Return(0,9).
 State(9).
 control_flow(1,2) :- EqD("x",1,1).
 control_flow(1,6) :- NotEqD("x",1,1).
@@ -40,7 +40,7 @@ control_flow(1,6) :- NotEqD("x",1,1).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl EXIT(n0:number)
+.decl Return(n0:number,n1:number)
 .decl NotEq(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
 .decl NotEqD(x:symbol,loc:number,n:number)
@@ -82,6 +82,6 @@ AF_AX_AX_x_eq_0_Final(loc) :- Start(loc), AF_AX_AX_x_eq_0(loc), !NotTotal(loc).
 .output Start
 .output State
 .output flow
-.output EXIT
+.output Return
 .output AF_AX_AX_x_eq_0_Final(IO=stdout)
 

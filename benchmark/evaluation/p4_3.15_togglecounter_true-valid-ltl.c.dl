@@ -1,22 +1,22 @@
-/*(Start())@1 · (((("t"=1)@6 · ("i"=("i"+1))@7) \/ (("t"=0)@8 · ("i"=("i"+1))@9)))^w*/
+/*(Start())@1 · (((("t"=1)@4 · ("i"=("i"+1))@5) \/ (("t"=0)@6 · ("i"=("i"+1))@7)))^w*/
 
+flow(1,4).
+flow(4,5).
+flow(5,5).
 flow(1,6).
 flow(6,7).
 flow(7,7).
-flow(1,8).
-flow(8,9).
-flow(9,9).
+flow(5,4).
+flow(5,6).
+flow(7,4).
 flow(7,6).
-flow(7,8).
-flow(9,6).
-flow(9,8).
 Start(1).
+State(4).
+State(5).
+State(1).
+Eq("t",6,0).
 State(6).
 State(7).
-State(1).
-Eq("t",8,0).
-State(8).
-State(9).
 
 //AG((AF("t"=0) /\ AF("t"=0)))
 .decl Start(x:number)

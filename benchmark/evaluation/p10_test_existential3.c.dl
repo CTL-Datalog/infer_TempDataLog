@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@2 · ("r"=0)@3 · ("x"=_)@4 · ((["x"<=0]@5 · ("x"<=0)@6 · (EXIT())@7) \/ (["x">0]@8 · ("x">0)@9 · ("x"=("x"-1))@10 · ("temp"=_)@11 · (([("temp"!=0)]@12 · (("temp"!=0))@13 · ("r"=1)@14) \/ (["temp"=0]@15 · ("temp"=0)@16)) · ((("x"-0)-1)<0)@17 · (EXIT())@18))*/
+/*(Start())@2 · ("r"=0)@3 · ("x"=_)@4 · ((["x"<=0]@5 · ("x"<=0)@6 · (Return(0))@7) \/ (["x">0]@8 · ("x">0)@9 · ("x"=("x"-1))@10 · ("temp"=_)@11 · (([("temp"!=0)]@12 · (("temp"!=0))@13 · ("r"=1)@14) \/ (["temp"=0]@15 · ("temp"=0)@16)) · (("x"-1)<0)@17 · (Return(0))@18))*/
 
 flow(2,3).
 flow(3,4).
@@ -26,7 +26,7 @@ Gt("x",4,0).
 State(5).
 LtEq("x",6,0).
 State(6).
-EXIT(7).
+Return(0,7).
 State(7).
 State(4).
 State(8).
@@ -45,7 +45,7 @@ State(15).
 Eq("temp",16,0).
 State(16).
 State(17).
-EXIT(18).
+Return(0,18).
 State(18).
 control_flow(4,5) :- LtEqD("x",4,0).
 control_flow(4,8) :- GtD("x",4,0).
@@ -58,7 +58,7 @@ control_flow(11,15) :- EqD("temp",11,0).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl EXIT(n0:number)
+.decl Return(n0:number,n1:number)
 .decl Eq(x:symbol,loc:number,n:number)
 .decl NotEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
@@ -93,6 +93,6 @@ EF_r_eq_1_Final(loc) :- Start(loc), EF_r_eq_1(loc), !NotTotal(loc).
 .output Start
 .output State
 .output flow
-.output EXIT
+.output Return
 .output EF_r_eq_1_Final(IO=stdout)
 

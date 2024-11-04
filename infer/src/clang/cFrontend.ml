@@ -1573,27 +1573,28 @@ let rec getLast (record:fstElem list) : (fstElem list * fstElem ) option  =
 
 
 let computerNonTerminating (transitionSummaries:transitionSummary) upperbound rankingTerm guard: pure = 
-  let (wpcForNT: pure) = List.fold_left transitionSummaries ~init:Ast_utility.TRUE
+  let (existOnePathNonTerminating: bool) = List.fold_left transitionSummaries ~init:true (* true means, rankingTerm leads to non-termination *) 
   ~f:(fun acc (path, stateLi) ->  
 
-    let (pureIter:pure) = 
+    let (pureIter:bool) = 
       let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
       print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
       print_endline ("rankingTerm' = " ^ string_of_terms rankingTerm');
-      let left_hand_side = PureAnd (guard, path) in 
+      let left_hand_side = PureAnd (upperbound, PureAnd (guard, path)) in 
       let right_hand_side = normalise_pure_prime (LtEq(rankingTerm, rankingTerm')) in 
-      if containUnknown rankingTerm' then  Ast_utility.FALSE 
-      else 
-        if entailConstrains left_hand_side right_hand_side then (Ast_utility.TRUE)  
-        else right_hand_side
-    in 
+      print_endline (string_of_pure left_hand_side ^  " => " ^ string_of_pure right_hand_side);
 
-    PureOr(acc, pureIter)
+      if containUnknown rankingTerm' then  false  
+      else if entailConstrains left_hand_side right_hand_side then true  
+      else false 
+    in 
+    if pureIter then acc 
+    else false
 
   ) 
-
   in 
-  PureAnd (upperbound, wpcForNT)
+  if existOnePathNonTerminating then upperbound
+  else FALSE
 
 let compute_deriv_of_concern re (ctl:ctl list) = 
   match ctl with 
@@ -1662,7 +1663,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
       in 
 
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminatingFinalState = Concate(deriv_of_concern , Singleton (Lt(rfterm, Basic(BINT 0)), !allTheUniqueIDs)) in 
+      let terminatingFinalState = Concate(deriv_of_concern , Singleton (normalise_pure_prime(Lt(rfterm, Basic(BINT 0))), !allTheUniqueIDs)) in 
       Concate(terminatingGuard, Concate (terminatingFinalState, leakingRE))
   
   in 
@@ -1691,12 +1692,15 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let allPath = normalise_pure (PureAnd(pi, PureOr(weakestPreTerm, weakestPreNT))) in 
   
   print_endline ("weakestPreTerm:" ^ string_of_pure weakestPreTerm);
+  print_endline ("terminating:" ^ string_of_regularExpr terminating);
+
   print_endline ("weakestPreNT:" ^ string_of_pure weakestPreNT);
+  print_endline ("non_terminating:" ^ string_of_regularExpr non_terminating);
 
 
-  print_endline (string_of_pure (PureAnd(pathAcc, pi)) ^  " => " ^ string_of_pure allPath);
 
   if entailConstrains (PureAnd(pathAcc, pi)) allPath then 
+  
     Some (Concate (Guard loopGuard, Disjunction(terminating, non_terminating) ))
   else None 
 
@@ -2447,13 +2451,19 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let flag = ref true in 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
-      print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
-      let summary = computeSummaryFromCGF procedure specifications in 
-      match summary with 
-      | Some summary -> List.append accs [summary] 
-      | None -> 
-      flag := false; 
-      print_endline ("Verification Res = Unknown"); accs )) 
+
+      if !flag == false then accs
+      else 
+        (print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
+        let summary = computeSummaryFromCGF procedure specifications in 
+        match summary with 
+        | Some summary -> List.append accs [summary] 
+        | None -> 
+        flag := false; 
+        print_endline ("Verification Res = Unknown"); accs )
+      
+      
+      )) 
   in
 
   if !flag == false then ()

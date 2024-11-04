@@ -793,6 +793,9 @@ let rec normalise_pure_prime (pi:pure) : pure =
     if stricTcompareTerm t1 t3 then LtEq(t4, Basic( BINT 0))
     else (LtEq (t1, Minus(t3, t4)))
   | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
+  | Lt (Minus(Minus(t1, t2), Basic ( BINT 1)), Basic ( BINT 0)) -> LtEq (t1, t2)
+
+
   | Lt (Basic(BINT n), Basic(BSTR v)) -> Gt (Basic(BSTR v), Basic(BINT n))
   | Gt (Basic(BINT n), Basic(BSTR v)) -> Lt (Basic(BSTR v), Basic(BINT n))
 
