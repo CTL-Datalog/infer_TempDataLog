@@ -1,0 +1,369 @@
+/*𝝐 */
+
+
+/*(Start())@0 · ("y"=_)@1 · (([("y"!=0)]@2 · (("y"!=0))@3 · ("x"=1)@4 · ((["x">0]@5 · ("x">0)@6 · ("x"=("x"+1))@7 · ((["x">0]@8 · ("x">0)@9 · ("x"=("x"+1))@10 · ((["x">0]@11 · ("x">0)@12 · ("x"=("x"+1))@13 · (EXIT())@14) \/ (["x"<=0]@15 · ("x"<=0)@16 · ("x"=("x"-1))@17 · (EXIT())@18))) \/ (["x"<=0]@19 · ("x"<=0)@20 · ("x"=("x"-1))@21 · ((["x">0]@22 · ("x">0)@23 · ("x"=("x"+1))@24 · (EXIT())@25) \/ (["x"<=0]@26 · ("x"<=0)@27 · ("x"=("x"-1))@28 · (EXIT())@29))))) \/ (["x"<=0]@30 · ("x"<=0)@31 · ("x"=("x"-1))@32 · ((["x">0]@33 · ("x">0)@34 · ("x"=("x"+1))@35 · ((["x">0]@36 · ("x">0)@37 · ("x"=("x"+1))@38 · (EXIT())@39) \/ (["x"<=0]@40 · ("x"<=0)@41 · ("x"=("x"-1))@42 · (EXIT())@43))) \/ (["x"<=0]@44 · ("x"<=0)@45 · ("x"=("x"-1))@46 · ((["x">0]@47 · ("x">0)@48 · ("x"=("x"+1))@49 · (EXIT())@50) \/ (["x"<=0]@51 · ("x"<=0)@52 · ("x"=("x"-1))@53 · (EXIT())@54))))))) \/ (["y"=0]@55 · ("y"=0)@56 · ("x"=-1)@57 · ((["x">0]@58 · ("x">0)@59 · ("x"=("x"+1))@60 · ((["x">0]@61 · ("x">0)@62 · ("x"=("x"+1))@63 · ((["x">0]@64 · ("x">0)@65 · ("x"=("x"+1))@66 · (EXIT())@67) \/ (["x"<=0]@68 · ("x"<=0)@69 · ("x"=("x"-1))@70 · (EXIT())@71))) \/ (["x"<=0]@72 · ("x"<=0)@73 · ("x"=("x"-1))@74 · ((["x">0]@75 · ("x">0)@76 · ("x"=("x"+1))@77 · (EXIT())@78) \/ (["x"<=0]@79 · ("x"<=0)@80 · ("x"=("x"-1))@81 · (EXIT())@82))))) \/ (["x"<=0]@83 · ("x"<=0)@84 · ("x"=("x"-1))@85 · ((["x">0]@86 · ("x">0)@87 · ("x"=("x"+1))@88 · ((["x">0]@89 · ("x">0)@90 · ("x"=("x"+1))@91 · (EXIT())@92) \/ (["x"<=0]@93 · ("x"<=0)@94 · ("x"=("x"-1))@95 · (EXIT())@96))) \/ (["x"<=0]@97 · ("x"<=0)@98 · ("x"=("x"-1))@99 · ((["x">0]@100 · ("x">0)@101 · ("x"=("x"+1))@102 · (EXIT())@103) \/ (["x"<=0]@104 · ("x"<=0)@105 · ("x"=("x"-1))@106 · (EXIT())@107))))))))*/
+
+flow(0,1).
+flow(2,3).
+flow(3,4).
+flow(5,6).
+flow(6,7).
+flow(8,9).
+flow(9,10).
+flow(11,12).
+flow(12,13).
+flow(13,14).
+flow(14,14).
+flow(15,16).
+flow(16,17).
+flow(17,18).
+flow(18,18).
+flow(19,20).
+flow(20,21).
+flow(22,23).
+flow(23,24).
+flow(24,25).
+flow(25,25).
+flow(26,27).
+flow(27,28).
+flow(28,29).
+flow(29,29).
+flow(30,31).
+flow(31,32).
+flow(33,34).
+flow(34,35).
+flow(36,37).
+flow(37,38).
+flow(38,39).
+flow(39,39).
+flow(40,41).
+flow(41,42).
+flow(42,43).
+flow(43,43).
+flow(44,45).
+flow(45,46).
+flow(47,48).
+flow(48,49).
+flow(49,50).
+flow(50,50).
+flow(51,52).
+flow(52,53).
+flow(53,54).
+flow(54,54).
+flow(55,56).
+flow(56,57).
+flow(58,59).
+flow(59,60).
+flow(61,62).
+flow(62,63).
+flow(64,65).
+flow(65,66).
+flow(66,67).
+flow(67,67).
+flow(68,69).
+flow(69,70).
+flow(70,71).
+flow(71,71).
+flow(72,73).
+flow(73,74).
+flow(75,76).
+flow(76,77).
+flow(77,78).
+flow(78,78).
+flow(79,80).
+flow(80,81).
+flow(81,82).
+flow(82,82).
+flow(83,84).
+flow(84,85).
+flow(86,87).
+flow(87,88).
+flow(89,90).
+flow(90,91).
+flow(91,92).
+flow(92,92).
+flow(93,94).
+flow(94,95).
+flow(95,96).
+flow(96,96).
+flow(97,98).
+flow(98,99).
+flow(100,101).
+flow(101,102).
+flow(102,103).
+flow(103,103).
+flow(104,105).
+flow(105,106).
+flow(106,107).
+flow(107,107).
+Start(0).
+State(0).
+NotEq("y",1,0).
+Eq("y",1,0).
+State(2).
+NotEq("y",3,0).
+State(3).
+Gt("x",4,0).
+State(5).
+Gt("x",6,0).
+State(6).
+Gt("x",7,0).
+State(8).
+Gt("x",9,0).
+State(9).
+Gt("x",10,0).
+State(11).
+Gt("x",12,0).
+State(12).
+Gt("x",13,0).
+Eq("x",13,4).
+State(13).
+EXIT(14).
+State(14).
+State(10).
+State(15).
+LtEq("x",16,0).
+State(16).
+Gt("x",17,0).
+State(17).
+EXIT(18).
+State(18).
+State(7).
+State(19).
+LtEq("x",20,0).
+State(20).
+Gt("x",21,0).
+State(22).
+Gt("x",23,0).
+State(23).
+Gt("x",24,0).
+State(24).
+EXIT(25).
+State(25).
+State(21).
+State(26).
+LtEq("x",27,0).
+State(27).
+LtEq("x",28,0).
+State(28).
+EXIT(29).
+State(29).
+State(4).
+State(30).
+LtEq("x",31,0).
+State(31).
+LtEq("x",32,0).
+State(33).
+Gt("x",34,0).
+State(34).
+Gt("x",35,0).
+State(36).
+Gt("x",37,0).
+State(37).
+Gt("x",38,0).
+State(38).
+EXIT(39).
+State(39).
+State(35).
+State(40).
+LtEq("x",41,0).
+State(41).
+LtEq("x",42,0).
+State(42).
+EXIT(43).
+State(43).
+State(32).
+State(44).
+LtEq("x",45,0).
+State(45).
+LtEq("x",46,0).
+State(47).
+Gt("x",48,0).
+State(48).
+LtEq("x",49,0).
+State(49).
+EXIT(50).
+State(50).
+State(46).
+State(51).
+LtEq("x",52,0).
+State(52).
+LtEq("x",53,0).
+State(53).
+EXIT(54).
+State(54).
+State(1).
+State(55).
+Eq("y",56,0).
+State(56).
+LtEq("x",57,0).
+State(58).
+Gt("x",59,0).
+State(59).
+LtEq("x",60,0).
+State(61).
+Gt("x",62,0).
+State(62).
+Gt("x",63,0).
+State(64).
+Gt("x",65,0).
+State(65).
+Gt("x",66,0).
+State(66).
+EXIT(67).
+State(67).
+State(63).
+State(68).
+LtEq("x",69,0).
+State(69).
+LtEq("x",70,0).
+State(70).
+EXIT(71).
+State(71).
+State(60).
+State(72).
+LtEq("x",73,0).
+State(73).
+LtEq("x",74,0).
+State(75).
+Gt("x",76,0).
+State(76).
+LtEq("x",77,0).
+State(77).
+EXIT(78).
+State(78).
+State(74).
+State(79).
+LtEq("x",80,0).
+State(80).
+LtEq("x",81,0).
+State(81).
+EXIT(82).
+State(82).
+State(57).
+State(83).
+LtEq("x",84,0).
+State(84).
+LtEq("x",85,0).
+State(86).
+Gt("x",87,0).
+State(87).
+LtEq("x",88,0).
+State(89).
+Gt("x",90,0).
+State(90).
+LtEq("x",91,0).
+State(91).
+EXIT(92).
+State(92).
+State(88).
+State(93).
+LtEq("x",94,0).
+State(94).
+LtEq("x",95,0).
+State(95).
+EXIT(96).
+State(96).
+State(85).
+State(97).
+LtEq("x",98,0).
+State(98).
+LtEq("x",99,0).
+State(100).
+Gt("x",101,0).
+State(101).
+LtEq("x",102,0).
+State(102).
+EXIT(103).
+State(103).
+State(99).
+State(104).
+LtEq("x",105,0).
+State(105).
+LtEq("x",106,0).
+Eq("x",106,-4).
+State(106).
+EXIT(107).
+State(107).
+control_flow(1,2) :- NotEqD("y",1,0).
+control_flow(4,5) :- GtD("x",4,0).
+control_flow(7,8) :- GtD("x",7,0).
+control_flow(10,11) :- GtD("x",10,0).
+control_flow(10,15) :- LtEqD("x",10,0).
+control_flow(7,19) :- LtEqD("x",7,0).
+control_flow(21,22) :- GtD("x",21,0).
+control_flow(21,26) :- LtEqD("x",21,0).
+control_flow(4,30) :- LtEqD("x",4,0).
+control_flow(32,33) :- GtD("x",32,0).
+control_flow(35,36) :- GtD("x",35,0).
+control_flow(35,40) :- LtEqD("x",35,0).
+control_flow(32,44) :- LtEqD("x",32,0).
+control_flow(46,47) :- GtD("x",46,0).
+control_flow(46,51) :- LtEqD("x",46,0).
+control_flow(1,55) :- EqD("y",1,0).
+control_flow(57,58) :- GtD("x",57,0).
+control_flow(60,61) :- GtD("x",60,0).
+control_flow(63,64) :- GtD("x",63,0).
+control_flow(63,68) :- LtEqD("x",63,0).
+control_flow(60,72) :- LtEqD("x",60,0).
+control_flow(74,75) :- GtD("x",74,0).
+control_flow(74,79) :- LtEqD("x",74,0).
+control_flow(57,83) :- LtEqD("x",57,0).
+control_flow(85,86) :- GtD("x",85,0).
+control_flow(88,89) :- GtD("x",88,0).
+control_flow(88,93) :- LtEqD("x",88,0).
+control_flow(85,97) :- LtEqD("x",85,0).
+control_flow(99,100) :- GtD("x",99,0).
+control_flow(99,104) :- LtEqD("x",99,0).
+//(EF("x"=-4) /\ EF("x"=4))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl EXIT(n0:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl x_eq_4(loc:number)
+.decl EF_x_eq_4(loc:number)
+.decl x_eq_neg_4(loc:number)
+.decl EF_x_eq_neg_4(loc:number)
+.decl EF_x_eq_neg_4_AND_EF_x_eq_4(loc:number)
+.decl EF_x_eq_neg_4_AND_EF_x_eq_4_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+x_eq_4(loc) :- State(loc), EqD("x",loc,4).
+EF_x_eq_4(loc) :- control_flow(loc,tempOne), EF_x_eq_4(tempOne).
+EF_x_eq_4(loc) :- x_eq_4(loc).
+x_eq_neg_4(loc) :- State(loc), EqD("x",loc,-4).
+EF_x_eq_neg_4(loc) :- control_flow(loc,tempOne), EF_x_eq_neg_4(tempOne).
+EF_x_eq_neg_4(loc) :- x_eq_neg_4(loc).
+EF_x_eq_neg_4_AND_EF_x_eq_4(loc) :- EF_x_eq_neg_4(loc), EF_x_eq_4(loc).
+EF_x_eq_neg_4_AND_EF_x_eq_4_Final(loc) :- Start(loc), EF_x_eq_neg_4_AND_EF_x_eq_4(loc), !NotTotal(loc).
+.output LtEq
+.output Eq
+.output Gt
+.output NotEq
+.output Start
+.output State
+.output flow
+.output EXIT
+.output EF_x_eq_neg_4_AND_EF_x_eq_4_Final(IO=stdout)
+
