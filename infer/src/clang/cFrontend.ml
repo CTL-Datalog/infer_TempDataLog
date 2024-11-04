@@ -1458,7 +1458,11 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
           | PureEv _
           | GuardEv _ -> (Bot, eventToRe f) 
           | OmegaEv reIn -> (Omega reIn, Bot)
-          | _ ->  raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
+          | _ ->  
+          print_endline (string_of_regularExpr reIn); 
+          print_endline (string_of_regularExpr re); 
+
+          raise (Failure "devideByExitOrReturn helper Emp | Bot | Omega _ | Kleene _   " )
         in 
         let (dTerm, dNonTerm) = helper (normalise_es(derivitives f reIn)) in 
         let (accTerm', accNonTerm') = 
@@ -1600,7 +1604,7 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
   let re = normalise_es re in
 
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
-  let pi, rankingFuns, nonleakingBranches =  
+  let pi, rankingFuns, deriv =  
     (match fstSet with 
     | [GuardEv (pi, loc)] ->  
       let f = GuardEv (pi, loc) in 
@@ -1613,7 +1617,7 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
     
       let (rankingFuns:rankingfunction list ) = makeAGuess pi leakingBranches reNonCycle in 
       let rankingFuns = removeRedundant rankingFuns (fun (a, _) (b , _) -> stricTcompareTerm a b ) in 
-      pi, rankingFuns, nonleakingBranches
+      pi, rankingFuns, deriv
 
     | [PureEv (_, _)] -> raise (Failure "loop starting with PureEv") 
     | _-> raise (Failure "loop starting with more than one fst")
@@ -1630,12 +1634,12 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
 
 
   if List.length rankingFuns == 0 then 
-    Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, re))))
+    Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv))))
 
   else 
   
 
-  let (alldisjunctiveTransitions:regularExpr list) = decomposeRE re in 
+  let (alldisjunctiveTransitions:regularExpr list) = decomposeRE deriv in 
   let transitionSummaries = flattenList (List.map alldisjunctiveTransitions ~f:transitionSummary) in  
 
                                 (* a trace,    Some(terminational wp, ranking function) *)
@@ -1646,10 +1650,15 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
   let terminating = 
     if entailConstrains weakestPreTerm FALSE then Bot 
     else 
+      let terminatingGuard = 
+        if entailConstrains TRUE weakestPreTerm then Emp
+        else 
+          let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+          Guard (weakestPreTerm, !allTheUniqueIDs) 
+      in 
+
       let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminatingGuard = Guard (weakestPreTerm, !allTheUniqueIDs) in 
-      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-      let terminatingFinalState = Singleton (Lt(rfterm, Basic(BINT 0)), !allTheUniqueIDs) in 
+      let terminatingFinalState = Concate(deriv, Singleton (Lt(rfterm, Basic(BINT 0)), !allTheUniqueIDs)) in 
       Concate(terminatingGuard, Concate (terminatingFinalState, leakingRE))
   
   in 
@@ -1657,6 +1666,9 @@ let getLoopSummary (re:regularExpr) (reNonCycle:regularExpr): regularExpr option
 
 
   let non_terminating = 
+    if entailConstrains weakestPreNT FALSE then Bot 
+    else 
+
     let nonTerminatingGuard = 
       if entailConstrains TRUE (weakestPreNT) then Emp 
       else 
@@ -1711,7 +1723,7 @@ let rec convertAllTheKleeneToOmega (re:regularExpr) : (regularExpr option) =
         | [(GuardEv gv)] -> gv, normalise_es (derivitives (GuardEv gv) reNonCycle)
         | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
       in 
-      (match (getLoopSummary reIn reNonCycle') with 
+      (match (getLoopSummary cycleRe reNonCycle') with 
       | None -> None 
       | Some loopsummary -> 
         let loopsummary = normalise_es loopsummary in 

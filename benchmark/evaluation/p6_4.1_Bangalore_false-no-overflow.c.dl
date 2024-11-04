@@ -1,52 +1,73 @@
-/*(Start())@2 · (EXIT())@3*/
+/*(Start())@0 · (EXIT())@1*/
 
-flow(2,3).
-flow(3,3).
-Start(2).
-State(2).
-EXIT(3).
-State(3).
+flow(0,1).
+flow(1,1).
+Start(0).
+State(0).
+EXIT(1).
+State(1).
 
-/*(Start())@16 · (x=_)@17 · (y=_)@18 · (([y<1]@19 · (([x<0]@20 · (Return(0))@21) \/ (([x>=0]@22 · [x>-1]@23 · (x>=0)@24 · (x>-1)@25 · (y=0)@26)^w))) \/ ([y>=1]@27 · (Return(0))@28))*/
+/*(Start())@8 · ("x"=_)@9 · ("y"=_)@10 · ((["y"<=0]@11 · ("y"<=0)@12 · ((["x"<0]@13 · ("x"<0)@14 · (Return(0))@15) \/ (["x">=0]@16 · ("x">=0)@17 · ((["y">0]@18 · ("y">0)@19 · ("x"<0)@20 · (Return(0))@21) \/ (["y"<=0]@22 · ("y"<=0)@23 · (("x">=0)@24)^w))))) \/ (["y">0]@25 · ("y">0)@26 · (Return(0))@27))*/
 
+flow(8,9).
+flow(9,10).
+flow(11,12).
+flow(13,14).
+flow(14,15).
+flow(15,15).
 flow(16,17).
-flow(17,18).
+flow(18,19).
+flow(19,20).
+flow(20,21).
 flow(21,21).
-flow(26,26).
-flow(26,22).
-flow(28,28).
-Start(16).
-Lt("x",16,0).
-Lt("y",16,1).
-GtEq("x",16,0).
-Gt("x",16,-1).
-GtEq("y",16,1).
+flow(22,23).
+flow(23,24).
+flow(24,24).
+flow(25,26).
+flow(26,27).
+flow(27,27).
+Start(8).
+State(8).
+GtEq("x",9,0).
+Lt("x",9,0).
+State(9).
+LtEq("y",10,0).
+Gt("y",10,0).
+State(11).
+LtEq("y",12,0).
+State(13).
+Lt("x",14,0).
+State(14).
+Return(0,15).
+State(15).
+State(12).
 State(16).
-State(17).
+GtEq("x",17,0).
+State(18).
+Gt("y",19,0).
+State(19).
+Lt("x",20,0).
 State(20).
 Return(0,21).
 State(21).
-State(19).
+State(17).
 State(22).
+LtEq("y",23,0).
 State(23).
+GtEq("x",24,0).
 State(24).
+State(10).
 State(25).
-Lt("y",26,1).
+Gt("y",26,0).
 State(26).
-State(18).
+Return(0,27).
 State(27).
-Return(0,28).
-State(28).
-control_flow(18,19) :- LtD("y",18,1).
-control_flow(19,20) :- LtD("y",18,1), LtD("x",19,0).
-control_flow(20,21) :- LtD("y",18,1), LtD("x",19,0).
-control_flow(19,22) :- LtD("y",18,1), GtEqD("x",19,0).
-control_flow(22,23) :- LtD("y",18,1), GtEqD("x",19,0), GtD("x",22,-1).
-control_flow(23,24) :- LtD("y",18,1), GtEqD("x",19,0), GtD("x",22,-1).
-control_flow(24,25) :- LtD("y",18,1), GtEqD("x",19,0), GtD("x",22,-1).
-control_flow(25,26) :- LtD("y",18,1), GtEqD("x",19,0), GtD("x",22,-1).
-control_flow(18,27) :- GtEqD("y",18,1).
-control_flow(27,28) :- GtEqD("y",18,1).
+control_flow(10,11) :- LtEqD("y",10,0).
+control_flow(12,13) :- LtD("x",12,0).
+control_flow(12,16) :- GtEqD("x",12,0).
+control_flow(17,18) :- GtD("y",17,0).
+control_flow(17,22) :- LtEqD("y",17,0).
+control_flow(10,25) :- GtD("y",10,0).
 //AF("x"<0)
 .decl Start(x:number)
 .decl State(x:number)
@@ -56,13 +77,14 @@ control_flow(27,28) :- GtEqD("y",18,1).
 .decl NotTotal(loc:number)
 .decl EXIT(n0:number)
 .decl Return(n0:number,n1:number)
-.decl LtEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl GtEq(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
 .decl GtEqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
 .decl x_lt_0(loc:number)
 .decl AF_x_lt_0_T(interm_state:number,loc:number)
 .decl AF_x_lt_0_S(loc:number)
@@ -78,6 +100,8 @@ GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
 LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
 x_lt_0(loc) :- State(loc), LtD("x",loc,0).
 AF_x_lt_0_T(interm_state,loc) :- AF_x_lt_0_T(tempOne,loc), !x_lt_0(tempOne), control_flow(tempOne,interm_state).
 AF_x_lt_0_T(interm_state,loc) :- !x_lt_0(loc), control_flow(loc,interm_state).
@@ -85,54 +109,14 @@ AF_x_lt_0_S(loc) :- !x_lt_0(loc), control_flow(loc,tempOne), AF_x_lt_0_S(tempOne
 AF_x_lt_0_S(loc) :- AF_x_lt_0_T(loc,loc).
 AF_x_lt_0(loc) :- State(loc), !AF_x_lt_0_S(loc).
 AF_x_lt_0_Final(loc) :- Start(loc), AF_x_lt_0(loc), !NotTotal(loc).
-.output LtEq
 .output Gt
 .output GtEq
 .output Lt
+.output LtEq
 .output Start
 .output State
 .output flow
 .output EXIT
 .output Return
 .output AF_x_lt_0_Final(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <_nondet_int> 
-
-Flow(1,0). //@7:1-7:20
-Exit(0).  // @7:20
-Start(1). // @7:1
-//-- Facts for Procedure <main> 
-
-Flow(1,2). //@12:1-16:5
-Flow(13,0). //@23:2-24:1
-Flow(8,13). //@18:2-23:2
-Flow(4,11). //@18:6-18:6
-Flow(4,12). //@18:6-18:6
-Flow(12,6). //@18:6-19:6
-Flow(11,8). //@18:6-18:2
-Flow(6,10). //@19:6-19:13
-Flow(10,7). //@19:13-19:13
-Flow(10,9). //@19:13-19:13
-Flow(9,5). //@19:13-20:7
-Flow(7,8). //@19:13-18:2
-Flow(5,6). //@20:7-19:6
-Flow(3,4). //@17:5-18:6
-Flow(2,3). //@16:5-17:5
-Stmt_BinaryOperatorStmt(2,Assign,[ICall(_fun__nondet_int,,n$8),IStore(&x,n$8)]). // @16:5
-Stmt_BinaryOperatorStmt(3,Assign,[ICall(_fun__nondet_int,,n$7),IStore(&y,n$7)]). // @17:5
-Stmt_BinaryOperatorStmt(5,Assign,[ILoad(&x,n$2),ILoad(&y,n$3),IStore(&x,(n$2 - n$3))]). // @20:7
-PruneNode(7,false,[Prune(!(n$1 >= 0), false)]). // @19:13
-PruneNode(9,true,[Prune((n$1 >= 0), true)]). // @19:13
-Stmt_BinaryOperatorStmt(10,GE,[ILoad(&x,n$1)]). // @19:13
-Join(6,[]).  // @19:6
-PruneNode(11,false,[Prune(!(n$0 < 1), false)]). // @18:6
-PruneNode(12,true,[Prune((n$0 < 1), true)]). // @18:6
-Stmt_BinaryOperatorStmt(4,LT,[ILoad(&y,n$0)]). // @18:6
-Join(8,[]).  // @18:2
-Stmt_Return(13,[IStore(&return,0)]). // @23:2
-Exit(0).  // @24:1
-Start(1). // @12:1
-*/
 

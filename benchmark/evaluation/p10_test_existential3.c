@@ -16,7 +16,7 @@ extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
 int main() {
     int r = 0;
-    int x;
+    int x = __VERIFIER_nondet_int(); 
     while (x > 0) {
         x = x - 1;
         int temp = __VERIFIER_nondet_int();

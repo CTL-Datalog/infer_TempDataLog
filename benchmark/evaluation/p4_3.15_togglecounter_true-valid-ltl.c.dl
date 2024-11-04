@@ -1,33 +1,22 @@
-/*(Start())@22 · ((((Even("i"))@25 · (t=1)@26 · (Odd("i"))@27 · (t=0)@28)^w) \/ (((Odd("i"))@29 · (t=0)@30 · (Even("i"))@31 · (t=1)@32)^w))*/
+/*(Start())@1 · (((("t"=1)@6 · ("i"=("i"+1))@7) \/ (("t"=0)@8 · ("i"=("i"+1))@9)))^w*/
 
-flow(22,25).
-flow(25,26).
-flow(26,27).
-flow(27,28).
-flow(28,28).
-flow(28,25).
-flow(22,29).
-flow(29,30).
-flow(30,31).
-flow(31,32).
-flow(32,32).
-flow(32,29).
-Start(22).
-Even("i",25).
-State(25).
-State(26).
-Odd("i",27).
-State(27).
-Eq("t",28,0).
-State(28).
-State(22).
-Odd("i",29).
-State(29).
-Eq("t",30,0).
-State(30).
-Even("i",31).
-State(31).
-State(32).
+flow(1,6).
+flow(6,7).
+flow(7,7).
+flow(1,8).
+flow(8,9).
+flow(9,9).
+flow(7,6).
+flow(7,8).
+flow(9,6).
+flow(9,8).
+Start(1).
+State(6).
+State(7).
+State(1).
+Eq("t",8,0).
+State(8).
+State(9).
 
 //AG((AF("t"=0) /\ AF("t"=0)))
 .decl Start(x:number)
@@ -36,8 +25,6 @@ State(32).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl Even(x0:symbol,n1:number)
-.decl Odd(x0:symbol,n1:number)
 .decl NotEq(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
@@ -79,40 +66,5 @@ AG_AF_t_eq_0_AND_AF_t_eq_0_Final(loc) :- Start(loc), AG_AF_t_eq_0_AND_AF_t_eq_0(
 .output Start
 .output State
 .output flow
-.output Even
-.output Odd
 .output AG_AF_t_eq_0_AND_AF_t_eq_0_Final(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <main> 
-
-Flow(12,7). //@6:1-9:2
-Flow(9,11). //@18:2-19:1
-Flow(7,8). //@9:2-9:9
-Flow(7,10). //@9:2-9:9
-Flow(10,5). //@9:9-10:7
-Flow(8,9). //@9:9-18:2
-Flow(6,7). //@15:3-9:2
-Flow(1,6). //@10:3-15:3
-Flow(5,3). //@10:7-10:7
-Flow(5,4). //@10:7-10:7
-Flow(4,2). //@10:7-11:4
-Flow(3,0). //@10:7-13:4
-Flow(2,1). //@11:4-10:3
-Flow(0,1). //@13:4-10:3
-Stmt_BinaryOperatorStmt(0,Assign,[IStore(&t,0)]). // @13:4
-Stmt_BinaryOperatorStmt(2,Assign,[IStore(&t,1)]). // @11:4
-PruneNode(3,false,[Prune(!((n$1 % 2) == 0), false)]). // @10:7
-PruneNode(4,true,[Prune(((n$1 % 2) == 0), true)]). // @10:7
-Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&i,n$1)]). // @10:7
-Join(1,[]).  // @10:3
-Stmt_BinaryOperatorStmt(6,Assign,[ILoad(&i,n$0),IStore(&i,(n$0 + 1))]). // @15:3
-PruneNode(8,false,[Prune(!1, false)]). // @9:9
-PruneNode(10,true,[Prune(1, true)]). // @9:9
-Join(7,[]).  // @9:2
-Stmt_Return(9,[IStore(&return,0)]). // @18:2
-Exit(11).  // @19:1
-Start(12). // @6:1
-*/
 

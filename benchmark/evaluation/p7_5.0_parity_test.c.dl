@@ -1,42 +1,33 @@
-/*(Start())@13 · (x=2)@14 · (([x>=2]@15 · (([Even("x")]@16 · (y=1)@17 · (Return(0))@18) \/ ([Odd("x")]@19 · (y=0)@20 · (Return(0))@21))) \/ ([x<2]@22 · (y=0)@23 · (Return(0))@24))*/
+/*(Start())@0 · ("x"=2)@1 · ((["x">=2]@2 · ("x">=2)@3 · ("y"=1)@4 · (Return(0))@5) \/ (["x"<2]@6 · ("x"<2)@7 · ("y"=0)@8 · (Return(0))@9))*/
 
-flow(13,14).
-flow(18,18).
-flow(21,21).
-flow(24,24).
-Start(13).
-Even("x",13).
-GtEq("x",13,2).
-Odd("x",13).
-Lt("x",13,2).
-State(13).
-Even("x",14).
-GtEq("x",14,2).
-State(16).
-Eq("y",17,1).
-State(17).
-Return(0,18).
-State(18).
-State(15).
-State(19).
-State(20).
-Return(0,21).
-State(21).
-State(14).
-State(22).
-State(23).
-Return(0,24).
-State(24).
-control_flow(14,15) :- GtEqD("x",14,2).
-control_flow(15,16) :- GtEqD("x",14,2), EvenD("x",15).
-control_flow(16,17) :- GtEqD("x",14,2), EvenD("x",15).
-control_flow(17,18) :- GtEqD("x",14,2), EvenD("x",15).
-control_flow(15,19) :- GtEqD("x",14,2), OddD("x",15).
-control_flow(19,20) :- GtEqD("x",14,2), OddD("x",15).
-control_flow(20,21) :- GtEqD("x",14,2), OddD("x",15).
-control_flow(14,22) :- LtD("x",14,2).
-control_flow(22,23) :- LtD("x",14,2).
-control_flow(23,24) :- LtD("x",14,2).
+flow(0,1).
+flow(2,3).
+flow(3,4).
+flow(4,5).
+flow(5,5).
+flow(6,7).
+flow(7,8).
+flow(8,9).
+flow(9,9).
+Start(0).
+State(0).
+GtEq("x",1,2).
+State(2).
+GtEq("x",3,2).
+State(3).
+Eq("y",4,1).
+State(4).
+Return(0,5).
+State(5).
+State(1).
+State(6).
+Lt("x",7,2).
+State(7).
+State(8).
+Return(0,9).
+State(9).
+control_flow(1,2) :- GtEqD("x",1,2).
+control_flow(1,6) :- LtD("x",1,2).
 //AF("y"=1)
 .decl Start(x:number)
 .decl State(x:number)
@@ -46,15 +37,11 @@ control_flow(23,24) :- LtD("x",14,2).
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
 .decl NotEq(x:symbol,loc:number,n:number)
-.decl Eq(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
-.decl Odd(x:symbol,loc:number)
+.decl Eq(x:symbol,loc:number,n:number)
 .decl GtEq(x:symbol,loc:number,n:number)
-.decl Even(x:symbol,loc:number)
 .decl EqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
-.decl OddD(x:symbol,loc:number)
-.decl EvenD(x:symbol,loc:number)
 .decl GtEqD(x:symbol,loc:number,n:number)
 .decl y_eq_1(loc:number)
 .decl AF_y_eq_1_T(interm_state:number,loc:number)
@@ -69,10 +56,6 @@ EqD(x,loc,n) :- Eq(x,loc,n).
 EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
 LtD(x,loc,n) :- Lt(x,loc,n).
 LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
-OddD(x,loc) :- Odd(x,loc).
-OddD(x,loc) :- OddD(x,locI), control_flow(locI,loc), !Odd(x,loc), !Even(x,loc).
-EvenD(x,loc) :- Even(x,loc).
-EvenD(x,loc) :- EvenD(x,locI), control_flow(locI,loc), !Even(x,loc), !Odd(x,loc).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
 y_eq_1(loc) :- State(loc), EqD("y",loc,1).
@@ -83,47 +66,12 @@ AF_y_eq_1_S(loc) :- AF_y_eq_1_T(loc,loc).
 AF_y_eq_1(loc) :- State(loc), !AF_y_eq_1_S(loc).
 AF_y_eq_1_Final(loc) :- Start(loc), AF_y_eq_1(loc), !NotTotal(loc).
 .output NotEq
-.output Eq
 .output Lt
-.output Odd
+.output Eq
 .output GtEq
-.output Even
 .output Start
 .output State
 .output flow
 .output Return
 .output AF_y_eq_1_Final(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <main> 
-
-Flow(12,0). //@4:1-7:5
-Flow(10,11). //@13:5-14:1
-Flow(3,10). //@8:5-13:5
-Flow(1,8). //@8:9-8:9
-Flow(1,9). //@8:9-8:9
-Flow(9,7). //@8:9-8:17
-Flow(8,2). //@8:9-11:11
-Flow(7,5). //@8:17-8:17
-Flow(7,6). //@8:17-8:17
-Flow(6,4). //@8:17-9:9
-Flow(5,2). //@8:17-11:11
-Flow(4,3). //@9:9-8:5
-Flow(2,3). //@11:11-8:5
-Flow(0,1). //@7:5-8:9
-Stmt_BinaryOperatorStmt(0,Assign,[IStore(&x,2)]). // @7:5
-Stmt_BinaryOperatorStmt(2,Assign,[IStore(&y,0)]). // @11:11
-Stmt_BinaryOperatorStmt(4,Assign,[IStore(&y,1)]). // @9:9
-PruneNode(5,false,[Prune(!((n$1 % 2) == 0), false)]). // @8:17
-PruneNode(6,true,[Prune(((n$1 % 2) == 0), true)]). // @8:17
-Stmt_BinaryOperatorStmt(7,EQ,[ILoad(&x,n$1)]). // @8:17
-PruneNode(8,false,[Prune(!(n$0 >= 2), false)]). // @8:9
-PruneNode(9,true,[Prune((n$0 >= 2), true)]). // @8:9
-Stmt_BinaryOperatorStmt(1,GE,[ILoad(&x,n$0)]). // @8:9
-Join(3,[]).  // @8:5
-Stmt_Return(10,[IStore(&return,0)]). // @13:5
-Exit(11).  // @14:1
-Start(12). // @4:1
-*/
 

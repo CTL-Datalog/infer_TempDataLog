@@ -15,7 +15,7 @@ int main()
     int y;
     x = _nondet_int();
     y = _nondet_int();
-	if (y < 1) {
+	if (y <= 0) {
 	    while (x >= 0) {
 	    	x = x - y;
     	} 
