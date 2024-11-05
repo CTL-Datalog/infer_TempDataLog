@@ -19,3 +19,5 @@ int main()
         val >>= 1;
     return 0;
 }
+
+// delete //Lt("val",9,0).

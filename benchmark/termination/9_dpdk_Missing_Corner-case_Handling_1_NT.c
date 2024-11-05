@@ -38,6 +38,8 @@ int read()
 }
 int main()
 {
+    int inc = __VERIFIER_nondet_int();
+
     while(1)
     {
         int inc = read() ; 

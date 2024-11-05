@@ -55,8 +55,8 @@ int main()
         ret = read( buf, count );
         if( ret <= 0 )
         {
-            if( ( ret == 0 )&& (tries++ < 5 ) )
-                continue;
+            //if( ( ret == 0 )&& (tries++ < 5 ) )
+            //    continue;
             return 0;
         }
         count -= ret;

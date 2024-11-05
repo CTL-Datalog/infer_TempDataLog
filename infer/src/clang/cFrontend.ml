@@ -723,7 +723,8 @@ let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr
   if String.compare op "Assign" == 0 then 
     match instrs with 
     | Store s :: _ -> 
-      print_endline ("Store: " ^  Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); 
+      (*print_endline ("Store: " ^  Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); 
+      *)
       let exp1 = s.e1 in 
       let exp2 = s.e2 in 
       (match expressionToTerm exp1 stack, expressionToTerm exp2 stack with 
@@ -776,7 +777,6 @@ let rec getPureFromDeclStmtInstructions (instrs:Sil.instr list) stack : pure opt
     let t1 = expressionToTerm exp1 stack in 
     let t2 = expressionToTerm exp2 stack in 
     (match t1, t2 with 
-    | Some (Basic(BSTR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BSTR a ), Basic(BINT b )))
     | Some (Basic(BSTR a )) , Some (Basic(BINT b )) -> Some (Eq (Basic(BSTR a ), Basic(BINT b )))
     (*
     | _ -> Some (Eq (t1, Basic ANY))  *)
@@ -1270,9 +1270,11 @@ let rec makeAGuessFromPure (pi:pure) : terms list =
   match pi with 
   | GtEq (t1,  Basic (BINT 0)) -> [(normalise_terms t1)] 
   | GtEq (t1, t2) ->   [normalise_terms(Minus(t1, t2))]
+  | Neg (Eq(t1, t2)) 
   | Gt   (t1, t2) ->   [normalise_terms(Minus(normalise_terms (Minus(t1, t2)), Basic (BINT 1)))]
   | LtEq (t1, t2) ->   [normalise_terms(Minus(t2, t1))]
   | Lt   (t1, t2) ->   [normalise_terms(Minus(Minus(t2, t1), Basic (BINT 1)))]
+
   | Eq   (t1, t2) ->   [normalise_terms(Minus(t1, t2)); (Minus(t2, t1))]
   | PureAnd (p1, p2) -> 
     makeAGuessFromPure p1 @ makeAGuessFromPure p2
@@ -1494,7 +1496,6 @@ let rec containUnknown (term:terms) : bool =
 let wp4Termination (transitionSummaries:transitionSummary) (guard:pure) (rankingFuns:rankingfunction list) : 
 pure * rankingfunction 
 = 
-  print_endline ("wp4Termination"); 
 
   let rec helper rf : (pure * rankingfunction) = 
     let (rankingTerm, _) = rf in 
@@ -1510,11 +1511,15 @@ pure * rankingfunction
         print_endline ("rankingTerm' = " ^ string_of_terms rankingTerm');
 
         let left_hand_side = PureAnd (guard, path) in 
-        let right_hand_side = Gt(normalise_terms (Minus(rankingTerm, rankingTerm')), Basic(BINT 0))in
+        let right_hand_side = normalise_pure_prime (Gt( (rankingTerm ), rankingTerm'))in
         if containUnknown rankingTerm' then  Ast_utility.FALSE 
         else 
           if entailConstrains left_hand_side right_hand_side then (Ast_utility.TRUE)  
-          else right_hand_side
+          else 
+            if entailConstrains right_hand_side FALSE && not (entailConstrains TRUE path) then (Neg path)
+            else 
+            
+            right_hand_side
       in 
 
       print_endline (string_of_pure  pureIter);
@@ -1523,6 +1528,7 @@ pure * rankingfunction
       ) 
 
     in 
+    print_endline ("weakestPreTerm_raw:" ^ string_of_pure precondition);
 
     normalise_pure (normalise_pure_prime (normalise_pure precondition)), rf 
 
@@ -1532,7 +1538,7 @@ pure * rankingfunction
   let tryallRnakingfunctions = List.map rankingFuns ~f:helper in 
 
   let countNumber = 
-    List.fold_left ~init:0 tryallRnakingfunctions ~f:(fun acc (wpc, _) -> if entailConstrains wpc TRUE then acc + 1 else acc) in 
+    List.fold_left ~init:0 tryallRnakingfunctions ~f:(fun acc (wpc, _) -> if entailConstrains TRUE wpc then acc + 1 else acc) in 
 
   if countNumber > 1 then 
    ( match tryallRnakingfunctions with
@@ -1580,7 +1586,7 @@ let computerNonTerminating (transitionSummaries:transitionSummary) upperbound ra
       let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rankingTerm stateLi in 
       print_endline ("transitionSummary: " ^ string_of_transitionSummary [(path, stateLi)]);
       print_endline ("rankingTerm' = " ^ string_of_terms rankingTerm');
-      let left_hand_side = PureAnd (upperbound, PureAnd (guard, path)) in 
+      let left_hand_side = PureAnd (PureAnd(upperbound,guard ), path) in 
       let right_hand_side = normalise_pure_prime (LtEq(rankingTerm, rankingTerm')) in 
       print_endline (string_of_pure left_hand_side ^  " => " ^ string_of_pure right_hand_side);
 
@@ -1647,10 +1653,11 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let (alldisjunctiveTransitions:regularExpr list) = decomposeRE nonleakingBranches in 
   let transitionSummaries = flattenList (List.map alldisjunctiveTransitions ~f:transitionSummary) in  
 
+  print_endline("------------termination analysis"); 
                                 (* a trace,    Some(terminational wp, ranking function) *)
   let (weakestPreTerm, (rfterm, leakingRE)) = wp4Termination transitionSummaries (pi) rankingFuns in 
   
-  
+
   let weakestPreTerm = normalise_pure_prime (weakestPreTerm) in 
   let terminating = 
     if entailConstrains weakestPreTerm FALSE then Bot 
@@ -1673,7 +1680,9 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
       Concate(terminatingGuard, Concate (terminatingFinalState, leakingRE))
   
   in 
-  let weakestPreNT = computerNonTerminating transitionSummaries (PureAnd (pi, (Neg weakestPreTerm))) rfterm pi in 
+  print_endline("------------" ^ "non termination analysis WRT " ^ string_of_terms rfterm); 
+
+  let weakestPreNT = computerNonTerminating transitionSummaries (Neg weakestPreTerm) rfterm pi in 
 
 
   let non_terminating = 
@@ -1693,6 +1702,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   in 
 
   
+  print_endline("------------" ^ "summarising terminging and non-terminating " ); 
 
   
   let allPath = normalise_pure (PureAnd(pi, PureOr(weakestPreTerm, weakestPreNT))) in 
@@ -1801,16 +1811,19 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
 
   let pass =  normalise_es (getRegularExprFromCFG procedure) in 
   
-  print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+  (match pass with | Emp -> () | _ ->
+  print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------")); 
 
   let pass, _= convertAllTheKleeneToOmega TRUE pass specs in 
   match pass with 
   | None -> None 
   | Some pass -> 
 
+  
   let pass = normalise_es (pass) in  (*this is the step for sumarrizing the loop*)
 
-  print_endline ("\nAfter convertAllTheKleeneToOmega:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+  (match pass with | Emp -> () | _ ->
+  print_endline ("\nAfter convertAllTheKleeneToOmega:\n"^string_of_regularExpr (pass)^ "\n------------")); 
 
   let pass = addStateAfterCondition (pass) in  (* add a sybolic state after conditioal *)
 
@@ -1818,8 +1831,8 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   let pass, _ = deletePossibleGuards (pass) [] in  
   let pass = normalise_es (pass) in  (*this is the step for sumarrizing the loop*)
 
-
-  print_endline ("\nAfter renaming and deletePossibleGuards:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+  (match pass with | Emp -> () | _ ->
+  print_endline ("\nAfter renaming and deletePossibleGuards:\n"^string_of_regularExpr (pass)^ "\n------------")); 
 
 
 

@@ -8,7 +8,7 @@ termination: false
 
 /*@ AF(EXIT()) @*/
 
-
+/*
 int flag = 0;
 int read( int loc , int len )
 {
@@ -42,8 +42,10 @@ int read( int loc , int len )
     }
     return count;
 }
+*/
 int main()
 {
+    int ret =__VERIFIER_nondet_int();
     int count =__VERIFIER_nondet_int();
     if( count <= 0 )
         return 0;

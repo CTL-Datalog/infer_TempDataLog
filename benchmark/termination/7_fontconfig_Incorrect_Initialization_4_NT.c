@@ -16,7 +16,7 @@ int main()
     if( h < 0 || hash <= 0 || rehash <= 0 || rehash > hash)
         return 0;
     int i = h % hash;
-    int r;
+    int r = __VERIFIER_nondet_int();
     while( i < hash )
     {
         if( !r ) r = h % rehash;
@@ -24,3 +24,5 @@ int main()
     }
     return 0;
 }
+
+// // LtEq("r",30,0). delete

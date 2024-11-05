@@ -39,8 +39,11 @@ int main()
 {
     while(1)
     {
-        if( read() <= 0 )
+        int temp = read(); 
+        if( temp <= 0 )
             break;
     }
     return 0;
 }
+
+// delete //LtEq("inc",13,0).

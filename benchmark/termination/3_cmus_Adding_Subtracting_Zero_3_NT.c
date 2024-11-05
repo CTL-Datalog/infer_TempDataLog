@@ -31,6 +31,7 @@ This program is non-terminating because when the end of the file is reached and 
 
 /*@ AF(EXIT()) @*/
 
+/*
 int flag = 0;
 int read( int loc , int len )
 {
@@ -64,25 +65,28 @@ int read( int loc , int len )
     }
     return count;
 }
+*/
 
 
 int main()
 {
     int pos = 0;
+    int rc = __VERIFIER_nondet_int();
+
     int size = __VERIFIER_nondet_int();
-    flag = 0;
+    int flag = 0;
     int errno = 0;
     if( size <= 0 || size > 65536 )
         return 0;
     while( pos < size )
     {
         int rc = read( pos, size - pos);
-        if( rc == -1 )
+        if( rc < 0 )
         {
-            errno++;// abnormal is OK
-            if( errno == 5 )
+            //errno++;// abnormal is OK
+            //if( errno == 5 )
                 return 0;
-            continue;
+            //continue;
         }
         pos = pos + rc;
     }

@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@6 · ("h"=_)@7 · ("hash"=_)@8 · ("rehash"=_)@9 · ((["h"<0]@10 · ("h"<0)@11 · (Return(0))@12) \/ (["h">=0]@13 · ("h">=0)@14 · ((["hash"<=0]@15 · ("hash"<=0)@16 · (Return(0))@17) \/ (["hash">0]@18 · ("hash">0)@19 · ((["rehash"<=0]@20 · ("rehash"<=0)@21 · (Return(0))@22) \/ (["rehash">0]@23 · ("rehash">0)@24 · ((["rehash">"hash"]@25 · ("rehash">"hash")@26 · (Return(0))@27) \/ (["rehash"<="hash"]@28 · ("rehash"<="hash")@29 · ((["i">="hash"]@30 · ("i">="hash")@31 · (Return(0))@32) \/ (["i"<"hash"]@33 · ("i"<"hash")@34 · ((["r">0]@35 · ("r">0)@36 · ("hash"="i")@37 · (Return(0))@38) \/ (["i"<"hash"∧"r"<=0]@39 · ("i"<"hash"∧"r"<=0)@40 · ((("hash"-"i")>=1)@41)^w))))))))))))*/
+/*(Start())@6 · ("h"=_)@7 · ("hash"=_)@8 · ("rehash"=_)@9 · ((["h"<0]@10 · ("h"<0)@11 · (Return(0))@12) \/ (["h">=0]@13 · ("h">=0)@14 · ((["hash"<=0]@15 · ("hash"<=0)@16 · (Return(0))@17) \/ (["hash">0]@18 · ("hash">0)@19 · ((["rehash"<=0]@20 · ("rehash"<=0)@21 · (Return(0))@22) \/ (["rehash">0]@23 · ("rehash">0)@24 · ((["rehash">"hash"]@25 · ("rehash">"hash")@26 · (Return(0))@27) \/ (["rehash"<="hash"]@28 · ("rehash"<="hash")@29 · ("r"=_)@30 · ((["i">="hash"]@31 · ("i">="hash")@32 · (Return(0))@33) \/ (["i"<"hash"]@34 · ("i"<"hash")@35 · ((["r">0]@36 · ("r">0)@37 · ("hash"="i")@38 · (Return(0))@39) \/ (["r"<=0]@40 · ("r"<=0)@41 · ((("hash"-"i")>=1)@42)^w))))))))))))*/
 
 flow(6,7).
 flow(7,8).
@@ -22,17 +22,18 @@ flow(25,26).
 flow(26,27).
 flow(27,27).
 flow(28,29).
-flow(30,31).
+flow(29,30).
 flow(31,32).
-flow(32,32).
-flow(33,34).
-flow(35,36).
+flow(32,33).
+flow(33,33).
+flow(34,35).
 flow(36,37).
 flow(37,38).
-flow(38,38).
-flow(39,40).
+flow(38,39).
+flow(39,39).
 flow(40,41).
-flow(41,41).
+flow(41,42).
+flow(42,42).
 Start(6).
 State(6).
 GtEq("h",7,0).
@@ -81,25 +82,29 @@ State(27).
 State(24).
 State(28).
 LtEqVar("rehash",29,"hash").
-State(30).
-GtEqVar("i",31,"hash").
-State(31).
-Return(0,32).
-State(32).
 State(29).
+LtEq("r",30,0).
+Gt("r",30,0).
+State(31).
+GtEqVar("i",32,"hash").
+State(32).
+Return(0,33).
 State(33).
-LtVar("i",34,"hash").
-State(35).
-Gt("r",36,0).
-State(36).
-GtEqVar("i",37,"hash").
-State(37).
-Return(0,38).
-State(38).
+State(30).
 State(34).
+LtVar("i",35,"hash").
+State(36).
+Gt("r",37,0).
+State(37).
+GtEqVar("i",38,"hash").
+State(38).
+Return(0,39).
 State(39).
+State(35).
 State(40).
+LtEq("r",41,0).
 State(41).
+State(42).
 control_flow(9,10) :- LtD("h",9,0).
 control_flow(9,13) :- GtEqD("h",9,0).
 control_flow(14,15) :- LtEqD("hash",14,0).
@@ -108,10 +113,10 @@ control_flow(19,20) :- LtEqD("rehash",19,0).
 control_flow(19,23) :- GtD("rehash",19,0).
 control_flow(24,25) :- GtVarD("rehash",24,"hash").
 control_flow(24,28) :- LtEqVarD("rehash",24,"hash").
-control_flow(29,30) :- GtEqVarD("i",29,"hash").
-control_flow(29,33) :- LtVarD("i",29,"hash").
-control_flow(34,35) :- GtD("r",34,0).
-control_flow(34,39) :- LtVarD("i",34,"hash"), LtEqD("r",34,0).
+control_flow(30,31) :- GtEqVarD("i",30,"hash").
+control_flow(30,34) :- LtVarD("i",30,"hash").
+control_flow(35,36) :- GtD("r",35,0).
+control_flow(35,40) :- LtEqD("r",35,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)

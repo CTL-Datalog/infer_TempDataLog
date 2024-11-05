@@ -19,7 +19,7 @@ INSDS * initLink(int n){
     head->nxtact=head;
     INSDS* cyclic=head;
 
-    int i;
+    int i= __VERIFIER_nondet_int();
     for (i=2; i<=n; i++) {
         INSDS * body=(INSDS*)malloc(sizeof(INSDS));
         body->nxtact=body;
@@ -36,7 +36,7 @@ int main()
     if( num <= 0 || num > 65534 )
         return 0;
     INSDS* list = initLink( num );
-    INSDS* ip = list;
+    INSDS* ip = __VERIFIER_nondet_int();
     while( ip != 0 )
     {
         INSDS *nxt = ip->nxtact;
@@ -44,3 +44,4 @@ int main()
     }
     return 0;
 }
+// LtEqVar("ip",33,"&ip.nxtact"). // delete this one 

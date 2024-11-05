@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@6 · ("linesToRead"=_)@7 · ((["linesToRead"<=0]@8 · ("linesToRead"<=0)@9 · (Return(0))@10) \/ (["linesToRead">0]@11 · ("linesToRead">0)@12 · ("h"=_)@13 · ((["h"<=0]@14 · ("h"<=0)@15 · (Return(0))@16) \/ (["h">0]@17 · ("h">0)@18 · ((["linesToRead">0]@19 · ("linesToRead">0)@20 · (("h"-1)<0)@21 · (Return(0))@22) \/ (["h">0∧"linesToRead"<=0]@23 · ("h">0∧"linesToRead"<=0)@24 · (("h">=1)@25)^w))))))*/
+/*(Start())@6 · ("linesToRead"=_)@7 · ((["linesToRead"<=0]@8 · ("linesToRead"<=0)@9 · (Return(0))@10) \/ (["linesToRead">0]@11 · ("linesToRead">0)@12 · ("h"=_)@13 · ((["h"<=0]@14 · ("h"<=0)@15 · (Return(0))@16) \/ (["h">0]@17 · ("h">0)@18 · ((["linesToRead">0]@19 · ("linesToRead">0)@20 · ("h"<1)@21 · (Return(0))@22) \/ (["linesToRead"<=0]@23 · ("linesToRead"<=0)@24 · (("h">=1)@25)^w))))))*/
 
 flow(6,7).
 flow(8,9).
@@ -51,6 +51,7 @@ Return(0,22).
 State(22).
 State(18).
 State(23).
+LtEq("linesToRead",24,0).
 State(24).
 Gt("h",25,0).
 State(25).
@@ -59,7 +60,7 @@ control_flow(7,11) :- GtD("linesToRead",7,0).
 control_flow(13,14) :- LtEqD("h",13,0).
 control_flow(13,17) :- GtD("h",13,0).
 control_flow(18,19) :- GtD("linesToRead",18,0).
-control_flow(18,23) :- GtD("h",18,0), LtEqD("linesToRead",18,0).
+control_flow(18,23) :- LtEqD("linesToRead",18,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -82,9 +83,9 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,n), !Gt(x,loc,n).
 EXITPred(loc) :- Return(_,loc).
 AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
 AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
@@ -99,4 +100,6 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_EXITPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
 

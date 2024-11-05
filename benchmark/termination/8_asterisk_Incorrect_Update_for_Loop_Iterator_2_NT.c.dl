@@ -1,32 +1,34 @@
 /*𝝐 */
 
 
-/*(Start())@1 · ("l"=_)@2 · ((["l"=0]@3 · ("l"=0)@4 · (Return(0))@5) \/ ([("l"!=0)]@6 · (("l"!=0))@7 · ((("l"!=0))@8)^w))*/
+/*(Start())@2 · ("l"=_)@3 · ((["l"=0]@4 · ("l"=0)@5 · (Return(0))@6) \/ ([("l"!=0)]@7 · (("l"!=0))@8 · ("l"<1)@9 · (Return(0))@10))*/
 
-flow(1,2).
-flow(3,4).
+flow(2,3).
 flow(4,5).
-flow(5,5).
-flow(6,7).
+flow(5,6).
+flow(6,6).
 flow(7,8).
-flow(8,8).
-Start(1).
-State(1).
-NotEq("l",2,0).
-Eq("l",2,0).
-State(3).
-Eq("l",4,0).
-State(4).
-Return(0,5).
-State(5).
+flow(8,9).
+flow(9,10).
+flow(10,10).
+Start(2).
 State(2).
+NotEq("l",3,0).
+Eq("l",3,0).
+State(4).
+Eq("l",5,0).
+State(5).
+Return(0,6).
 State(6).
-NotEq("l",7,0).
+State(3).
 State(7).
 NotEq("l",8,0).
 State(8).
-control_flow(2,3) :- EqD("l",2,0).
-control_flow(2,6) :- NotEqD("l",2,0).
+State(9).
+Return(0,10).
+State(10).
+control_flow(3,4) :- EqD("l",3,0).
+control_flow(3,7) :- NotEqD("l",3,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)

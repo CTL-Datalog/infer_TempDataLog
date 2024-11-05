@@ -791,16 +791,31 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | Lt(Basic (BSTR t1), Plus(Basic (BSTR t2), t3)) -> 
     if String.compare t1 t2 == 0 then (Gt(t3, Basic (BINT 0)))
     else pi
-  (*| Lt(Plus(Basic (BSTR t1), Basic(BINT 1)), Basic(BINT 0)) -> 
-    LtEq
-*)
+  | Lt(Minus(t1, Basic(BINT 1)), Basic(BINT 0)) -> Lt(t1, Basic(BINT 1))
+
+
   | Gt (Minus(t1,Basic( BINT 1)),Minus(Minus(t3, t4),Basic( BINT 1))) -> 
     if stricTcompareTerm t1 t3 then Gt(t4, Basic( BINT 0))
     else (Gt (t1, Minus(t3, t4)))
+  | Gt (Minus(t1,Basic( BINT 1)),Minus(t2,Basic( BINT 1))) -> Gt(t1, t2)
+
+  | Gt (t1,Minus(t2,t3)) -> 
+    if stricTcompareTerm t1 t2 then (Gt(t3, Basic( BINT 0)))
+    else Gt (t1,Minus(t2,t3))
+
+
+
   | LtEq (Minus(t1,Basic( BINT 1)),Minus(Minus(t3, t4),Basic( BINT 1))) -> 
     if stricTcompareTerm t1 t3 then LtEq(t4, Basic( BINT 0))
     else (LtEq (t1, Minus(t3, t4)))
+  | LtEq (Minus(t1,Basic( BINT 1)),Minus(t2,Basic( BINT 1))) -> LtEq(t1, t2)
+
   | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
+
+  | LtEq (t1,Minus(t2,t3)) -> 
+    if stricTcompareTerm t1 t2 then (LtEq(t3, Basic( BINT 0)))
+    else LtEq (t1,Minus(t2,t3))
+
   | Lt (Minus(Minus(t1, t2), Basic ( BINT 1)), Basic ( BINT 0)) -> LtEq (t1, t2)
 
 

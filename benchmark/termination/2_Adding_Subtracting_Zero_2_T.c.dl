@@ -160,17 +160,17 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 LtVarD(x,loc,n) :- LtVar(x,loc,n).
-LtVarD(x,loc,n) :- LtVarD(x,locI,n), control_flow(locI,loc), !LtVar(x,loc,_), !GtEqVar(x,loc,_).
+LtVarD(x,loc,n) :- LtVarD(x,locI,n), control_flow(locI,loc), !LtVar(x,loc,n), !GtEqVar(x,loc,n).
 GtEqVarD(x,loc,n) :- GtEqVar(x,loc,n).
-GtEqVarD(x,loc,n) :- GtEqVarD(x,locI,n), control_flow(locI,loc), !GtEqVar(x,loc,_), !LtVar(x,loc,_).
+GtEqVarD(x,loc,n) :- GtEqVarD(x,locI,n), control_flow(locI,loc), !GtEqVar(x,loc,n), !LtVar(x,loc,n).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
-GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,n), !Lt(x,loc,n).
 LtD(x,loc,n) :- Lt(x,loc,n).
-LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
 NotEqD(x,loc,n) :- NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
 EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
 EXITPred(loc) :- Return(_,loc).
 AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
 AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
@@ -189,4 +189,6 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_EXITPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
 
