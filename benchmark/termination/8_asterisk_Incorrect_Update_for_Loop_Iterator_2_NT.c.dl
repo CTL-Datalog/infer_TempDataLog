@@ -71,3 +71,36 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_uchar> 
+
+//-- Facts for Procedure <main> 
+
+Flow(11,0). //@12:1-14:5
+Flow(8,10). //@26:5-27:1
+Flow(1,7). //@16:5-16:12
+Flow(1,9). //@16:5-16:12
+Flow(9,2). //@16:12-18:9
+Flow(7,8). //@16:12-26:5
+Flow(6,1). //@24:9-16:5
+Flow(5,6). //@19:9-24:9
+Flow(3,5). //@19:13-19:9
+Flow(4,5). //@19:13-19:9
+Flow(2,4). //@18:9-19:13
+Flow(2,3). //@18:9-19:13
+Flow(0,1). //@14:5-16:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_uchar,,n$8),IStore(&l,n$8)]). // @14:5
+Stmt_BinaryOperatorStmt(2,Assign,[ILoad(&l,n$6),IStore(&l,(n$6 - 1))]). // @18:9
+PruneNode(4,false,[ILoad(&l,n$2),Prune(!n$2, false)]). // @19:13
+PruneNode(3,true,[ILoad(&l,n$2),Prune(n$2, true)]). // @19:13
+Join(5,[]).  // @19:9
+Stmt_BinaryOperatorStmt(6,Assign,[ILoad(&l,n$1),IStore(&l,(n$1 - 1))]). // @24:9
+PruneNode(7,false,[ILoad(&l,n$0),Prune(!n$0, false)]). // @16:12
+PruneNode(9,true,[ILoad(&l,n$0),Prune(n$0, true)]). // @16:12
+Join(1,[]).  // @16:5
+Stmt_Return(8,[IStore(&return,0)]). // @26:5
+Exit(10).  // @27:1
+Start(11). // @12:1
+*/
+

@@ -1514,7 +1514,12 @@ pure * rankingfunction
         let right_hand_side = normalise_pure_prime (Gt( (rankingTerm ), rankingTerm'))in
         if containUnknown rankingTerm' then  Ast_utility.FALSE 
         else 
-          if entailConstrains left_hand_side right_hand_side then (Ast_utility.TRUE)  
+          if entailConstrains left_hand_side right_hand_side 
+          then 
+            if 
+            (entailConstrains TRUE (Eq( (rankingTerm ), Plus(rankingTerm', Basic (BINT 2))))) then FALSE 
+            else 
+            (Ast_utility.TRUE)  
           else 
             if entailConstrains right_hand_side FALSE && not (entailConstrains TRUE path) then (Neg path)
             else 
@@ -2466,9 +2471,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let () = predicateDeclearation := [] in 
 
-  (*
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
+  (*
 
   print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); *)
 
@@ -2537,7 +2542,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting 
-   (* @ ["/* Other information \n"]@facts@["*/\n"] *) );
+    @ ["/* Other information \n"]@facts@["*/\n"]  );
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 

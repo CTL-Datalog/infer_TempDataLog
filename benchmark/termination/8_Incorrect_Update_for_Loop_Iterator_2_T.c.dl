@@ -71,3 +71,41 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_uchar> 
+
+//-- Facts for Procedure <main> 
+
+Flow(13,0). //@11:1-13:5
+Flow(9,12). //@22:5-23:1
+Flow(1,11). //@15:5-15:12
+Flow(11,8). //@15:12-15:12
+Flow(11,10). //@15:12-15:12
+Flow(10,6). //@15:12-17:13
+Flow(10,7). //@15:12-17:13
+Flow(8,9). //@15:12-22:5
+Flow(3,1). //@17:9-15:5
+Flow(7,5). //@17:13-17:18
+Flow(6,3). //@17:13-17:9
+Flow(5,2). //@17:18-17:18
+Flow(5,4). //@17:18-17:18
+Flow(4,3). //@17:18-17:9
+Flow(2,3). //@17:18-17:9
+Flow(0,1). //@13:5-15:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_uchar,,n$7),IStore(&l,()n$7)]). // @13:5
+PruneNode(2,false,[Prune(!n$2, false)]). // @17:18
+PruneNode(4,true,[Prune(n$2, true)]). // @17:18
+Stmt_UnaryOperator(5,[ILoad(&l,n$2),IStore(&l,(n$2 - 1))]). // @17:18
+PruneNode(6,false,[ILoad(&l,n$1),Prune(!n$1, false)]). // @17:13
+PruneNode(7,true,[ILoad(&l,n$1),Prune(n$1, true)]). // @17:13
+Join(3,[]).  // @17:9
+PruneNode(8,false,[Prune(!n$0, false)]). // @15:12
+PruneNode(10,true,[Prune(n$0, true)]). // @15:12
+Stmt_UnaryOperator(11,[ILoad(&l,n$0),IStore(&l,(n$0 - 1))]). // @15:12
+Join(1,[]).  // @15:5
+Stmt_Return(9,[IStore(&return,0)]). // @22:5
+Exit(12).  // @23:1
+Start(13). // @11:1
+*/
+

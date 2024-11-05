@@ -10,12 +10,14 @@ termination: TRUE
 
 int main()
 {
-    unsigned char l = __VERIFIER_nondet_uchar();
+    int l = __VERIFIER_nondet_uchar();
 
-    while( l-- )
+    while( l )
     {
-        if( l && l-- )
+        l = l - 1; 
+        if( l  )
         {
+            l = l - 1; 
             //loop
         }
     }
