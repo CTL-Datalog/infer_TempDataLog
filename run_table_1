@@ -1,0 +1,15 @@
+infer/bin/infer run -- clang -c benchmark/evaluation/p1_1.8_potential_termination_1.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p2_2.4_toylin.c 
+infer/bin/infer run -- clang -c benchmark/evaluation/p3_3.14_timer-simple.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p4_3.15_togglecounter_true-valid-ltl.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p5_3.9_coolant_basis_5_safe_cheat.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p6_4.1_Bangalore_false-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p7_5.0_parity_test.c   
+infer/bin/infer run -- clang -c benchmark/evaluation/p8_nestedLoop.c    
+infer/bin/infer run -- clang -c benchmark/evaluation/p9_acqrel.c    
+infer/bin/infer run -- clang -c benchmark/evaluation/p10_test_existential3.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p11_test_global.c      
+infer/bin/infer run -- clang -c benchmark/evaluation/p12_test_until.c     
+infer/bin/infer run -- clang -c benchmark/evaluation/p13_next.c    
+infer/bin/infer run -- clang -c benchmark/evaluation/p14_multi_branch_choice.c
+infer/bin/infer run -- clang -c benchmark/evaluation/p15_multi_branch_choice.c
