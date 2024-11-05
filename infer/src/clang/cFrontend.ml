@@ -645,7 +645,6 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     (match expressionToPure e stack with 
     | Some p -> Some (normalise_pure (Neg p))
     | None -> 
-     print_endline ("expressionToPure UnOp : " ^ Exp.to_string exp ); 
 
         (match expressionToTerm e stack with 
         | Some t -> Some (Eq (t,  Basic (BINT 0)))
@@ -658,7 +657,6 @@ let rec expressionToPure (exp:Exp.t) stack: pure option =
     if String.compare (Exp.to_string exp) "1" == 0 then Some TRUE
     else 
       (
-      print_endline ("expressionToPure Const : " ^ Exp.to_string exp ); 
       None )
 
   | Lvar _ 
@@ -938,7 +936,6 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       let loads, _ = partitionFromLast instrs in 
       let stack' = updateStakeUsingLoads loads in 
 
-      print_endline ("DeclStmt: " ^ string_of_stack stack');
       (match getPureFromDeclStmtInstructions instrs stack with 
       | Some pure -> Singleton (pure, node_key), stack'
       | None -> Singleton(TRUE, node_key), stack' )
@@ -1812,9 +1809,42 @@ let getAllImplicationLeft (ctls:ctl list): pure list =
   List.fold_left ~init:[] ~f:(fun acc ctl -> acc @ getAllPureFromImplicationLeft  ctl) ctls 
 
 
+let rec getAlltheTriggerEventFromImplication (li:ctl list) : pure list = 
+  match li with 
+  | [] -> [] 
+  | x :: xs  -> 
+    (match x with 
+    | Imply(Atom (_, prop), _) -> [prop ; normalise_pure (Neg(prop))] @ getAlltheTriggerEventFromImplication xs 
+    | AG(ctlIn) | AF(ctlIn) | EG(ctlIn) | EF(ctlIn)| Neg(ctlIn)   -> getAlltheTriggerEventFromImplication (ctlIn::xs) 
+    | AU(ctlIn1,ctlIn2)| EU(ctlIn1,ctlIn2) -> getAlltheTriggerEventFromImplication (ctlIn1::ctlIn2::xs) 
+    | _ -> getAlltheTriggerEventFromImplication xs 
+    )
+
+let removeAlltheTriggerEvent re (pLi) : regularExpr = 
+  let rec helper reIn = 
+    match reIn with 
+    | Guard(p, state) -> if existAux comparePure pLi p  then Singleton(p, state) else reIn
+    | Disjunction(r1, r2) -> Disjunction(helper r1, helper r2)
+    | Concate (r1, r2) -> Concate(helper r1, helper r2)
+    | _ -> reIn 
+
+  in 
+  helper re
+    
+
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr option = 
 
+  let getAlltheTriggerEvent = getAlltheTriggerEventFromImplication specs in 
+
+  print_endline ("getAlltheTriggerEvent \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (getAlltheTriggerEvent))));   
+ 
+
   let pass =  normalise_es (getRegularExprFromCFG procedure) in 
+
+  
+  (*
+  let pass =  normalise_es (removeAlltheTriggerEvent pass getAlltheTriggerEvent) in 
+*)
   
   (match pass with | Emp -> () | _ ->
   print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------")); 
