@@ -1,0 +1,72 @@
+/*𝝐 */
+
+
+/*(Start())@3 · ("resp"=0)@4 · ("curr_serv"=5)@5 · ((["curr_serv"<=0]@6 · ("curr_serv"<=0)@7 · (Return(0))@8) \/ (["curr_serv">0]@9 · ("curr_serv">0)@10 · (("curr_serv">=1)@11)^w))*/
+
+flow(3,4).
+flow(4,5).
+flow(6,7).
+flow(7,8).
+flow(8,8).
+flow(9,10).
+flow(10,11).
+flow(11,11).
+Start(3).
+State(3).
+State(4).
+Gt("curr_serv",5,0).
+State(6).
+LtEq("curr_serv",7,0).
+State(7).
+Return(0,8).
+State(8).
+State(5).
+State(9).
+Gt("curr_serv",10,0).
+State(10).
+Gt("curr_serv",11,0).
+State(11).
+control_flow(5,6) :- LtEqD("curr_serv",5,0).
+control_flow(5,9) :- GtD("curr_serv",5,0).
+//EF("resp"=5)
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl resp_eq_5(loc:number)
+.decl EF_resp_eq_5(loc:number)
+.decl EF_resp_eq_5_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+resp_eq_5(loc) :- State(loc), EqD("resp",loc,5).
+EF_resp_eq_5(loc) :- control_flow(loc,tempOne), EF_resp_eq_5(tempOne).
+EF_resp_eq_5(loc) :- resp_eq_5(loc).
+EF_resp_eq_5_Final(loc) :- Start(loc), EF_resp_eq_5(loc), !NotTotal(loc).
+.output NotEq
+.output Eq
+.output LtEq
+.output Gt
+.output Start
+.output State
+.output flow
+.output Return
+.output EF_resp_eq_5_Final(IO=stdout)
+

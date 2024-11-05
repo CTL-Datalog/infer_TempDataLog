@@ -1,0 +1,131 @@
+/*(Start())@1 · ("timer_1"=0)@2 · ("output_1"=0)@3 · (("timer_1"=("timer_1"+1))@6 · ((["timer_1">=10]@7 · ("timer_1">=10)@8 · ("timer_1"=0)@9 · ((["timer_1"=0]@10 · ("timer_1"=0)@11 · ("output_1"=1)@12) \/ ([("timer_1"!=0)]@13 · (("timer_1"!=0))@14 · ("output_1"=0)@15))) \/ (["timer_1"<10]@16 · ("timer_1"<10)@17 · ((["timer_1"=0]@18 · ("timer_1"=0)@19 · ("output_1"=1)@20) \/ ([("timer_1"!=0)]@21 · (("timer_1"!=0))@22 · ("output_1"=0)@23)))))^w*/
+
+flow(1,2).
+flow(2,3).
+flow(3,6).
+flow(7,8).
+flow(8,9).
+flow(10,11).
+flow(11,12).
+flow(12,12).
+flow(13,14).
+flow(14,15).
+flow(15,15).
+flow(16,17).
+flow(18,19).
+flow(19,20).
+flow(20,20).
+flow(21,22).
+flow(22,23).
+flow(23,23).
+flow(12,6).
+flow(15,6).
+flow(20,6).
+flow(23,6).
+Start(1).
+State(1).
+Lt("timer_1",2,10).
+Eq("timer_1",2,0).
+State(2).
+State(3).
+NotEq("timer_1",6,0).
+Lt("timer_1",6,10).
+State(7).
+GtEq("timer_1",8,10).
+NotEq("timer_1",8,0).
+State(8).
+Lt("timer_1",9,10).
+Eq("timer_1",9,0).
+State(10).
+Lt("timer_1",11,10).
+Eq("timer_1",11,0).
+State(11).
+Eq("output_1",12,1).
+State(12).
+State(9).
+State(13).
+NotEq("timer_1",14,0).
+State(14).
+State(15).
+State(6).
+State(16).
+Lt("timer_1",17,10).
+State(18).
+Lt("timer_1",19,10).
+Eq("timer_1",19,0).
+State(19).
+Eq("output_1",20,1).
+State(20).
+State(17).
+State(21).
+NotEq("timer_1",22,0).
+State(22).
+State(23).
+control_flow(6,7) :- GtEqD("timer_1",6,10).
+control_flow(9,10) :- EqD("timer_1",9,0).
+control_flow(9,13) :- NotEqD("timer_1",9,0).
+control_flow(6,16) :- LtD("timer_1",6,10).
+control_flow(17,18) :- EqD("timer_1",17,0).
+control_flow(17,21) :- NotEqD("timer_1",17,0).
+//AG(("timer_1"=0 => AF("output_1"=1)))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl GtEq(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl GtEqD(x:symbol,loc:number,n:number)
+.decl output_1_eq_1(loc:number)
+.decl AF_output_1_eq_1_T(interm_state:number,loc:number)
+.decl AF_output_1_eq_1_S(loc:number)
+.decl AF_output_1_eq_1(loc:number)
+.decl timer_1_eq_0(loc:number)
+.decl timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc:number)
+.decl NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc:number)
+.decl EF_NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc:number)
+.decl AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc:number)
+.decl AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,n), !Lt(x,loc,n).
+output_1_eq_1(loc) :- State(loc), EqD("output_1",loc,1).
+AF_output_1_eq_1_T(interm_state,loc) :- AF_output_1_eq_1_T(tempOne,loc), !output_1_eq_1(tempOne), control_flow(tempOne,interm_state).
+AF_output_1_eq_1_T(interm_state,loc) :- !output_1_eq_1(loc), control_flow(loc,interm_state).
+AF_output_1_eq_1_S(loc) :- !output_1_eq_1(loc), control_flow(loc,tempOne), AF_output_1_eq_1_S(tempOne).
+AF_output_1_eq_1_S(loc) :- AF_output_1_eq_1_T(loc,loc).
+AF_output_1_eq_1(loc) :- State(loc), !AF_output_1_eq_1_S(loc).
+timer_1_eq_0(loc) :- State(loc), EqD("timer_1",loc,0).
+timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc) :- State(loc), !timer_1_eq_0(loc).
+timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc) :- AF_output_1_eq_1(loc).
+NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc) :- State(loc), !timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc).
+EF_NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc) :- control_flow(loc,tempOne), EF_NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(tempOne).
+EF_NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc) :- NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc).
+AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc) :- State(loc), !EF_NOT_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc).
+AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1_Final(loc) :- Start(loc), AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1(loc), !NotTotal(loc).
+.output GtEq
+.output NotEq
+.output Lt
+.output Eq
+.output Start
+.output State
+.output flow
+.output AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
+
