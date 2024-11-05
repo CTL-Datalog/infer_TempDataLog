@@ -189,3 +189,78 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(30,0). //@11:1-13:5
+Flow(27,5). //@25:5-26:1
+Flow(20,29). //@20:5-20:12
+Flow(29,26). //@20:12-20:12
+Flow(29,28). //@20:12-20:12
+Flow(28,23). //@20:12-22:14
+Flow(28,24). //@20:12-22:14
+Flow(26,27). //@20:12-25:5
+Flow(25,20). //@23:9-20:5
+Flow(22,25). //@22:9-23:9
+Flow(24,21). //@22:14-22:18
+Flow(23,22). //@22:14-22:9
+Flow(21,22). //@22:18-22:9
+Flow(19,20). //@19:5-20:5
+Flow(18,19). //@18:5-19:5
+Flow(7,18). //@16:5-18:5
+Flow(3,16). //@16:9-16:9
+Flow(3,17). //@16:9-16:9
+Flow(17,4). //@16:9-17:9
+Flow(16,15). //@16:9-16:18
+Flow(15,13). //@16:18-16:18
+Flow(15,14). //@16:18-16:18
+Flow(14,4). //@16:18-17:9
+Flow(13,12). //@16:18-16:31
+Flow(12,10). //@16:31-16:31
+Flow(12,11). //@16:31-16:31
+Flow(11,4). //@16:31-17:9
+Flow(10,9). //@16:31-16:46
+Flow(9,6). //@16:46-16:46
+Flow(9,8). //@16:46-16:46
+Flow(8,4). //@16:46-17:9
+Flow(6,7). //@16:46-16:5
+Flow(4,5). //@17:9-26:1
+Flow(2,3). //@15:5-16:9
+Flow(1,2). //@14:5-15:5
+Flow(0,1). //@13:5-14:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$22),IStore(&h,n$22)]). // @13:5
+Stmt_Decl(1,[ICall(_fun___VERIFIER_nondet_int,,n$21),IStore(&hash,n$21)]). // @14:5
+Stmt_Decl(2,[ICall(_fun___VERIFIER_nondet_int,,n$20),IStore(&rehash,n$20)]). // @15:5
+Stmt_Return(4,[IStore(&return,0)]). // @17:9
+PruneNode(6,false,[Prune(!(n$16 > n$17), false)]). // @16:46
+PruneNode(8,true,[Prune((n$16 > n$17), true)]). // @16:46
+Stmt_BinaryOperatorStmt(9,GT,[ILoad(&rehash,n$16),ILoad(&hash,n$17)]). // @16:46
+PruneNode(10,false,[Prune(!(n$15 <= 0), false)]). // @16:31
+PruneNode(11,true,[Prune((n$15 <= 0), true)]). // @16:31
+Stmt_BinaryOperatorStmt(12,LE,[ILoad(&rehash,n$15)]). // @16:31
+PruneNode(13,false,[Prune(!(n$14 <= 0), false)]). // @16:18
+PruneNode(14,true,[Prune((n$14 <= 0), true)]). // @16:18
+Stmt_BinaryOperatorStmt(15,LE,[ILoad(&hash,n$14)]). // @16:18
+PruneNode(16,false,[Prune(!(n$13 < 0), false)]). // @16:9
+PruneNode(17,true,[Prune((n$13 < 0), true)]). // @16:9
+Stmt_BinaryOperatorStmt(3,LT,[ILoad(&h,n$13)]). // @16:9
+Join(7,[]).  // @16:5
+Stmt_Decl(18,[ILoad(&h,n$11),ILoad(&hash,n$12),IStore(&i,(n$11 % n$12))]). // @18:5
+Stmt_Decl(19,[ICall(_fun___VERIFIER_nondet_int,,n$10),IStore(&r,n$10)]). // @19:5
+Stmt_BinaryOperatorStmt(21,Assign,[ILoad(&h,n$5),ILoad(&rehash,n$6),IStore(&r,(n$5 % n$6))]). // @22:18
+PruneNode(23,false,[ILoad(&r,n$4),Prune(n$4, false)]). // @22:14
+PruneNode(24,true,[ILoad(&r,n$4),Prune(!n$4, true)]). // @22:14
+Join(22,[]).  // @22:9
+Stmt_BinaryOperatorStmt(25,Assign,[ILoad(&i,n$2),ILoad(&r,n$3),IStore(&i,(n$2 + n$3))]). // @23:9
+PruneNode(26,false,[Prune(!(n$0 < n$1), false)]). // @20:12
+PruneNode(28,true,[Prune((n$0 < n$1), true)]). // @20:12
+Stmt_BinaryOperatorStmt(29,LT,[ILoad(&i,n$0),ILoad(&hash,n$1)]). // @20:12
+Join(20,[]).  // @20:5
+Stmt_Return(27,[IStore(&return,0)]). // @25:5
+Exit(5).  // @26:1
+Start(30). // @11:1
+*/
+

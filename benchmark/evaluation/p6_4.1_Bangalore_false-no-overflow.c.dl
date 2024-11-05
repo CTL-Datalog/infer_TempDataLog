@@ -7,7 +7,7 @@ State(0).
 Return(0,1).
 State(1).
 
-/*(Start())@8 · ("x"=_)@9 · ("y"=_)@10 · ((["y"<=0]@11 · ("y"<=0)@12 · ((["x"<0]@13 · ("x"<0)@14 · (Return(0))@15) \/ (["x">=0]@16 · ("x">=0)@17 · ((["y">0]@18 · ("y">0)@19 · ("x"=("x"-"y"))@20 · ("x"<0)@21 · (Return(0))@22) \/ (["x">=0∧"y"<=0]@23 · ("x">=0∧"y"<=0)@24 · (("x"=("x"-"y"))@25 · ("x">=0)@26)^w))))) \/ (["y">0]@27 · ("y">0)@28 · (Return(0))@29))*/
+/*(Start())@8 · ("x"=_)@9 · ("y"=_)@10 · ((["y"<=0]@11 · ("y"<=0)@12 · ((["x"<0]@13 · ("x"<0)@14 · (Return(0))@15) \/ (["x">=0]@16 · ("x">=0)@17 · ((["y">0]@18 · ("y">0)@19 · ("x"=("x"-"y"))@20 · ("x"<0)@21 · (Return(0))@22) \/ (["y"<=0]@23 · ("y"<=0)@24 · (("x"=("x"-"y"))@25 · ("x">=0)@26)^w))))) \/ (["y">0]@27 · ("y">0)@28 · (Return(0))@29))*/
 
 flow(8,9).
 flow(9,10).
@@ -56,6 +56,7 @@ Return(0,22).
 State(22).
 State(17).
 State(23).
+LtEq("y",24,0).
 State(24).
 State(25).
 GtEq("x",26,0).
@@ -70,7 +71,7 @@ control_flow(10,11) :- LtEqD("y",10,0).
 control_flow(12,13) :- LtD("x",12,0).
 control_flow(12,16) :- GtEqD("x",12,0).
 control_flow(17,18) :- GtD("y",17,0).
-control_flow(17,23) :- GtEqD("x",17,0), LtEqD("y",17,0).
+control_flow(17,23) :- LtEqD("y",17,0).
 control_flow(10,27) :- GtD("y",10,0).
 //AF("x"<0)
 .decl Start(x:number)
@@ -123,4 +124,44 @@ AF_x_lt_0_Final(loc) :- Start(loc), AF_x_lt_0(loc), !NotTotal(loc).
 .output AF_x_lt_0_Final(IO=stdout)
 
 .output NotTotal(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <_nondet_int> 
+
+Flow(1,0). //@7:1-7:20
+Exit(0).  // @7:20
+Start(1). // @7:1
+//-- Facts for Procedure <main> 
+
+Flow(1,2). //@12:1-16:5
+Flow(13,0). //@23:2-24:1
+Flow(8,13). //@18:2-23:2
+Flow(4,11). //@18:6-18:6
+Flow(4,12). //@18:6-18:6
+Flow(12,6). //@18:6-19:6
+Flow(11,8). //@18:6-18:2
+Flow(6,10). //@19:6-19:13
+Flow(10,7). //@19:13-19:13
+Flow(10,9). //@19:13-19:13
+Flow(9,5). //@19:13-20:7
+Flow(7,8). //@19:13-18:2
+Flow(5,6). //@20:7-19:6
+Flow(3,4). //@17:5-18:6
+Flow(2,3). //@16:5-17:5
+Stmt_BinaryOperatorStmt(2,Assign,[ICall(_fun__nondet_int,,n$8),IStore(&x,n$8)]). // @16:5
+Stmt_BinaryOperatorStmt(3,Assign,[ICall(_fun__nondet_int,,n$7),IStore(&y,n$7)]). // @17:5
+Stmt_BinaryOperatorStmt(5,Assign,[ILoad(&x,n$2),ILoad(&y,n$3),IStore(&x,(n$2 - n$3))]). // @20:7
+PruneNode(7,false,[Prune(!(n$1 >= 0), false)]). // @19:13
+PruneNode(9,true,[Prune((n$1 >= 0), true)]). // @19:13
+Stmt_BinaryOperatorStmt(10,GE,[ILoad(&x,n$1)]). // @19:13
+Join(6,[]).  // @19:6
+PruneNode(11,false,[Prune(!(n$0 <= 0), false)]). // @18:6
+PruneNode(12,true,[Prune((n$0 <= 0), true)]). // @18:6
+Stmt_BinaryOperatorStmt(4,LE,[ILoad(&y,n$0)]). // @18:6
+Join(8,[]).  // @18:2
+Stmt_Return(13,[IStore(&return,0)]). // @23:2
+Exit(0).  // @24:1
+Start(1). // @12:1
+*/
 

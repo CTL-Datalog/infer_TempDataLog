@@ -78,3 +78,36 @@ AF_AG_y_gt_0_Final(loc) :- Start(loc), AF_AG_y_gt_0(loc), !NotTotal(loc).
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(12,0). //@7:1-8:5
+Flow(2,9). //@11:5-11:12
+Flow(2,11). //@11:5-11:12
+Flow(11,3). //@11:12-12:9
+Flow(9,10). //@11:12-17:1
+Flow(4,8). //@13:9-13:16
+Flow(8,6). //@13:16-13:16
+Flow(8,7). //@13:16-13:16
+Flow(7,5). //@13:16-14:13
+Flow(6,2). //@13:16-11:5
+Flow(5,4). //@14:13-13:9
+Flow(3,4). //@12:9-13:9
+Flow(1,2). //@9:5-11:5
+Flow(0,1). //@8:5-9:5
+Stmt_Decl(0,[IStore(&x,0)]). // @8:5
+Stmt_Decl(1,[IStore(&y,0)]). // @9:5
+Stmt_BinaryOperatorStmt(3,Assign,[ILoad(&x,n$2),IStore(&x,(n$2 + 1))]). // @12:9
+Stmt_BinaryOperatorStmt(5,Assign,[IStore(&y,10)]). // @14:13
+PruneNode(6,false,[Prune(!(n$0 >= 10), false)]). // @13:16
+PruneNode(7,true,[Prune((n$0 >= 10), true)]). // @13:16
+Stmt_BinaryOperatorStmt(8,GE,[ILoad(&x,n$0)]). // @13:16
+Join(4,[]).  // @13:9
+PruneNode(9,false,[Prune(!1, false)]). // @11:12
+PruneNode(11,true,[Prune(1, true)]). // @11:12
+Join(2,[]).  // @11:5
+Exit(10).  // @17:1
+Start(12). // @7:1
+*/
+

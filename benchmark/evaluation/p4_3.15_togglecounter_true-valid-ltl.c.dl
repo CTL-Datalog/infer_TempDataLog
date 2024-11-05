@@ -70,3 +70,36 @@ AG_AF_t_eq_0_AND_AF_t_eq_0_Final(loc) :- Start(loc), AG_AF_t_eq_0_AND_AF_t_eq_0(
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(12,7). //@6:1-9:2
+Flow(9,11). //@18:2-19:1
+Flow(7,8). //@9:2-9:9
+Flow(7,10). //@9:2-9:9
+Flow(10,5). //@9:9-10:7
+Flow(8,9). //@9:9-18:2
+Flow(6,7). //@15:3-9:2
+Flow(1,6). //@10:3-15:3
+Flow(5,3). //@10:7-10:7
+Flow(5,4). //@10:7-10:7
+Flow(4,2). //@10:7-11:4
+Flow(3,0). //@10:7-13:4
+Flow(2,1). //@11:4-10:3
+Flow(0,1). //@13:4-10:3
+Stmt_BinaryOperatorStmt(0,Assign,[IStore(&t,0)]). // @13:4
+Stmt_BinaryOperatorStmt(2,Assign,[IStore(&t,1)]). // @11:4
+PruneNode(3,false,[Prune(!((n$1 % 2) == 0), false)]). // @10:7
+PruneNode(4,true,[Prune(((n$1 % 2) == 0), true)]). // @10:7
+Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&i,n$1)]). // @10:7
+Join(1,[]).  // @10:3
+Stmt_BinaryOperatorStmt(6,Assign,[ILoad(&i,n$0),IStore(&i,(n$0 + 1))]). // @15:3
+PruneNode(8,false,[Prune(!1, false)]). // @9:9
+PruneNode(10,true,[Prune(1, true)]). // @9:9
+Join(7,[]).  // @9:2
+Stmt_Return(9,[IStore(&return,0)]). // @18:2
+Exit(11).  // @19:1
+Start(12). // @6:1
+*/
+

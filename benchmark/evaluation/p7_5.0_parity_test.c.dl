@@ -77,3 +77,29 @@ AF_y_eq_1_Final(loc) :- Start(loc), AF_y_eq_1(loc), !NotTotal(loc).
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(9,0). //@4:1-7:5
+Flow(7,8). //@13:5-14:1
+Flow(3,7). //@8:5-13:5
+Flow(1,5). //@8:9-8:9
+Flow(1,6). //@8:9-8:9
+Flow(6,4). //@8:9-9:9
+Flow(5,2). //@8:9-11:11
+Flow(4,3). //@9:9-8:5
+Flow(2,3). //@11:11-8:5
+Flow(0,1). //@7:5-8:9
+Stmt_BinaryOperatorStmt(0,Assign,[IStore(&x,2)]). // @7:5
+Stmt_BinaryOperatorStmt(2,Assign,[IStore(&y,0)]). // @11:11
+Stmt_BinaryOperatorStmt(4,Assign,[IStore(&y,1)]). // @9:9
+PruneNode(5,false,[Prune(!(n$0 >= 2), false)]). // @8:9
+PruneNode(6,true,[Prune((n$0 >= 2), true)]). // @8:9
+Stmt_BinaryOperatorStmt(1,GE,[ILoad(&x,n$0)]). // @8:9
+Join(3,[]).  // @8:5
+Stmt_Return(7,[IStore(&return,0)]). // @13:5
+Exit(8).  // @14:1
+Start(9). // @4:1
+*/
+

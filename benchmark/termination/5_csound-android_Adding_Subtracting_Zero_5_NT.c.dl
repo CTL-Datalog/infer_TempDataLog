@@ -85,7 +85,7 @@ State(30).
 LtEq("num",31,65534).
 State(31).
 State(32).
-LtEqVar("ip",33,"&ip.nxtact"). // delete this one 
+LtEqVar("ip",33,"&ip.nxtact").
 GtVar("ip",33,"&ip.nxtact").
 NotEq("ip",33,0).
 Eq("ip",33,0).
@@ -181,4 +181,96 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 .output AF_EXITPred_Final(IO=stdout)
 
 .output NotTotal(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <initLink> 
+
+Flow(18,0). //@17:1-18:5
+Flow(15,16). //@30:5-30:5
+Flow(16,17). //@30:5-31:1
+Flow(11,15). //@29:5-30:5
+Flow(14,13). //@23:5-23:15
+Flow(4,14). //@23:10-23:5
+Flow(9,14). //@23:21-23:5
+Flow(13,10). //@23:15-23:15
+Flow(13,12). //@23:15-23:15
+Flow(12,5). //@23:15-24:9
+Flow(10,11). //@23:15-29:5
+Flow(8,9). //@27:9-23:21
+Flow(7,8). //@26:9-27:9
+Flow(6,7). //@25:9-26:9
+Flow(5,6). //@24:9-25:9
+Flow(3,4). //@22:5-23:10
+Flow(2,3). //@20:5-22:5
+Flow(1,2). //@19:5-20:5
+Flow(0,1). //@18:5-19:5
+Stmt_Decl(0,[ICall(_fun_malloc,sizeof(t=;nbytes=8),n$18),IStore(&head,n$18)]). // @18:5
+Stmt_BinaryOperatorStmt(1,Assign,[ILoad(&head,n$16),ILoad(&head,n$17),IStore(n$16.nxtact,n$17)]). // @19:5
+Stmt_Decl(2,[ILoad(&head,n$15),IStore(&cyclic,n$15)]). // @20:5
+Stmt_Decl(3,[ICall(_fun___VERIFIER_nondet_int,,n$14),IStore(&i,n$14)]). // @22:5
+Stmt_Decl(5,[ICall(_fun_malloc,sizeof(t=;nbytes=8),n$12),IStore(&body,n$12)]). // @24:9
+Stmt_BinaryOperatorStmt(6,Assign,[ILoad(&body,n$10),ILoad(&body,n$11),IStore(n$10.nxtact,n$11)]). // @25:9
+Stmt_BinaryOperatorStmt(7,Assign,[ILoad(&cyclic,n$8),ILoad(&body,n$9),IStore(n$8.nxtact,n$9)]). // @26:9
+Stmt_BinaryOperatorStmt(8,Assign,[ILoad(&cyclic,n$6),ILoad(n$6.nxtact,n$7),IStore(&cyclic,n$7)]). // @27:9
+PruneNode(10,false,[Prune(!(n$4 <= n$5), false)]). // @23:15
+PruneNode(12,true,[Prune((n$4 <= n$5), true)]). // @23:15
+Stmt_BinaryOperatorStmt(13,LE,[ILoad(&i,n$4),ILoad(&n,n$5)]). // @23:15
+Stmt_UnaryOperator(9,[ILoad(&i,n$3),IStore(&i,(n$3 + 1))]). // @23:21
+Stmt_BinaryOperatorStmt(4,Assign,[IStore(&i,2)]). // @23:10
+Join(14,[]).  // @23:5
+Stmt_BinaryOperatorStmt(11,Assign,[ILoad(&cyclic,n$1),ILoad(&cyclic,n$2),IStore(n$1.nxtact,n$2)]). // @29:5
+Stmt_Return(16,[IStore(&return,n$0)]). // @30:5
+Stmt_Return(15,[ILoad(&head,n$0)]). // @30:5
+Exit(17).  // @31:1
+Start(18). // @17:1
+//-- Facts for Procedure <main> 
+
+Flow(18,19). //@33:1-35:5
+Flow(15,17). //@45:5-46:1
+Flow(16,11). //@40:5-40:12
+Flow(11,4). //@40:12-40:12
+Flow(11,14). //@40:12-40:12
+Flow(14,13). //@40:12-42:9
+Flow(4,15). //@40:12-45:5
+Flow(9,16). //@43:9-40:5
+Flow(13,9). //@42:9-43:9
+Flow(12,16). //@39:5-40:5
+Flow(10,12). //@38:5-39:5
+Flow(8,10). //@36:5-38:5
+Flow(7,5). //@36:9-36:9
+Flow(7,6). //@36:9-36:9
+Flow(6,0). //@36:9-37:9
+Flow(5,3). //@36:9-36:21
+Flow(3,1). //@36:21-36:21
+Flow(3,2). //@36:21-36:21
+Flow(2,0). //@36:21-37:9
+Flow(1,8). //@36:21-36:5
+Flow(0,17). //@37:9-46:1
+Flow(19,7). //@35:5-36:9
+Stmt_Decl(19,[ICall(_fun___VERIFIER_nondet_int,,n$12),IStore(&num,n$12)]). // @35:5
+Stmt_Return(0,[IStore(&return,0)]). // @37:9
+PruneNode(1,false,[Prune(!(n$9 > 65534), false)]). // @36:21
+PruneNode(2,true,[Prune((n$9 > 65534), true)]). // @36:21
+Stmt_BinaryOperatorStmt(3,GT,[ILoad(&num,n$9)]). // @36:21
+PruneNode(5,false,[Prune(!(n$8 <= 0), false)]). // @36:9
+PruneNode(6,true,[Prune((n$8 <= 0), true)]). // @36:9
+Stmt_BinaryOperatorStmt(7,LE,[ILoad(&num,n$8)]). // @36:9
+Join(8,[]).  // @36:5
+Stmt_Decl(10,[ILoad(&num,n$6),ICall(_fun_initLink,n$6,n$7),IStore(&list,n$7)]). // @38:5
+Stmt_Decl(12,[ICall(_fun___VERIFIER_nondet_int,,n$5),IStore(&ip,n$5)]). // @39:5
+Stmt_Decl(13,[ILoad(&ip,n$2),ILoad(n$2.nxtact,n$3),IStore(&nxt,n$3)]). // @42:9
+Stmt_BinaryOperatorStmt(9,Assign,[ILoad(&nxt,n$1),IStore(&ip,n$1)]). // @43:9
+PruneNode(4,false,[Prune(!(n$0 != null), false)]). // @40:12
+PruneNode(14,true,[Prune((n$0 != null), true)]). // @40:12
+Stmt_BinaryOperatorStmt(11,NE,[ILoad(&ip,n$0)]). // @40:12
+Join(16,[]).  // @40:5
+Stmt_Return(15,[IStore(&return,0)]). // @45:5
+Exit(17).  // @46:1
+Start(18). // @33:1
+//-- Facts for Procedure <malloc> 
+
+*/
 

@@ -129,3 +129,49 @@ AG_timer_1_eq_0_IMPLY_AF_output_1_eq_1_Final(loc) :- Start(loc), AG_timer_1_eq_0
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <main> 
+
+Flow(18,0). //@11:1-13:2
+Flow(2,15). //@16:5-16:11
+Flow(2,17). //@16:5-16:11
+Flow(17,3). //@16:11-17:9
+Flow(15,16). //@16:11-27:1
+Flow(11,2). //@21:3-16:5
+Flow(9,13). //@21:6-21:6
+Flow(9,14). //@21:6-21:6
+Flow(14,12). //@21:6-22:4
+Flow(13,10). //@21:6-24:4
+Flow(12,11). //@22:4-21:3
+Flow(10,11). //@24:4-21:3
+Flow(6,9). //@18:9-21:6
+Flow(4,7). //@18:12-18:12
+Flow(4,8). //@18:12-18:12
+Flow(8,5). //@18:12-19:13
+Flow(7,6). //@18:12-18:9
+Flow(5,6). //@19:13-18:9
+Flow(3,4). //@17:9-18:12
+Flow(1,2). //@14:2-16:5
+Flow(0,1). //@13:2-14:2
+Stmt_Decl(0,[IStore(&timer_1,0)]). // @13:2
+Stmt_Decl(1,[IStore(&output_1,0)]). // @14:2
+Stmt_BinaryOperatorStmt(3,Assign,[ILoad(&timer_1,n$5),IStore(&timer_1,(n$5 + 1))]). // @17:9
+Stmt_BinaryOperatorStmt(5,Assign,[IStore(&timer_1,0)]). // @19:13
+PruneNode(7,false,[Prune(!(n$2 >= 10), false)]). // @18:12
+PruneNode(8,true,[Prune((n$2 >= 10), true)]). // @18:12
+Stmt_BinaryOperatorStmt(4,GE,[ILoad(&timer_1,n$2)]). // @18:12
+Join(6,[]).  // @18:9
+Stmt_BinaryOperatorStmt(10,Assign,[IStore(&output_1,0)]). // @24:4
+Stmt_BinaryOperatorStmt(12,Assign,[IStore(&output_1,1)]). // @22:4
+PruneNode(13,false,[Prune(!(n$0 == 0), false)]). // @21:6
+PruneNode(14,true,[Prune((n$0 == 0), true)]). // @21:6
+Stmt_BinaryOperatorStmt(9,EQ,[ILoad(&timer_1,n$0)]). // @21:6
+Join(11,[]).  // @21:3
+PruneNode(15,false,[Prune(!1, false)]). // @16:11
+PruneNode(17,true,[Prune(1, true)]). // @16:11
+Join(2,[]).  // @16:5
+Exit(16).  // @27:1
+Start(18). // @11:1
+*/
+

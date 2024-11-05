@@ -100,3 +100,27 @@ x_gt_y_AU_x_eq_y_Final(loc) :- Start(loc), x_gt_y_AU_x_eq_y(loc), !NotTotal(loc)
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(7,0). //@7:1-9:5
+Flow(1,6). //@11:5-11:12
+Flow(6,3). //@11:12-11:12
+Flow(6,5). //@11:12-11:12
+Flow(5,2). //@11:12-12:9
+Flow(3,4). //@11:12-15:1
+Flow(2,1). //@12:9-11:5
+Flow(0,1). //@9:5-11:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$4),IStore(&x,n$4)]). // @9:5
+Stmt_BinaryOperatorStmt(2,Assign,[ILoad(&x,n$2),IStore(&x,(n$2 - 1))]). // @12:9
+PruneNode(3,false,[Prune(!(n$0 > n$1), false)]). // @11:12
+PruneNode(5,true,[Prune((n$0 > n$1), true)]). // @11:12
+Stmt_BinaryOperatorStmt(6,GT,[ILoad(&x,n$0),ILoad(&y,n$1)]). // @11:12
+Join(1,[]).  // @11:5
+Exit(4).  // @15:1
+Start(7). // @7:1
+*/
+

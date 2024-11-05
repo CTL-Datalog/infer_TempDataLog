@@ -372,3 +372,68 @@ AF_x_eq_neg_4_OR_x_eq_4_Final(loc) :- Start(loc), AF_x_eq_neg_4_OR_x_eq_4(loc), 
 
 .output NotTotal(IO=stdout)
 
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(26,0). //@16:1-19:5
+Flow(20,24). //@38:5-38:5
+Flow(24,25). //@38:5-45:1
+Flow(18,22). //@38:9-38:9
+Flow(18,23). //@38:9-38:9
+Flow(23,21). //@38:9-39:9
+Flow(22,19). //@38:9-41:9
+Flow(21,20). //@39:9-38:5
+Flow(19,20). //@41:9-38:5
+Flow(14,18). //@32:5-38:9
+Flow(12,16). //@32:9-32:9
+Flow(12,17). //@32:9-32:9
+Flow(17,15). //@32:9-33:9
+Flow(16,13). //@32:9-35:9
+Flow(15,14). //@33:9-32:5
+Flow(13,14). //@35:9-32:5
+Flow(8,12). //@26:5-32:9
+Flow(6,10). //@26:9-26:9
+Flow(6,11). //@26:9-26:9
+Flow(11,9). //@26:9-27:9
+Flow(10,7). //@26:9-29:9
+Flow(9,8). //@27:9-26:5
+Flow(7,8). //@29:9-26:5
+Flow(4,6). //@20:5-26:9
+Flow(1,5). //@20:9-21:9
+Flow(2,3). //@20:9-23:9
+Flow(5,4). //@21:9-20:5
+Flow(3,4). //@23:9-20:5
+Flow(0,2). //@19:5-20:9
+Flow(0,1). //@19:5-20:9
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$14),IStore(&y,n$14)]). // @19:5
+Stmt_BinaryOperatorStmt(3,Assign,[IStore(&x,-1)]). // @23:9
+Stmt_BinaryOperatorStmt(5,Assign,[IStore(&x,1)]). // @21:9
+PruneNode(2,false,[ILoad(&y,n$12),Prune(!n$12, false)]). // @20:9
+PruneNode(1,true,[ILoad(&y,n$12),Prune(n$12, true)]). // @20:9
+Join(4,[]).  // @20:5
+Stmt_BinaryOperatorStmt(7,Assign,[ILoad(&x,n$10),IStore(&x,(n$10 - 1))]). // @29:9
+Stmt_BinaryOperatorStmt(9,Assign,[ILoad(&x,n$9),IStore(&x,(n$9 + 1))]). // @27:9
+PruneNode(10,false,[Prune(!(n$8 > 0), false)]). // @26:9
+PruneNode(11,true,[Prune((n$8 > 0), true)]). // @26:9
+Stmt_BinaryOperatorStmt(6,GT,[ILoad(&x,n$8)]). // @26:9
+Join(8,[]).  // @26:5
+Stmt_BinaryOperatorStmt(13,Assign,[ILoad(&x,n$6),IStore(&x,(n$6 - 1))]). // @35:9
+Stmt_BinaryOperatorStmt(15,Assign,[ILoad(&x,n$5),IStore(&x,(n$5 + 1))]). // @33:9
+PruneNode(16,false,[Prune(!(n$4 > 0), false)]). // @32:9
+PruneNode(17,true,[Prune((n$4 > 0), true)]). // @32:9
+Stmt_BinaryOperatorStmt(12,GT,[ILoad(&x,n$4)]). // @32:9
+Join(14,[]).  // @32:5
+Stmt_BinaryOperatorStmt(19,Assign,[ILoad(&x,n$2),IStore(&x,(n$2 - 1))]). // @41:9
+Stmt_BinaryOperatorStmt(21,Assign,[ILoad(&x,n$1),IStore(&x,(n$1 + 1))]). // @39:9
+PruneNode(22,false,[Prune(!(n$0 > 0), false)]). // @38:9
+PruneNode(23,true,[Prune((n$0 > 0), true)]). // @38:9
+Stmt_BinaryOperatorStmt(18,GT,[ILoad(&x,n$0)]). // @38:9
+Stmt_BetweenJoinAndExit(24,[]). // @38:5
+Join(20,[]).  // @38:5
+Exit(25).  // @45:1
+Start(26). // @16:1
+*/
+
