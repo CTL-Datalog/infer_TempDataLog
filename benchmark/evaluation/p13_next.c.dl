@@ -1,7 +1,7 @@
 /*𝝐 */
 
 
-/*(Start())@0 · ("x"=_)@1 · ((["x"=1]@2 · ("x"=1)@3 · ("x"=0)@4 · (Return(0))@5) \/ ([("x"!=1)]@6 · (("x"!=1))@7 · ("x"=("x"-1))@8 · (Return(0))@9))*/
+/*(Start())@0 · ("y"=_)@1 · ((["y"=1]@2 · ("y"=1)@3 · ("x"=0)@4 · (Return(0))@5) \/ ([("y"!=1)]@6 · (("y"!=1))@7 · ("x"=("x"-1))@8 · (Return(0))@9))*/
 
 flow(0,1).
 flow(2,3).
@@ -14,25 +14,24 @@ flow(8,9).
 flow(9,9).
 Start(0).
 State(0).
-NotEq("x",1,1). // delete this 
-Eq("x",1,1).
+NotEq("y",1,1).
+Eq("y",1,1).
 State(2).
-Eq("x",3,1).
+Eq("y",3,1).
 State(3).
-NotEq("x",4,1).
 Eq("x",4,0).
 State(4).
 Return(0,5).
 State(5).
 State(1).
 State(6).
-NotEq("x",7,1).
+NotEq("y",7,1).
 State(7).
 State(8).
 Return(0,9).
 State(9).
-control_flow(1,2) :- EqD("x",1,1).
-control_flow(1,6) :- NotEqD("x",1,1).
+control_flow(1,2) :- EqD("y",1,1).
+control_flow(1,6) :- NotEqD("y",1,1).
 //AF(AX(AX("x"=0)))
 .decl Start(x:number)
 .decl State(x:number)
@@ -61,9 +60,9 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 NotEqD(x,loc,n) :- NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
 EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
 x_eq_0(loc) :- State(loc), EqD("x",loc,0).
 NOT_x_eq_0(loc) :- State(loc), !x_eq_0(loc).
 EX_NOT_x_eq_0(loc) :- control_flow(loc,tempOne), NOT_x_eq_0(tempOne).
@@ -84,4 +83,6 @@ AF_AX_AX_x_eq_0_Final(loc) :- Start(loc), AF_AX_AX_x_eq_0(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_AX_AX_x_eq_0_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
 

@@ -6,8 +6,8 @@
 
 int main() {
     // assume x > y
-    int x ; 
-    int y = __VERIFIER_nondet_int();
+    int x = __VERIFIER_nondet_int(); 
+    int y ;
     while (x > y) {
         x = x - 1;
     }

@@ -791,7 +791,9 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | Lt(Basic (BSTR t1), Plus(Basic (BSTR t2), t3)) -> 
     if String.compare t1 t2 == 0 then (Gt(t3, Basic (BINT 0)))
     else pi
-
+  (*| Lt(Plus(Basic (BSTR t1), Basic(BINT 1)), Basic(BINT 0)) -> 
+    LtEq
+*)
   | Gt (Minus(t1,Basic( BINT 1)),Minus(Minus(t3, t4),Basic( BINT 1))) -> 
     if stricTcompareTerm t1 t3 then Gt(t4, Basic( BINT 0))
     else (Gt (t1, Minus(t3, t4)))

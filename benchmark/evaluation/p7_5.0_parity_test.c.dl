@@ -53,11 +53,11 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
 LtD(x,loc,n) :- Lt(x,loc,n).
-LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
-GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,n), !Lt(x,loc,n).
 y_eq_1(loc) :- State(loc), EqD("y",loc,1).
 AF_y_eq_1_T(interm_state,loc) :- AF_y_eq_1_T(tempOne,loc), !y_eq_1(tempOne), control_flow(tempOne,interm_state).
 AF_y_eq_1_T(interm_state,loc) :- !y_eq_1(loc), control_flow(loc,interm_state).
@@ -74,4 +74,6 @@ AF_y_eq_1_Final(loc) :- Start(loc), AF_y_eq_1(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_y_eq_1_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
 

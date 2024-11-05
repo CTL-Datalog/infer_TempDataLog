@@ -1,31 +1,32 @@
-/*(Start())@4 · ("x"=0)@5 · ("y"=0)@6 · (("x"=("x"+1))@9 · ((["x"<10]@10 · ("x"<10)@11) \/ (["x">=10]@12 · ("x">=10)@13 · (("x">=10)@14)^w)))^w*/
+/*(Start())@5 · ("x"=0)@6 · ("y"=0)@7 · ("x"=("x"+1))@10 · ["x"<10]@11 · ("x"<10)@12 · (10="x")@13 · ("x"=("x"+1))@14 · (("y"=10)@15 · ("x">=10)@16)^w*/
 
-flow(4,5).
 flow(5,6).
-flow(6,9).
-flow(10,11).
-flow(11,11).
+flow(6,7).
+flow(7,10).
+flow(11,12).
 flow(12,13).
 flow(13,14).
-flow(14,14).
-flow(11,9).
-Start(4).
-State(4).
-Lt("x",5,10).
+flow(14,15).
+flow(15,16).
+flow(16,16).
+flow(16,15).
+Start(5).
 State(5).
+Lt("x",6,10).
 State(6).
-Lt("x",9,10).
+State(7).
+Lt("x",10,10).
 State(10).
-Lt("x",11,10).
 State(11).
-State(9).
+Lt("x",12,10).
 State(12).
-GtEq("x",13,10).
 State(13).
-GtEq("x",14,10).
+Lt("x",14,10).
 State(14).
-control_flow(9,10) :- LtD("x",9,10).
-control_flow(9,12) :- GtEqD("x",9,10).
+Gt("y",15,0).
+State(15).
+State(16).
+control_flow(10,11) :- LtD("x",10,10).
 //AF(AG("y">0))
 .decl Start(x:number)
 .decl State(x:number)
@@ -33,12 +34,11 @@ control_flow(9,12) :- GtEqD("x",9,10).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
+.decl GtEq(x:symbol,loc:number,n:number)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
-.decl GtEq(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
-.decl GtEqD(x:symbol,loc:number,n:number)
 .decl LtD(x:symbol,loc:number,n:number)
 .decl y_gt_0(loc:number)
 .decl NOT_y_gt_0(loc:number)
@@ -53,11 +53,9 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
-GtEqD(x,loc,n) :- GtEq(x,loc,n).
-GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,_), !Lt(x,loc,_).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
 LtD(x,loc,n) :- Lt(x,loc,n).
-LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,_), !GtEq(x,loc,_).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
 y_gt_0(loc) :- State(loc), GtD("y",loc,0).
 NOT_y_gt_0(loc) :- State(loc), !y_gt_0(loc).
 EF_NOT_y_gt_0(loc) :- control_flow(loc,tempOne), EF_NOT_y_gt_0(tempOne).
@@ -69,12 +67,14 @@ AF_AG_y_gt_0_S(loc) :- !AG_y_gt_0(loc), control_flow(loc,tempOne), AF_AG_y_gt_0_
 AF_AG_y_gt_0_S(loc) :- AF_AG_y_gt_0_T(loc,loc).
 AF_AG_y_gt_0(loc) :- State(loc), !AF_AG_y_gt_0_S(loc).
 AF_AG_y_gt_0_Final(loc) :- Start(loc), AF_AG_y_gt_0(loc), !NotTotal(loc).
+.output GtEq
 .output LtEq
 .output Gt
-.output GtEq
 .output Lt
 .output Start
 .output State
 .output flow
 .output AF_AG_y_gt_0_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
 

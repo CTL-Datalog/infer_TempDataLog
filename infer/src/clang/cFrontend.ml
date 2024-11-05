@@ -1264,23 +1264,7 @@ let rec getAllPathConditions (re:regularExpr): pure list =
   | Kleene _ -> raise (Failure "not possible getAllPathConditions kleene")
 
 
-let rec makeAGuessFromPureRelaxed (pi:pure) : terms list = 
-  match pi with 
-  | LtEq (t, Basic (BINT 0)) -> [t] 
-  | Lt (t, Basic (BINT 0)) -> [(Plus(t, Basic (BINT 1)))]
-  | Lt (t1, t2) -> [(Minus(t2, t1))]
-  | Eq (t1, Basic (BINT n)) -> [(Minus(Basic (BINT n), t1)); (Minus(t1, Basic (BINT n)))]
-  | GtEq (t, Basic (BINT 0)) 
-  | Gt (t, Basic (BINT 0)) ->[ t ]
-  | Gt (t1, t2) -> [(Minus(t1, t2))]
-  | PureAnd (p1, p2) 
-  | PureOr (p1, p2) -> 
-    (match makeAGuessFromPureRelaxed p1, makeAGuessFromPureRelaxed p2 with 
-    |  t1::_, _ 
-    | _,  t1 :: _ ->  [t1]
-    | _, _-> [] 
-    )
-  | _ -> [] 
+
 
 let rec makeAGuessFromPure (pi:pure) : terms list = 
   match pi with 
@@ -1343,7 +1327,7 @@ let makeAGuessFromGuard (re:regularExpr) : rankingfunction list =
   let pathConditions = flattenList (List.map  pathConditions ~f:decomposePure) in 
   (*print_endline ("makeAGuessFromGuard pathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (pathConditions))));   
 *)
-  let temp = flattenList (List.map pathConditions ~f:makeAGuessFromPureRelaxed)  in 
+  let temp = flattenList (List.map pathConditions ~f:(fun a -> makeAGuessFromPure (normalise_pure (Neg a))))  in 
   List.map temp ~f:(fun a -> (a, 
    (deleteallGuard re)))
 
@@ -1352,7 +1336,7 @@ let makeAGuessFromGuard (re:regularExpr) : rankingfunction list =
 let rec makeAGuess (guard:pure) (terminatingCases) (nonCycle:regularExpr) :  rankingfunction list = 
   let r1 = makeAGuessFromPure guard in 
   let r2 = makeAGuessFromGuard terminatingCases in 
-  List.map r1 ~f:(fun a -> (a, nonCycle)) @ r2 
+  r2 @ List.map r1 ~f:(fun a -> (a, nonCycle))  
   
 
 
@@ -1547,12 +1531,23 @@ pure * rankingfunction
 
   let tryallRnakingfunctions = List.map rankingFuns ~f:helper in 
 
+  let countNumber = 
+    List.fold_left ~init:0 tryallRnakingfunctions ~f:(fun acc (wpc, _) -> if entailConstrains wpc TRUE then acc + 1 else acc) in 
+
+  if countNumber > 1 then 
+   ( match tryallRnakingfunctions with
+   | [] -> raise (Failure "not possible") 
+   | (_, rf) :: _ -> (FALSE, rf)
+   )
+  else 
+
   let rec aux li = 
     match li with 
     | [] -> raise (Failure "not possible") 
     | [res] -> res 
     | (wpc, rf) :: xs -> if entailConstrains wpc FALSE then aux xs else (wpc, rf)
-  in aux tryallRnakingfunctions 
+  in   
+  aux tryallRnakingfunctions 
 
 
   ;;
@@ -1694,7 +1689,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
     let nonTerminatingFinalState = Singleton (normalise_pure_prime(GtEq(rfterm, Basic(BINT 0))), !allTheUniqueIDs) in 
     let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
-    Concate (nonTerminatingGuard, Omega(nonTerminatingFinalState))
+    Concate (nonTerminatingGuard, Omega(Concate(deriv_of_concern, nonTerminatingFinalState)))
   in 
 
   
@@ -2046,9 +2041,9 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     
     print_endline (str ^ " = *" );
     print_endline ("findrelationFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
-    (List.map ~f:(fun p -> string_of_pure p) (predicates@predicatesSpec))));   
+    (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
 
-    let rel = findrelationFromPredicatesSpec (predicates@predicatesSpec) str loc in 
+    let rel = findrelationFromPredicatesSpec (predicates) str loc in 
     print_endline ("relationsFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
     (List.map ~f:(fun p -> string_of_relation p) rel)));   
 

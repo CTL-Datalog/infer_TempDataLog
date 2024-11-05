@@ -88,13 +88,13 @@ NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,_), !Gt(x,loc,_).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,n), !Gt(x,loc,n).
 EqVarD(x,loc,n) :- EqVar(x,loc,n).
-EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,_), !NotEqVar(x,loc,_).
+EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,n), !NotEqVar(x,loc,n).
 NotEqVarD(x,loc,n) :- NotEqVar(x,loc,n).
-NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,_), !EqVar(x,loc,_).
+NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,n), !EqVar(x,loc,n).
 GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
 EXITPred(loc) :- Return(_,loc).
 AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
 AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
@@ -111,4 +111,6 @@ AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 .output flow
 .output Return
 .output AF_EXITPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
 

@@ -1,47 +1,32 @@
-/*(Join())@13*/
+/*𝝐 */
 
-flow(13,13).
-State(13).
 
-/*(Start())@23 · (l=_)@24 · (([l=0]@25 · (Return(0))@26) \/ ((([(l!=0)]@27 · [l>0]@29 · (l=0)@30 · (l=(l-1))@31 · (Return(0))@32) \/ (([(l!=0)]@36 · [l=0]@37 · ((l!=0))@38 · (l>0)@39)^w))))*/
+/*(Start())@1 · ("l"=_)@2 · ((["l"=0]@3 · ("l"=0)@4 · (Return(0))@5) \/ ([("l"!=0)]@6 · (("l"!=0))@7 · ((("l"!=0))@8)^w))*/
 
-flow(23,24).
-flow(26,26).
-flow(32,32).
-flow(39,39).
-flow(39,36).
-Start(23).
-Gt("l",23,0).
-NotEq("l",23,0).
-Eq("l",23,0).
-State(23).
-State(25).
-Return(0,26).
-State(26).
-State(27).
-State(29).
-Eq("l",30,0).
-State(30).
-NotEq("l",31,0).
-State(31).
-Return(0,32).
-State(32).
-State(24).
-State(36).
-State(37).
-State(38).
-State(39).
-control_flow(24,25) :- EqD("l",24,0).
-control_flow(25,26) :- EqD("l",24,0).
-control_flow(24,27) :- NotEqD("l",24,0).
-control_flow(27,29) :- NotEqD("l",24,0), GtD("l",27,0).
-control_flow(29,30) :- NotEqD("l",24,0), GtD("l",27,0).
-control_flow(30,31) :- NotEqD("l",24,0), GtD("l",27,0).
-control_flow(31,32) :- NotEqD("l",24,0), GtD("l",27,0).
-control_flow(24,36) :- NotEqD("l",24,0).
-control_flow(36,37) :- NotEqD("l",24,0), EqD("l",36,0).
-control_flow(37,38) :- NotEqD("l",24,0), EqD("l",36,0).
-control_flow(38,39) :- NotEqD("l",24,0), EqD("l",36,0).
+flow(1,2).
+flow(3,4).
+flow(4,5).
+flow(5,5).
+flow(6,7).
+flow(7,8).
+flow(8,8).
+Start(1).
+State(1).
+NotEq("l",2,0).
+Eq("l",2,0).
+State(3).
+Eq("l",4,0).
+State(4).
+Return(0,5).
+State(5).
+State(2).
+State(6).
+NotEq("l",7,0).
+State(7).
+NotEq("l",8,0).
+State(8).
+control_flow(2,3) :- EqD("l",2,0).
+control_flow(2,6) :- NotEqD("l",2,0).
 //AF(EXIT())
 .decl Start(x:number)
 .decl State(x:number)
@@ -50,75 +35,37 @@ control_flow(38,39) :- NotEqD("l",24,0), EqD("l",36,0).
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
-.decl LtEq(x:symbol,loc:number,n:number)
-.decl Eq(x:symbol,loc:number,n:number)
 .decl NotEq(x:symbol,loc:number,n:number)
-.decl Gt(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
 .decl NotEqD(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
-.decl EXIT(loc:number)
-.decl AF_EXIT_T(interm_state:number,loc:number)
-.decl AF_EXIT_S(loc:number)
-.decl AF_EXIT(loc:number)
-.decl AF_EXIT_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl EXITPred(loc:number)
+.decl AF_EXITPred_T(interm_state:number,loc:number)
+.decl AF_EXITPred_S(loc:number)
+.decl AF_EXITPred(loc:number)
+.decl AF_EXITPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
-GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,_), !LtEq(x,loc,_).
 NotEqD(x,loc,n) :- NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,_), !Eq(x,loc,_).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
 EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,_), !NotEq(x,loc,_).
-EXIT(loc) :- Return(_,loc).
-AF_EXIT_T(interm_state,loc) :- AF_EXIT_T(tempOne,loc), !EXIT(tempOne), control_flow(tempOne,interm_state).
-AF_EXIT_T(interm_state,loc) :- !EXIT(loc), control_flow(loc,interm_state).
-AF_EXIT_S(loc) :- !EXIT(loc), control_flow(loc,tempOne), AF_EXIT_S(tempOne).
-AF_EXIT_S(loc) :- AF_EXIT_T(loc,loc).
-AF_EXIT(loc) :- State(loc), !AF_EXIT_S(loc).
-AF_EXIT_Final(loc) :- Start(loc), AF_EXIT(loc), !NotTotal(loc).
-.output LtEq
-.output Eq
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+EXITPred(loc) :- Return(_,loc).
+AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
+AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
+AF_EXITPred_S(loc) :- !EXITPred(loc), control_flow(loc,tempOne), AF_EXITPred_S(tempOne).
+AF_EXITPred_S(loc) :- AF_EXITPred_T(loc,loc).
+AF_EXITPred(loc) :- State(loc), !AF_EXITPred_S(loc).
+AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
 .output NotEq
-.output Gt
+.output Eq
 .output Start
 .output State
 .output flow
 .output Return
-.output AF_EXIT_Final(IO=stdout)
+.output AF_EXITPred_Final(IO=stdout)
 
-/* Other information 
-
-//-- Facts for Procedure <__VERIFIER_nondet_uchar> 
-
-//-- Facts for Procedure <main> 
-
-Flow(11,0). //@12:1-14:5
-Flow(7,10). //@23:5-24:1
-Flow(1,9). //@16:5-16:12
-Flow(9,6). //@16:12-16:12
-Flow(9,8). //@16:12-16:12
-Flow(8,5). //@16:12-18:13
-Flow(6,7). //@16:12-23:5
-Flow(3,1). //@18:9-16:5
-Flow(5,2). //@18:13-18:13
-Flow(5,4). //@18:13-18:13
-Flow(4,3). //@18:13-18:9
-Flow(2,3). //@18:13-18:9
-Flow(0,1). //@14:5-16:5
-Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_uchar,,n$6),IStore(&l,()n$6)]). // @14:5
-PruneNode(2,false,[Prune(!n$1, false)]). // @18:13
-PruneNode(4,true,[Prune(n$1, true)]). // @18:13
-Stmt_UnaryOperator(5,[ILoad(&l,n$1),IStore(&l,(n$1 - 1))]). // @18:13
-Join(3,[]).  // @18:9
-PruneNode(6,false,[Prune(!n$0, false)]). // @16:12
-PruneNode(8,true,[Prune(n$0, true)]). // @16:12
-Stmt_UnaryOperator(9,[ILoad(&l,n$0),IStore(&l,(n$0 - 1))]). // @16:12
-Join(1,[]).  // @16:5
-Stmt_Return(7,[IStore(&return,0)]). // @23:5
-Exit(10).  // @24:1
-Start(11). // @12:1
-*/
+.output NotTotal(IO=stdout)
 

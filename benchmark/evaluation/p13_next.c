@@ -5,8 +5,9 @@
 
 
 int main() {
-    int x = __VERIFIER_nondet_int();
-    if (x==1) {
+    int y = __VERIFIER_nondet_int();
+    int x; 
+    if (y==1) {
         x = 0;
     }
     else 

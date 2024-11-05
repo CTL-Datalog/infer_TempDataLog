@@ -10,8 +10,11 @@ int main() {
 
     while (1) {
         x = x + 1;
-        while (x==10) {
-            y = y + 1;
+        while (x>=10) {
+            y = 10; 
         }
     }
 }
+
+// x>=10 /\ x = x+1;  y = y + 1 W \/ 
+// x<10 /\ x=x+1 
