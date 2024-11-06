@@ -70,6 +70,7 @@ int main(){
     if (fRTPSink != NULL) {
       // To Martin: the correct version is to uncomment the following line!
       //clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
+      fRTPSink = NULL;
       fRTPSink->removeStreamSocket(dests->tcpSocketNum, dests->rtpChannelId);
     }
     if (fRTCPInstance != NULL) {
@@ -78,3 +79,4 @@ int main(){
     }
   } 
 }
+//add clearServerRequestAlternativeByteHandler(7).

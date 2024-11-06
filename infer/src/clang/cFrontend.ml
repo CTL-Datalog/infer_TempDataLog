@@ -2255,8 +2255,10 @@ let getStartState re : int option =
   | _ ->  None 
 
 let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule list) = 
+  let getAlltheTriggerEvent = getAlltheTriggerEventFromImplication specs in 
+
   let pathConditions = getAllPathConditions re in 
-  let (pathConditionsCTL:pure list) = getAllPathConditionsCTL specs in 
+  let (pathConditionsCTL:pure list) = getAllPathConditionsCTL specs @ getAlltheTriggerEvent in 
   (* decomposedPathConditions: this is to sample the constraints from the path *)
   let (decomposedPathConditions:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditions) )) comparePure in 
   let (decomposedpathConditionsCTL:pure list) = removeRedundant (flattenList (List.map ~f:(fun p -> decomposePure p ) (pathConditionsCTL) )) comparePure in 

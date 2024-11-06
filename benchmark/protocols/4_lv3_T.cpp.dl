@@ -13,135 +13,151 @@ State(0).
 Return(0,1).
 State(1).
 
-/*(Start())@2 · ("dests"=_)@3 · ("fRTCPInstance"=_)@4 · (((((("fRTPSink"!=0))@5 · (clearServerRequestAlternativeByteHandler())@6 · (RTPSink__removeStreamSocket())@7 · (([("fRTCPInstance"!=0)]@8 · (("fRTCPInstance"!=0))@9 · (RTCPInstance__removeStreamSocket())@10 · (Return(0))@11) \/ (["fRTCPInstance"=0]@12 · ("fRTCPInstance"=0)@13 · (Return(0))@14))) \/ (("fRTPSink"=0)@15 · (([("fRTCPInstance"!=0)]@16 · (("fRTCPInstance"!=0))@17 · (RTCPInstance__removeStreamSocket())@18 · (Return(0))@19) \/ (["fRTCPInstance"=0]@20 · ("fRTCPInstance"=0)@21 · (Return(0))@22))))) \/ ((Return(0))@23))*/
+/*(Start())@2 · ("dests"=_)@3 · ("fRTCPInstance"=_)@4 · (([("dests"!=0)]@5 · (("dests"!=0))@6 · (((("fRTPSink"!=0))@7 · (clearServerRequestAlternativeByteHandler())@8 · ("fRTPSink"=0)@9 · (RTPSink__removeStreamSocket())@10 · (([("fRTCPInstance"!=0)]@11 · (("fRTCPInstance"!=0))@12 · (RTCPInstance__removeStreamSocket())@13 · (Return(0))@14) \/ (["fRTCPInstance"=0]@15 · ("fRTCPInstance"=0)@16 · (Return(0))@17))) \/ (("fRTPSink"=0)@18 · (([("fRTCPInstance"!=0)]@19 · (("fRTCPInstance"!=0))@20 · (RTCPInstance__removeStreamSocket())@21 · (Return(0))@22) \/ (["fRTCPInstance"=0]@23 · ("fRTCPInstance"=0)@24 · (Return(0))@25))))) \/ (["dests"=0]@26 · ("dests"=0)@27 · (Return(0))@28))*/
 
 flow(2,3).
 flow(3,4).
-flow(4,5).
 flow(5,6).
 flow(6,7).
+flow(7,8).
 flow(8,9).
 flow(9,10).
-flow(10,11).
-flow(11,11).
+flow(11,12).
 flow(12,13).
 flow(13,14).
 flow(14,14).
-flow(4,15).
+flow(15,16).
 flow(16,17).
-flow(17,18).
-flow(18,19).
-flow(19,19).
+flow(17,17).
+flow(6,18).
+flow(19,20).
 flow(20,21).
 flow(21,22).
 flow(22,22).
-flow(4,23).
-flow(23,23).
+flow(23,24).
+flow(24,25).
+flow(25,25).
+flow(26,27).
+flow(27,28).
+flow(28,28).
 Start(2).
 State(2).
+NotEq("dests",3,0).
+Eq("dests",3,0).
 State(3).
 NotEq("fRTCPInstance",4,0).
 Eq("fRTCPInstance",4,0).
-NotEq("fRTPSink",5,0).
 State(5).
-clearServerRequestAlternativeByteHandler(6).
-State(6).
-RTPSink__removeStreamSocket(7).
-State(8).
-NotEq("fRTCPInstance",9,0).
-State(9).
-RTCPInstance__removeStreamSocket(10).
-State(10).
-Return(0,11).
-State(11).
+NotEq("dests",6,0).
+NotEq("fRTPSink",7,0).
 State(7).
+clearServerRequestAlternativeByteHandler(8).
+State(8).
+Eq("fRTPSink",9,0).
+State(9).
+RTPSink__removeStreamSocket(10).
+State(11).
+NotEq("fRTCPInstance",12,0).
 State(12).
-Eq("fRTCPInstance",13,0).
+RTCPInstance__removeStreamSocket(13).
 State(13).
 Return(0,14).
 State(14).
-State(16).
-NotEq("fRTCPInstance",17,0).
-State(17).
-RTCPInstance__removeStreamSocket(18).
-State(18).
-Return(0,19).
-State(19).
+State(10).
 State(15).
+Eq("fRTCPInstance",16,0).
+State(16).
+Return(0,17).
+State(17).
+State(6).
+Eq("fRTPSink",18,0).
+State(19).
+NotEq("fRTCPInstance",20,0).
 State(20).
-Eq("fRTCPInstance",21,0).
+RTCPInstance__removeStreamSocket(21).
 State(21).
 Return(0,22).
 State(22).
-State(4).
-Return(0,23).
+State(18).
 State(23).
-control_flow(7,8) :- NotEqD("fRTCPInstance",7,0).
-control_flow(7,12) :- EqD("fRTCPInstance",7,0).
-control_flow(15,16) :- NotEqD("fRTCPInstance",15,0).
-control_flow(15,20) :- EqD("fRTCPInstance",15,0).
-/*(Start())@24 · (Return(0))@25*/
-
-flow(24,25).
-flow(25,25).
-Start(24).
+Eq("fRTCPInstance",24,0).
 State(24).
 Return(0,25).
 State(25).
-
-/*(Start())@26 · (Return(0))@27*/
-
-flow(26,27).
-flow(27,27).
-Start(26).
+State(4).
 State(26).
-Return(0,27).
+Eq("dests",27,0).
 State(27).
-
-/*(Start())@28 · (Return(0))@29*/
-
-flow(28,29).
-flow(29,29).
-Start(28).
+Return(0,28).
 State(28).
-Return(0,29).
+control_flow(4,5) :- NotEqD("dests",4,0).
+control_flow(10,11) :- NotEqD("fRTCPInstance",10,0).
+control_flow(10,15) :- EqD("fRTCPInstance",10,0).
+control_flow(18,19) :- NotEqD("fRTCPInstance",18,0).
+control_flow(18,23) :- EqD("fRTCPInstance",18,0).
+control_flow(4,26) :- EqD("dests",4,0).
+/*(Start())@29 · (Return(0))@30*/
+
+flow(29,30).
+flow(30,30).
+Start(29).
 State(29).
-
-/*(Start())@30 · (Return(0))@31*/
-
-flow(30,31).
-flow(31,31).
-Start(30).
+Return(0,30).
 State(30).
-Return(0,31).
+
+/*(Start())@31 · (Return(0))@32*/
+
+flow(31,32).
+flow(32,32).
+Start(31).
 State(31).
-
-/*(Start())@32 · (Return(0))@33*/
-
-flow(32,33).
-flow(33,33).
-Start(32).
+Return(0,32).
 State(32).
-Return(0,33).
+
+/*(Start())@33 · (Return(0))@34*/
+
+flow(33,34).
+flow(34,34).
+Start(33).
 State(33).
-
-/*(Start())@34 · (Return(0))@35*/
-
-flow(34,35).
-flow(35,35).
-Start(34).
+Return(0,34).
 State(34).
-Return(0,35).
+
+/*(Start())@35 · (Return(0))@36*/
+
+flow(35,36).
+flow(36,36).
+Start(35).
 State(35).
-
-/*(Start())@36 · (Return(0))@37*/
-
-flow(36,37).
-flow(37,37).
-Start(36).
+Return(0,36).
 State(36).
-Return(0,37).
+
+/*(Start())@37 · (Return(0))@38*/
+
+flow(37,38).
+flow(38,38).
+Start(37).
 State(37).
+Return(0,38).
+State(38).
+
+/*(Start())@39 · (Return(0))@40*/
+
+flow(39,40).
+flow(40,40).
+Start(39).
+State(39).
+Return(0,40).
+State(40).
+
+/*(Start())@41 · (Return(0))@42*/
+
+flow(41,42).
+flow(42,42).
+Start(41).
+State(41).
+Return(0,42).
+State(42).
 
 //AG((("fRTPSink"!=0) => AF(clearServerRequestAlternativeByteHandler())))
 .decl Start(x:number)
