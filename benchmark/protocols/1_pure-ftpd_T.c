@@ -24,7 +24,7 @@ int main () {
     int quota_size = _nondet_int(); 
     int max_filesize = -1; 
     int ret = -1 ; 
-    int temp = -2 ; 
+    int temp; 
 
 
     if ((

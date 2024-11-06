@@ -1,0 +1,215 @@
+/*𝝐 */
+
+
+/*𝝐 */
+
+
+/*(Start())@0 · (Return(0))@1*/
+
+flow(0,1).
+flow(1,1).
+Start(0).
+State(0).
+Return(0,1).
+State(1).
+
+/*(Start())@2 · ("dests"=_)@3 · ("fRTCPInstance"=_)@4 · (([("dests"!=0)]@5 · (("dests"!=0))@6 · (((("fRTPSink"!=0))@7 · (RTPSink__removeStreamSocket())@8 · (([("fRTCPInstance"!=0)]@9 · (("fRTCPInstance"!=0))@10 · (RTCPInstance__removeStreamSocket())@11 · (Return(0))@12) \/ (["fRTCPInstance"=0]@13 · ("fRTCPInstance"=0)@14 · (Return(0))@15))) \/ (("fRTPSink"=0)@16 · (([("fRTCPInstance"!=0)]@17 · (("fRTCPInstance"!=0))@18 · (RTCPInstance__removeStreamSocket())@19 · (Return(0))@20) \/ (["fRTCPInstance"=0]@21 · ("fRTCPInstance"=0)@22 · (Return(0))@23))))) \/ (["dests"=0]@24 · ("dests"=0)@25 · (Return(0))@26))*/
+
+flow(2,3).
+flow(3,4).
+flow(5,6).
+flow(6,7).
+flow(7,8).
+flow(9,10).
+flow(10,11).
+flow(11,12).
+flow(12,12).
+flow(13,14).
+flow(14,15).
+flow(15,15).
+flow(6,16).
+flow(17,18).
+flow(18,19).
+flow(19,20).
+flow(20,20).
+clearServerRequestAlternativeByteHandler(7).
+
+flow(21,22).
+flow(22,23).
+flow(23,23).
+flow(24,25).
+flow(25,26).
+flow(26,26).
+Start(2).
+State(2).
+NotEq("dests",3,0).
+Eq("dests",3,0).
+State(3).
+NotEq("fRTCPInstance",4,0).
+Eq("fRTCPInstance",4,0).
+State(5).
+NotEq("dests",6,0).
+NotEq("fRTPSink",7,0).
+State(7).
+RTPSink__removeStreamSocket(8).
+State(9).
+NotEq("fRTCPInstance",10,0).
+State(10).
+RTCPInstance__removeStreamSocket(11).
+State(11).
+Return(0,12).
+State(12).
+State(8).
+State(13).
+Eq("fRTCPInstance",14,0).
+State(14).
+Return(0,15).
+State(15).
+State(6).
+State(17).
+NotEq("fRTCPInstance",18,0).
+State(18).
+RTCPInstance__removeStreamSocket(19).
+State(19).
+Return(0,20).
+State(20).
+State(16).
+State(21).
+Eq("fRTCPInstance",22,0).
+State(22).
+Return(0,23).
+State(23).
+State(4).
+State(24).
+Eq("dests",25,0).
+State(25).
+Return(0,26).
+State(26).
+control_flow(4,5) :- NotEqD("dests",4,0).
+control_flow(8,9) :- NotEqD("fRTCPInstance",8,0).
+control_flow(8,13) :- EqD("fRTCPInstance",8,0).
+control_flow(16,17) :- NotEqD("fRTCPInstance",16,0).
+control_flow(16,21) :- EqD("fRTCPInstance",16,0).
+control_flow(4,24) :- EqD("dests",4,0).
+/*(Start())@27 · (Return(0))@28*/
+
+flow(27,28).
+flow(28,28).
+Start(27).
+State(27).
+Return(0,28).
+State(28).
+
+/*(Start())@29 · (Return(0))@30*/
+
+flow(29,30).
+flow(30,30).
+Start(29).
+State(29).
+Return(0,30).
+State(30).
+
+/*(Start())@31 · (Return(0))@32*/
+
+flow(31,32).
+flow(32,32).
+Start(31).
+State(31).
+Return(0,32).
+State(32).
+
+/*(Start())@33 · (Return(0))@34*/
+
+flow(33,34).
+flow(34,34).
+Start(33).
+State(33).
+Return(0,34).
+State(34).
+
+/*(Start())@35 · (Return(0))@36*/
+
+flow(35,36).
+flow(36,36).
+Start(35).
+State(35).
+Return(0,36).
+State(36).
+
+/*(Start())@37 · (Return(0))@38*/
+
+flow(37,38).
+flow(38,38).
+Start(37).
+State(37).
+Return(0,38).
+State(38).
+
+/*(Start())@39 · (Return(0))@40*/
+
+flow(39,40).
+flow(40,40).
+Start(39).
+State(39).
+Return(0,40).
+State(40).
+
+//AG((("fRTPSink"!=0) => AF(clearServerRequestAlternativeByteHandler())))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl RTCPInstance__removeStreamSocket(n0:number)
+.decl RTPSink__removeStreamSocket(n0:number)
+.decl Return(n0:number,n1:number)
+.decl clearServerRequestAlternativeByteHandler(n0:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state:number,loc:number)
+.decl AF_clearServerRequestAlternativeByteHandlerPred_S(loc:number)
+.decl AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl not_fRTPSink_eq_0(loc:number)
+.decl not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl EF_NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl AG_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc:number)
+.decl AG_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
+clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), clearServerRequestAlternativeByteHandler(loc).
+AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state,loc) :- AF_clearServerRequestAlternativeByteHandlerPred_T(tempOne,loc), !clearServerRequestAlternativeByteHandlerPred(tempOne), control_flow(tempOne,interm_state).
+AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state,loc) :- !clearServerRequestAlternativeByteHandlerPred(loc), control_flow(loc,interm_state).
+AF_clearServerRequestAlternativeByteHandlerPred_S(loc) :- !clearServerRequestAlternativeByteHandlerPred(loc), control_flow(loc,tempOne), AF_clearServerRequestAlternativeByteHandlerPred_S(tempOne).
+AF_clearServerRequestAlternativeByteHandlerPred_S(loc) :- AF_clearServerRequestAlternativeByteHandlerPred_T(loc,loc).
+AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !AF_clearServerRequestAlternativeByteHandlerPred_S(loc).
+not_fRTPSink_eq_0(loc) :- State(loc), NotEq("fRTPSink",loc,0).
+not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !not_fRTPSink_eq_0(loc).
+not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- AF_clearServerRequestAlternativeByteHandlerPred(loc).
+NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).
+EF_NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- control_flow(loc,tempOne), EF_NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(tempOne).
+EF_NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).
+AG_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !EF_NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).
+AG_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred_Final(loc) :- Start(loc), AG_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc), !NotTotal(loc).
+.output Eq
+.output NotEq
+.output Start
+.output State
+.output flow
+.output RTCPInstance__removeStreamSocket
+.output RTPSink__removeStreamSocket
+.output Return
+.output AG_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
+

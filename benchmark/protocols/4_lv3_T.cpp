@@ -66,10 +66,9 @@ int main(){
     Groupsock* fRTPgs;
     Groupsock* fRTCPgs;
 
-  if (dests) {
+  if (dests>0) {
     if (fRTPSink != NULL) {
-      // To Martin: the correct version is to uncomment the following line!
-      //clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
+      clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
       fRTPSink->removeStreamSocket(dests->tcpSocketNum, dests->rtpChannelId);
     }
     if (fRTCPInstance != NULL) {
@@ -78,3 +77,4 @@ int main(){
     }
   } 
 }
+
