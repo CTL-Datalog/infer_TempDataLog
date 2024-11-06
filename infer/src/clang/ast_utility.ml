@@ -1600,9 +1600,6 @@ let rec expand_args (sep: string) (x:string list) =
   | [x] -> x
   | x :: xs -> x ^ sep ^ (expand_args sep xs)
 
-let rec existAGAF str = 
-  existAux (fun a b -> String.compare a b == 0 ) !spec_agaf str
-
 
 let sort_uniq cmp l =
   let rec rev_merge l1 l2 accu =
@@ -2061,119 +2058,89 @@ and translation_inner (ctl:ctl) : string * datalog =
       (match pure with 
       | Gt(Basic (BSTR x), Basic (BINT n) ) -> 
         updateRuleDeclearation ruleDeclearation (gtKeyWord);
-        updateRuleDeclearation bodyDeclearation (gtKeyWord^"D");
-
-        let cond = Pos (gtKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        (*updateRuleDeclearation bodyDeclearation (gtKeyWord^"D");
+*)
+        let cond = Pos (gtKeyWord(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | Gt(Basic (BSTR x), Basic (BSTR y) )  -> 
         updateRuleDeclearation ruleDeclearation (gtKeyWordVar);
-        updateRuleDeclearation bodyDeclearation (gtKeyWordVar^"D");
-        let cond = Pos (gtKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        (*updateRuleDeclearation bodyDeclearation (gtKeyWordVar^"D");
+        *)
+        let cond = Pos (gtKeyWordVar(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | GtEq(Basic (BSTR x), Basic (BINT n) ) -> 
         updateRuleDeclearation ruleDeclearation (geqKeyWord);
+        (*
         updateRuleDeclearation bodyDeclearation (geqKeyWord^"D");
-
-        let cond = Pos (geqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+*)
+        let cond = Pos (geqKeyWord(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | GtEq(Basic (BSTR x), Basic (BSTR y) ) -> 
         updateRuleDeclearation ruleDeclearation (geqKeyWordVar);
+        (*
         updateRuleDeclearation bodyDeclearation (geqKeyWordVar^"D");
-
-        let cond = Pos (geqKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+*)
+        let cond = Pos (geqKeyWordVar(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
 
       | Lt(Basic (BSTR x), Basic (BINT n) ) -> 
         updateRuleDeclearation ruleDeclearation (ltKeyWord);
+        (*
         updateRuleDeclearation bodyDeclearation (ltKeyWord^"D");
-
-        let cond = Pos (ltKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+*)
+        let cond = Pos (ltKeyWord(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
         
       | Lt(Basic (BSTR x), Basic (BSTR y) )  -> 
         updateRuleDeclearation ruleDeclearation (ltKeyWordVar);
-        updateRuleDeclearation bodyDeclearation (ltKeyWordVar^"D");
-
-        let cond = Pos (ltKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        (*updateRuleDeclearation bodyDeclearation (ltKeyWordVar^"D");
+*)
+        let cond = Pos (ltKeyWordVar(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 
       | LtEq(Basic (BSTR x), Basic (BINT n) ) -> 
-        if existAGAF leqKeyWord then 
-        (updateRuleDeclearation ruleDeclearation (leqKeyWord);
 
-        let cond = Pos (leqKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ]))
-
-        else 
 
         (updateRuleDeclearation ruleDeclearation (leqKeyWord);
-        updateRuleDeclearation bodyDeclearation (leqKeyWord^"D");
-
-        let cond = Pos (leqKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        (*updateRuleDeclearation bodyDeclearation (leqKeyWord^"D");
+*)
+        let cond = Pos (leqKeyWord(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ]))
 
       | LtEq(Basic (BSTR x), Basic (BSTR y) ) -> 
-      if existAGAF leqKeyWordVar then 
-      (updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
 
-        let cond = Pos (leqKeyWordVar, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-)
-      else 
         (updateRuleDeclearation ruleDeclearation (leqKeyWordVar);
-        updateRuleDeclearation bodyDeclearation (leqKeyWordVar^"D");
-
-        let cond = Pos (leqKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        (*updateRuleDeclearation bodyDeclearation (leqKeyWordVar^"D");
+*)
+        let cond = Pos (leqKeyWordVar(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 )
 
       | Eq(Basic (BSTR x), Basic (BINT n) ) -> 
-        if existAGAF assignKeyWord then 
-
-          (updateRuleDeclearation ruleDeclearation (assignKeyWord);
-
-          let cond = Pos (assignKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-          pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-)
-
-        else 
+ 
         (updateRuleDeclearation ruleDeclearation (assignKeyWord);
-        updateRuleDeclearation bodyDeclearation (assignKeyWord^"D");
-
-        let cond = Pos (assignKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        (*updateRuleDeclearation bodyDeclearation (assignKeyWord^"D");
+*)
+        let cond = Pos (assignKeyWord(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 )
       | Eq(Basic (BSTR x), Basic (BSTR y) ) -> 
-      if existAGAF assignKeyWordVar then 
+
         (updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
-        let cond = Pos (assignKeyWordVar, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-        )
-      else 
-        (updateRuleDeclearation ruleDeclearation (assignKeyWordVar);
-        updateRuleDeclearation bodyDeclearation (assignKeyWordVar^"D");
-        let cond = Pos (assignKeyWordVar^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
+        (* updateRuleDeclearation bodyDeclearation (assignKeyWordVar^"D"); *)
+        let cond = Pos (assignKeyWordVar(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BSTR y)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 )
       | Neg(Eq(Basic (BSTR x), Basic (BINT n) )) -> 
-      if existAGAF notEQKeyWord then 
-      (
-        updateRuleDeclearation ruleDeclearation (notEQKeyWord);
 
-        let cond = Pos (notEQKeyWord, [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
-        pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
-
-
-      )
-      else
         (updateRuleDeclearation ruleDeclearation (notEQKeyWord);
         updateRuleDeclearation bodyDeclearation (notEQKeyWord^"D");
 
-        let cond = Pos (notEQKeyWord^"D", [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
+        let cond = Pos (notEQKeyWord(*^"D"*), [Basic(BSTR x);Basic (BVAR locKeyWord);Basic (BINT n)]) in 
         pName,([(pName,params)], [  ((pName, vars), [Pos(stateKeyWord, [Basic (BVAR locKeyWord)]) ; cond]) ])
 )
       | Predicate (str, _) -> 

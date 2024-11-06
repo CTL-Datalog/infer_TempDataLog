@@ -7,7 +7,7 @@
 %token LPAR RPAR  DISJ   
 %token LSPEC RSPEC NULL
 %token EOF NOTSINGLE RETURN
-%token GT LT EQ GTEQ LTEQ CONJ COMMA MINUS 
+%token GT LT EQ GTEQ LTEQ CONJ COMMA MINUS  CTLCONJ
 %token PLUS TRUE FALSE AX EX AF EF AG EG AU EU
 %token IMPLY 
 %left DISJ 
@@ -112,7 +112,7 @@ ctl_formula:
 | EG LPAR ctl = ctl_formula RPAR {(EG ctl)}
 | AU LPAR ctl1 = ctl_formula COMMA ctl2 = ctl_formula RPAR {AU(ctl1, ctl2)}
 | EU LPAR ctl1 = ctl_formula COMMA ctl2 = ctl_formula RPAR {EU(ctl1, ctl2)}
-| ctl1 = ctl_formula CONJ ctl2 = ctl_formula {Conj(ctl1, ctl2)}
+| ctl1 = ctl_formula CTLCONJ ctl2 = ctl_formula {Conj(ctl1, ctl2)}
 | ctl1 = ctl_formula DISJ ctl2 = ctl_formula {Disj(ctl1, ctl2)}
 | ctl1 = ctl_formula IMPLY ctl2 = ctl_formula {Imply(ctl1, ctl2)}
 

@@ -1814,7 +1814,17 @@ let rec getAlltheTriggerEventFromImplication (li:ctl list) : pure list =
   | [] -> [] 
   | x :: xs  -> 
     (match x with 
-    | Imply(Atom (_, prop), _) -> [prop ; normalise_pure (Neg(prop))] @ getAlltheTriggerEventFromImplication xs 
+    | Imply(Atom (_, prop), _) -> 
+      let (allPure:pure list) = decomposePure prop  in 
+      let allNegPure = List.map allPure ~f:(fun (a:pure):pure -> normalise_pure (Neg a)) in 
+      allPure @ allNegPure @ getAlltheTriggerEventFromImplication xs 
+      
+   
+    | Imply(Conj(Atom (_, prop), AX(Atom (_, prop2))), _) -> 
+      let (allPure:pure list) = decomposePure prop @ decomposePure prop2 in 
+      let allNegPure = List.map allPure ~f:(fun (a:pure):pure -> normalise_pure (Neg a)) in 
+      allPure @ allNegPure @ getAlltheTriggerEventFromImplication xs 
+      
     | AG(ctlIn) | AF(ctlIn) | EG(ctlIn) | EF(ctlIn)| Neg(ctlIn)   -> getAlltheTriggerEventFromImplication (ctlIn::xs) 
     | AU(ctlIn1,ctlIn2)| EU(ctlIn1,ctlIn2) -> getAlltheTriggerEventFromImplication (ctlIn1::ctlIn2::xs) 
     | _ -> getAlltheTriggerEventFromImplication xs 
@@ -1842,9 +1852,9 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   let pass =  normalise_es (getRegularExprFromCFG procedure) in 
 
   
-  (*
+  
   let pass =  normalise_es (removeAlltheTriggerEvent pass getAlltheTriggerEvent) in 
-*)
+
   
   (match pass with | Emp -> () | _ ->
   print_endline ("\nAfter getRegularExprFromCFG:\n"^string_of_regularExpr (pass)^ "\n------------")); 
@@ -2572,7 +2582,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting 
-    @ ["/* Other information \n"]@facts@["*/\n"]  );
+  (*  @ ["/* Other information \n"]@facts@["*/\n"] *) );
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 

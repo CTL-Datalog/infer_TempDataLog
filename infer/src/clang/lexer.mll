@@ -41,6 +41,8 @@ rule token = parse
 | "AU" {AU}
 | "EU" {EU}
 | "TRUE" { TRUE }
+| "AND" { CTLCONJ }
+
 | "FALSE" { FALSE }
 | "nil" {NULL}
 | "ret" {RETURN}
