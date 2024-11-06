@@ -1,0 +1,549 @@
+/*𝝐 */
+
+
+/*𝝐 */
+
+
+/*(Start())@0 · ("len"=2)@1 · ("peek"=_)@2 · ("type"=23)@3 · ("n"=_)@4 · ("rr"=_)@5 · ((("n"="&rr.length")@6 · ((["peek"=0]@7 · ("peek"=0)@8 · ((((("curr_rec"=("curr_rec"+1))@9 · ("rr"=("rr"+1))@10 · ("read_bytes"=("read_bytes"+"n"))@11 · (Return(0))@12) \/ ((([("peek"!=0)]@13 · (("peek"!=0))@14 · ((["n"="&rr.length"]@15 · ("n"="&rr.length")@16 · ("curr_rec"=("curr_rec"+1))@17 · ("rr"=("rr"+1))@18 · ("read_bytes"=("read_bytes"+"n"))@19 · (Return(0))@20) \/ ([("n"!="&rr.length")]@21 · (("n"!="&rr.length"))@22 · ("read_bytes"=("read_bytes"+"n"))@23 · (Return(0))@24))) \/ (["peek"=0]@25 · ("peek"=0)@26 · ("read_bytes"=("read_bytes"+"n"))@27 · (Return(0))@28))))) \/ (((("curr_rec"=("curr_rec"+1))@29 · ("rr"=("rr"+1))@30 · ("read_bytes"=("read_bytes"+"n"))@31 · (Return(0))@32) \/ ((([("peek"!=0)]@33 · (("peek"!=0))@34 · ((["n"="&rr.length"]@35 · ("n"="&rr.length")@36 · ("curr_rec"=("curr_rec"+1))@37 · ("rr"=("rr"+1))@38 · ("read_bytes"=("read_bytes"+"n"))@39 · (Return(0))@40) \/ ([("n"!="&rr.length")]@41 · (("n"!="&rr.length"))@42 · ("read_bytes"=("read_bytes"+"n"))@43 · (Return(0))@44))) \/ (["peek"=0]@45 · ("peek"=0)@46 · ("read_bytes"=("read_bytes"+"n"))@47 · (Return(0))@48))))))) \/ ([("peek"!=0)]@49 · (("peek"!=0))@50 · ((("tem"=0)@51 · ("tem"=1)@52 · ((("curr_rec"=("curr_rec"+1))@53 · ("rr"=("rr"+1))@54 · ("read_bytes"=("read_bytes"+"n"))@55 · (Return(0))@56) \/ ((([("peek"!=0)]@57 · (("peek"!=0))@58 · ((["n"="&rr.length"]@59 · ("n"="&rr.length")@60 · ("curr_rec"=("curr_rec"+1))@61 · ("rr"=("rr"+1))@62 · ("read_bytes"=("read_bytes"+"n"))@63 · (Return(0))@64) \/ ([("n"!="&rr.length")]@65 · (("n"!="&rr.length"))@66 · ("read_bytes"=("read_bytes"+"n"))@67 · (Return(0))@68))) \/ (["peek"=0]@69 · ("peek"=0)@70 · ("read_bytes"=("read_bytes"+"n"))@71 · (Return(0))@72))))) \/ ((("tem"!=0))@73 · ((("curr_rec"=("curr_rec"+1))@74 · ("rr"=("rr"+1))@75 · ("read_bytes"=("read_bytes"+"n"))@76 · (Return(0))@77) \/ ((([("peek"!=0)]@78 · (("peek"!=0))@79 · ((["n"="&rr.length"]@80 · ("n"="&rr.length")@81 · ("curr_rec"=("curr_rec"+1))@82 · ("rr"=("rr"+1))@83 · ("read_bytes"=("read_bytes"+"n"))@84 · (Return(0))@85) \/ ([("n"!="&rr.length")]@86 · (("n"!="&rr.length"))@87 · ("read_bytes"=("read_bytes"+"n"))@88 · (Return(0))@89))) \/ (["peek"=0]@90 · ("peek"=0)@91 · ("read_bytes"=("read_bytes"+"n"))@92 · (Return(0))@93))))))))) \/ (((["peek"=0]@94 · ("peek"=0)@95 · ((((("curr_rec"=("curr_rec"+1))@96 · ("rr"=("rr"+1))@97 · ("read_bytes"=("read_bytes"+"n"))@98 · (Return(0))@99) \/ ((([("peek"!=0)]@100 · (("peek"!=0))@101 · ((["n"="&rr.length"]@102 · ("n"="&rr.length")@103 · ("curr_rec"=("curr_rec"+1))@104 · ("rr"=("rr"+1))@105 · ("read_bytes"=("read_bytes"+"n"))@106 · (Return(0))@107) \/ ([("n"!="&rr.length")]@108 · (("n"!="&rr.length"))@109 · ("read_bytes"=("read_bytes"+"n"))@110 · (Return(0))@111))) \/ (["peek"=0]@112 · ("peek"=0)@113 · ("read_bytes"=("read_bytes"+"n"))@114 · (Return(0))@115))))) \/ (((("curr_rec"=("curr_rec"+1))@116 · ("rr"=("rr"+1))@117 · ("read_bytes"=("read_bytes"+"n"))@118 · (Return(0))@119) \/ ((([("peek"!=0)]@120 · (("peek"!=0))@121 · ((["n"="&rr.length"]@122 · ("n"="&rr.length")@123 · ("curr_rec"=("curr_rec"+1))@124 · ("rr"=("rr"+1))@125 · ("read_bytes"=("read_bytes"+"n"))@126 · (Return(0))@127) \/ ([("n"!="&rr.length")]@128 · (("n"!="&rr.length"))@129 · ("read_bytes"=("read_bytes"+"n"))@130 · (Return(0))@131))) \/ (["peek"=0]@132 · ("peek"=0)@133 · ("read_bytes"=("read_bytes"+"n"))@134 · (Return(0))@135))))))) \/ ([("peek"!=0)]@136 · (("peek"!=0))@137 · ((("tem"=0)@138 · ("tem"=1)@139 · ((("curr_rec"=("curr_rec"+1))@140 · ("rr"=("rr"+1))@141 · ("read_bytes"=("read_bytes"+"n"))@142 · (Return(0))@143) \/ ((([("peek"!=0)]@144 · (("peek"!=0))@145 · ((["n"="&rr.length"]@146 · ("n"="&rr.length")@147 · ("curr_rec"=("curr_rec"+1))@148 · ("rr"=("rr"+1))@149 · ("read_bytes"=("read_bytes"+"n"))@150 · (Return(0))@151) \/ ([("n"!="&rr.length")]@152 · (("n"!="&rr.length"))@153 · ("read_bytes"=("read_bytes"+"n"))@154 · (Return(0))@155))) \/ (["peek"=0]@156 · ("peek"=0)@157 · ("read_bytes"=("read_bytes"+"n"))@158 · (Return(0))@159))))) \/ ((("tem"!=0))@160 · ((("curr_rec"=("curr_rec"+1))@161 · ("rr"=("rr"+1))@162 · ("read_bytes"=("read_bytes"+"n"))@163 · (Return(0))@164) \/ ((([("peek"!=0)]@165 · (("peek"!=0))@166 · ((["n"="&rr.length"]@167 · ("n"="&rr.length")@168 · ("curr_rec"=("curr_rec"+1))@169 · ("rr"=("rr"+1))@170 · ("read_bytes"=("read_bytes"+"n"))@171 · (Return(0))@172) \/ ([("n"!="&rr.length")]@173 · (("n"!="&rr.length"))@174 · ("read_bytes"=("read_bytes"+"n"))@175 · (Return(0))@176))) \/ (["peek"=0]@177 · ("peek"=0)@178 · ("read_bytes"=("read_bytes"+"n"))@179 · (Return(0))@180))))))))))*/
+
+flow(0,1).
+flow(1,2).
+flow(2,3).
+flow(3,4).
+flow(4,5).
+flow(5,6).
+flow(7,8).
+flow(8,9).
+flow(9,10).
+flow(10,11).
+flow(11,12).
+flow(12,12).
+flow(13,14).
+flow(15,16).
+flow(16,17).
+flow(17,18).
+flow(18,19).
+flow(19,20).
+flow(20,20).
+SSL3_RECORD_set_read(51).
+SSL3_RECORD_set_read(138).
+
+flow(21,22).
+flow(22,23).
+flow(23,24).
+flow(24,24).
+flow(25,26).
+flow(26,27).
+flow(27,28).
+flow(28,28).
+flow(8,29).
+flow(29,30).
+flow(30,31).
+flow(31,32).
+flow(32,32).
+flow(33,34).
+flow(35,36).
+flow(36,37).
+flow(37,38).
+flow(38,39).
+flow(39,40).
+flow(40,40).
+flow(41,42).
+flow(42,43).
+flow(43,44).
+flow(44,44).
+flow(45,46).
+flow(46,47).
+flow(47,48).
+flow(48,48).
+flow(49,50).
+flow(50,51).
+flow(51,52).
+flow(52,53).
+flow(53,54).
+flow(54,55).
+flow(55,56).
+flow(56,56).
+flow(57,58).
+flow(59,60).
+flow(60,61).
+flow(61,62).
+flow(62,63).
+flow(63,64).
+flow(64,64).
+flow(65,66).
+flow(66,67).
+flow(67,68).
+flow(68,68).
+flow(69,70).
+flow(70,71).
+flow(71,72).
+flow(72,72).
+flow(50,73).
+flow(73,74).
+flow(74,75).
+flow(75,76).
+flow(76,77).
+flow(77,77).
+flow(78,79).
+flow(80,81).
+flow(81,82).
+flow(82,83).
+flow(83,84).
+flow(84,85).
+flow(85,85).
+flow(86,87).
+flow(87,88).
+flow(88,89).
+flow(89,89).
+flow(90,91).
+flow(91,92).
+flow(92,93).
+flow(93,93).
+flow(94,95).
+flow(95,96).
+flow(96,97).
+flow(97,98).
+flow(98,99).
+flow(99,99).
+flow(100,101).
+flow(102,103).
+flow(103,104).
+flow(104,105).
+flow(105,106).
+flow(106,107).
+flow(107,107).
+flow(108,109).
+flow(109,110).
+flow(110,111).
+flow(111,111).
+flow(112,113).
+flow(113,114).
+flow(114,115).
+flow(115,115).
+flow(95,116).
+flow(116,117).
+flow(117,118).
+flow(118,119).
+flow(119,119).
+flow(120,121).
+flow(122,123).
+flow(123,124).
+flow(124,125).
+flow(125,126).
+flow(126,127).
+flow(127,127).
+flow(128,129).
+flow(129,130).
+flow(130,131).
+flow(131,131).
+flow(132,133).
+flow(133,134).
+flow(134,135).
+flow(135,135).
+flow(136,137).
+flow(137,138).
+flow(138,139).
+flow(139,140).
+flow(140,141).
+flow(141,142).
+flow(142,143).
+flow(143,143).
+flow(144,145).
+flow(146,147).
+flow(147,148).
+flow(148,149).
+flow(149,150).
+flow(150,151).
+flow(151,151).
+flow(152,153).
+flow(153,154).
+flow(154,155).
+flow(155,155).
+flow(156,157).
+flow(157,158).
+flow(158,159).
+flow(159,159).
+flow(137,160).
+flow(160,161).
+flow(161,162).
+flow(162,163).
+flow(163,164).
+flow(164,164).
+flow(165,166).
+flow(167,168).
+flow(168,169).
+flow(169,170).
+flow(170,171).
+flow(171,172).
+flow(172,172).
+flow(173,174).
+flow(174,175).
+flow(175,176).
+flow(176,176).
+flow(177,178).
+flow(178,179).
+flow(179,180).
+flow(180,180).
+Start(0).
+State(0).
+State(1).
+NotEq("peek",2,0).
+Eq("peek",2,0).
+State(2).
+State(3).
+NotEqVar("n",4,"&rr.length").
+EqVar("n",4,"&rr.length").
+State(4).
+EqVar("n",6,"&rr.length").
+State(7).
+Eq("peek",8,0).
+State(9).
+State(10).
+State(11).
+Return(0,12).
+State(12).
+State(13).
+NotEq("peek",14,0).
+State(15).
+EqVar("n",16,"&rr.length").
+State(16).
+State(17).
+State(18).
+State(19).
+Return(0,20).
+State(20).
+State(14).
+State(21).
+NotEqVar("n",22,"&rr.length").
+State(22).
+State(23).
+Return(0,24).
+State(24).
+State(25).
+Eq("peek",26,0).
+State(26).
+State(27).
+Return(0,28).
+State(28).
+State(29).
+State(30).
+State(31).
+Return(0,32).
+State(32).
+State(33).
+NotEq("peek",34,0).
+State(35).
+EqVar("n",36,"&rr.length").
+State(36).
+State(37).
+State(38).
+State(39).
+Return(0,40).
+State(40).
+State(34).
+State(41).
+NotEqVar("n",42,"&rr.length").
+State(42).
+State(43).
+Return(0,44).
+State(44).
+State(8).
+State(45).
+Eq("peek",46,0).
+State(46).
+State(47).
+Return(0,48).
+State(48).
+State(6).
+State(49).
+NotEq("peek",50,0).
+Eq("tem",51,0).
+State(51).
+NotEq("tem",52,0).
+State(53).
+State(54).
+State(55).
+Return(0,56).
+State(56).
+State(57).
+NotEq("peek",58,0).
+State(59).
+EqVar("n",60,"&rr.length").
+State(60).
+State(61).
+State(62).
+State(63).
+Return(0,64).
+State(64).
+State(58).
+State(65).
+NotEqVar("n",66,"&rr.length").
+State(66).
+State(67).
+Return(0,68).
+State(68).
+State(52).
+State(69).
+Eq("peek",70,0).
+State(70).
+State(71).
+Return(0,72).
+State(72).
+State(50).
+NotEq("tem",73,0).
+State(74).
+State(75).
+State(76).
+Return(0,77).
+State(77).
+State(78).
+NotEq("peek",79,0).
+State(80).
+EqVar("n",81,"&rr.length").
+State(81).
+State(82).
+State(83).
+State(84).
+Return(0,85).
+State(85).
+State(79).
+State(86).
+NotEqVar("n",87,"&rr.length").
+State(87).
+State(88).
+Return(0,89).
+State(89).
+State(73).
+State(90).
+Eq("peek",91,0).
+State(91).
+State(92).
+Return(0,93).
+State(93).
+State(94).
+Eq("peek",95,0).
+State(96).
+State(97).
+State(98).
+Return(0,99).
+State(99).
+State(100).
+NotEq("peek",101,0).
+State(102).
+EqVar("n",103,"&rr.length").
+State(103).
+State(104).
+State(105).
+State(106).
+Return(0,107).
+State(107).
+State(101).
+State(108).
+NotEqVar("n",109,"&rr.length").
+State(109).
+State(110).
+Return(0,111).
+State(111).
+State(112).
+Eq("peek",113,0).
+State(113).
+State(114).
+Return(0,115).
+State(115).
+State(116).
+State(117).
+State(118).
+Return(0,119).
+State(119).
+State(120).
+NotEq("peek",121,0).
+State(122).
+EqVar("n",123,"&rr.length").
+State(123).
+State(124).
+State(125).
+State(126).
+Return(0,127).
+State(127).
+State(121).
+State(128).
+NotEqVar("n",129,"&rr.length").
+State(129).
+State(130).
+Return(0,131).
+State(131).
+State(95).
+State(132).
+Eq("peek",133,0).
+State(133).
+State(134).
+Return(0,135).
+State(135).
+State(5).
+State(136).
+NotEq("peek",137,0).
+Eq("tem",138,0).
+State(138).
+NotEq("tem",139,0).
+State(140).
+State(141).
+State(142).
+Return(0,143).
+State(143).
+State(144).
+NotEq("peek",145,0).
+State(146).
+EqVar("n",147,"&rr.length").
+State(147).
+State(148).
+State(149).
+State(150).
+Return(0,151).
+State(151).
+State(145).
+State(152).
+NotEqVar("n",153,"&rr.length").
+State(153).
+State(154).
+Return(0,155).
+State(155).
+State(139).
+State(156).
+Eq("peek",157,0).
+State(157).
+State(158).
+Return(0,159).
+State(159).
+State(137).
+NotEq("tem",160,0).
+State(161).
+State(162).
+State(163).
+Return(0,164).
+State(164).
+State(165).
+NotEq("peek",166,0).
+State(167).
+EqVar("n",168,"&rr.length").
+State(168).
+State(169).
+State(170).
+State(171).
+Return(0,172).
+State(172).
+State(166).
+State(173).
+NotEqVar("n",174,"&rr.length").
+State(174).
+State(175).
+Return(0,176).
+State(176).
+State(160).
+State(177).
+Eq("peek",178,0).
+State(178).
+State(179).
+Return(0,180).
+State(180).
+control_flow(6,7) :- EqD("peek",6,0).
+control_flow(8,13) :- NotEqD("peek",8,0).
+control_flow(14,15) :- EqVarD("n",14,"&rr.length").
+control_flow(14,21) :- NotEqVarD("n",14,"&rr.length").
+control_flow(8,25) :- EqD("peek",8,0).
+control_flow(8,33) :- NotEqD("peek",8,0).
+control_flow(34,35) :- EqVarD("n",34,"&rr.length").
+control_flow(34,41) :- NotEqVarD("n",34,"&rr.length").
+control_flow(8,45) :- EqD("peek",8,0).
+control_flow(6,49) :- NotEqD("peek",6,0).
+control_flow(52,57) :- NotEqD("peek",52,0).
+control_flow(58,59) :- EqVarD("n",58,"&rr.length").
+control_flow(58,65) :- NotEqVarD("n",58,"&rr.length").
+control_flow(52,69) :- EqD("peek",52,0).
+control_flow(73,78) :- NotEqD("peek",73,0).
+control_flow(79,80) :- EqVarD("n",79,"&rr.length").
+control_flow(79,86) :- NotEqVarD("n",79,"&rr.length").
+control_flow(73,90) :- EqD("peek",73,0).
+control_flow(5,94) :- EqD("peek",5,0).
+control_flow(95,100) :- NotEqD("peek",95,0).
+control_flow(101,102) :- EqVarD("n",101,"&rr.length").
+control_flow(101,108) :- NotEqVarD("n",101,"&rr.length").
+control_flow(95,112) :- EqD("peek",95,0).
+control_flow(95,120) :- NotEqD("peek",95,0).
+control_flow(121,122) :- EqVarD("n",121,"&rr.length").
+control_flow(121,128) :- NotEqVarD("n",121,"&rr.length").
+control_flow(95,132) :- EqD("peek",95,0).
+control_flow(5,136) :- NotEqD("peek",5,0).
+control_flow(139,144) :- NotEqD("peek",139,0).
+control_flow(145,146) :- EqVarD("n",145,"&rr.length").
+control_flow(145,152) :- NotEqVarD("n",145,"&rr.length").
+control_flow(139,156) :- EqD("peek",139,0).
+control_flow(160,165) :- NotEqD("peek",160,0).
+control_flow(166,167) :- EqVarD("n",166,"&rr.length").
+control_flow(166,173) :- NotEqVarD("n",166,"&rr.length").
+control_flow(160,177) :- EqD("peek",160,0).
+//AG(("tem"=0 => AF(SSL3_RECORD_set_read())))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl SSL3_RECORD_set_read(n0:number)
+.decl NotEqVar(x:symbol,loc:number,y:symbol)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl EqVar(x:symbol,loc:number,y:symbol)
+.decl NotEqVarD(x:symbol,loc:number,y:symbol)
+.decl EqVarD(x:symbol,loc:number,y:symbol)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl SSL3_RECORD_set_readPred(loc:number)
+.decl AF_SSL3_RECORD_set_readPred_T(interm_state:number,loc:number)
+.decl AF_SSL3_RECORD_set_readPred_S(loc:number)
+.decl AF_SSL3_RECORD_set_readPred(loc:number)
+.decl tem_eq_0(loc:number)
+.decl tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl EF_NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl AG_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc:number)
+.decl AG_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+NotEqVarD(x,loc,n) :- NotEqVar(x,loc,n).
+NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,n), !EqVar(x,loc,n).
+EqVarD(x,loc,n) :- EqVar(x,loc,n).
+EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,n), !NotEqVar(x,loc,n).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+SSL3_RECORD_set_readPred(loc) :- State(loc), SSL3_RECORD_set_read(loc).
+AF_SSL3_RECORD_set_readPred_T(interm_state,loc) :- AF_SSL3_RECORD_set_readPred_T(tempOne,loc), !SSL3_RECORD_set_readPred(tempOne), control_flow(tempOne,interm_state).
+AF_SSL3_RECORD_set_readPred_T(interm_state,loc) :- !SSL3_RECORD_set_readPred(loc), control_flow(loc,interm_state).
+AF_SSL3_RECORD_set_readPred_S(loc) :- !SSL3_RECORD_set_readPred(loc), control_flow(loc,tempOne), AF_SSL3_RECORD_set_readPred_S(tempOne).
+AF_SSL3_RECORD_set_readPred_S(loc) :- AF_SSL3_RECORD_set_readPred_T(loc,loc).
+AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !AF_SSL3_RECORD_set_readPred_S(loc).
+tem_eq_0(loc) :- State(loc), EqD("tem",loc,0).
+tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !tem_eq_0(loc).
+tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- AF_SSL3_RECORD_set_readPred(loc).
+NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc).
+EF_NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- control_flow(loc,tempOne), EF_NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(tempOne).
+EF_NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc).
+AG_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc) :- State(loc), !EF_NOT_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc).
+AG_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred_Final(loc) :- Start(loc), AG_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred(loc), !NotTotal(loc).
+.output NotEqVar
+.output NotEq
+.output Eq
+.output EqVar
+.output Start
+.output State
+.output flow
+.output Return
+.output AG_tem_eq_0_IMPLY_AF_SSL3_RECORD_set_readPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
+

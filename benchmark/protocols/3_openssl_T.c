@@ -54,7 +54,6 @@ int main() {
     unsigned int n = _nondet_int(); 
     unsigned int curr_rec, num_recs, read_bytes;
     SSL3_RECORD *rr = __VERIFIER_nondet_int(); 
-
     read_bytes = 0;
     //do {
         if ((unsigned int)len - read_bytes > rr->length)
@@ -71,11 +70,10 @@ int main() {
             }
         }
         else {
-            int tem;// = SSL3_RECORD_get_length(rr);
+            int tem = SSL3_RECORD_get_length(rr);
             if (tem == 0){
-                    // To Martin: the correct version is to uncomment the following line!
-                    //SSL3_RECORD_set_read(rr);
-                    tem = 1; 
+                    SSL3_RECORD_set_read(rr);
+                    tem =1; 
                     }
         }
 
@@ -91,7 +89,3 @@ int main() {
 
     return 0;
 }
-
-
-// add SSL3_RECORD_set_read(51).
-// add SSL3_RECORD_set_read(138).
