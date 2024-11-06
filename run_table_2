@@ -32,9 +32,9 @@ infer/bin/infer run -- clang -c benchmark/protocols/1_pure-ftpd.c
 infer/bin/infer run -- clang -c benchmark/protocols/2_lv5_T.cpp 
 infer/bin/infer run -- clang -c benchmark/protocols/2_lv5.cpp 
 # 27
-??? 
+infer/bin/infer run -- clang -c benchmark/protocols/3_openssl_T.c
+infer/bin/infer run -- clang -c benchmark/protocols/3_openssl.c
 # 28
-???
 infer/bin/infer run -- clang -c benchmark/protocols/4_lv3_T.cpp 
 infer/bin/infer run -- clang -c benchmark/protocols/4_lv3.cpp
 

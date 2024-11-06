@@ -25,9 +25,6 @@ flow(17,18).
 flow(18,19).
 flow(19,20).
 flow(20,20).
-SSL3_RECORD_set_read(51).
-SSL3_RECORD_set_read(138).
-
 flow(21,22).
 flow(22,23).
 flow(23,24).
