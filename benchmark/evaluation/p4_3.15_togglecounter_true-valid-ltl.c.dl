@@ -11,6 +11,7 @@ flow(5,6).
 flow(7,4).
 flow(7,6).
 Start(1).
+Eq("t",4,1).
 State(4).
 State(5).
 State(1).
@@ -18,7 +19,7 @@ Eq("t",6,0).
 State(6).
 State(7).
 
-//AG((AF("t"=0) /\ AF("t"=0)))
+//AG((AF("t"=0) /\ AF("t"=1)))
 .decl Start(x:number)
 .decl State(x:number)
 .decl flow(x:number,y:number)
@@ -28,78 +29,49 @@ State(7).
 .decl NotEq(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
+.decl t_eq_1(loc:number)
+.decl AF_t_eq_1_T(interm_state:number,loc:number)
+.decl AF_t_eq_1_S(loc:number)
+.decl AF_t_eq_1(loc:number)
 .decl t_eq_0(loc:number)
 .decl AF_t_eq_0_T(interm_state:number,loc:number)
 .decl AF_t_eq_0_S(loc:number)
 .decl AF_t_eq_0(loc:number)
-.decl AF_t_eq_0_AND_AF_t_eq_0(loc:number)
-.decl NOT_AF_t_eq_0_AND_AF_t_eq_0(loc:number)
-.decl EF_NOT_AF_t_eq_0_AND_AF_t_eq_0(loc:number)
-.decl AG_AF_t_eq_0_AND_AF_t_eq_0(loc:number)
-.decl AG_AF_t_eq_0_AND_AF_t_eq_0_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+.decl AF_t_eq_0_AND_AF_t_eq_1(loc:number)
+.decl NOT_AF_t_eq_0_AND_AF_t_eq_1(loc:number)
+.decl EF_NOT_AF_t_eq_0_AND_AF_t_eq_1(loc:number)
+.decl AG_AF_t_eq_0_AND_AF_t_eq_1(loc:number)
+.decl AG_AF_t_eq_0_AND_AF_t_eq_1_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
 transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 EqD(x,loc,n) :- Eq(x,loc,n).
 EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+t_eq_1(loc) :- State(loc), EqD("t",loc,1).
+AF_t_eq_1_T(interm_state,loc) :- AF_t_eq_1_T(tempOne,loc), !t_eq_1(tempOne), control_flow(tempOne,interm_state).
+AF_t_eq_1_T(interm_state,loc) :- !t_eq_1(loc), control_flow(loc,interm_state).
+AF_t_eq_1_S(loc) :- !t_eq_1(loc), control_flow(loc,tempOne), AF_t_eq_1_S(tempOne).
+AF_t_eq_1_S(loc) :- AF_t_eq_1_T(loc,loc).
+AF_t_eq_1(loc) :- State(loc), !AF_t_eq_1_S(loc).
 t_eq_0(loc) :- State(loc), EqD("t",loc,0).
 AF_t_eq_0_T(interm_state,loc) :- AF_t_eq_0_T(tempOne,loc), !t_eq_0(tempOne), control_flow(tempOne,interm_state).
 AF_t_eq_0_T(interm_state,loc) :- !t_eq_0(loc), control_flow(loc,interm_state).
 AF_t_eq_0_S(loc) :- !t_eq_0(loc), control_flow(loc,tempOne), AF_t_eq_0_S(tempOne).
 AF_t_eq_0_S(loc) :- AF_t_eq_0_T(loc,loc).
 AF_t_eq_0(loc) :- State(loc), !AF_t_eq_0_S(loc).
-t_eq_0(loc) :- State(loc), EqD("t",loc,0).
-AF_t_eq_0_T(interm_state,loc) :- AF_t_eq_0_T(tempOne,loc), !t_eq_0(tempOne), control_flow(tempOne,interm_state).
-AF_t_eq_0_T(interm_state,loc) :- !t_eq_0(loc), control_flow(loc,interm_state).
-AF_t_eq_0_S(loc) :- !t_eq_0(loc), control_flow(loc,tempOne), AF_t_eq_0_S(tempOne).
-AF_t_eq_0_S(loc) :- AF_t_eq_0_T(loc,loc).
-AF_t_eq_0(loc) :- State(loc), !AF_t_eq_0_S(loc).
-AF_t_eq_0_AND_AF_t_eq_0(loc) :- AF_t_eq_0(loc), AF_t_eq_0(loc).
-NOT_AF_t_eq_0_AND_AF_t_eq_0(loc) :- State(loc), !AF_t_eq_0_AND_AF_t_eq_0(loc).
-EF_NOT_AF_t_eq_0_AND_AF_t_eq_0(loc) :- control_flow(loc,tempOne), EF_NOT_AF_t_eq_0_AND_AF_t_eq_0(tempOne).
-EF_NOT_AF_t_eq_0_AND_AF_t_eq_0(loc) :- NOT_AF_t_eq_0_AND_AF_t_eq_0(loc).
-AG_AF_t_eq_0_AND_AF_t_eq_0(loc) :- State(loc), !EF_NOT_AF_t_eq_0_AND_AF_t_eq_0(loc).
-AG_AF_t_eq_0_AND_AF_t_eq_0_Final(loc) :- Start(loc), AG_AF_t_eq_0_AND_AF_t_eq_0(loc), !NotTotal(loc).
+AF_t_eq_0_AND_AF_t_eq_1(loc) :- AF_t_eq_0(loc), AF_t_eq_1(loc).
+NOT_AF_t_eq_0_AND_AF_t_eq_1(loc) :- State(loc), !AF_t_eq_0_AND_AF_t_eq_1(loc).
+EF_NOT_AF_t_eq_0_AND_AF_t_eq_1(loc) :- control_flow(loc,tempOne), EF_NOT_AF_t_eq_0_AND_AF_t_eq_1(tempOne).
+EF_NOT_AF_t_eq_0_AND_AF_t_eq_1(loc) :- NOT_AF_t_eq_0_AND_AF_t_eq_1(loc).
+AG_AF_t_eq_0_AND_AF_t_eq_1(loc) :- State(loc), !EF_NOT_AF_t_eq_0_AND_AF_t_eq_1(loc).
+AG_AF_t_eq_0_AND_AF_t_eq_1_Final(loc) :- Start(loc), AG_AF_t_eq_0_AND_AF_t_eq_1(loc), !NotTotal(loc).
 .output NotEq
 .output Eq
 .output Start
 .output State
 .output flow
-.output AG_AF_t_eq_0_AND_AF_t_eq_0_Final(IO=stdout)
+.output AG_AF_t_eq_0_AND_AF_t_eq_1_Final(IO=stdout)
 
 .output NotTotal(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <main> 
-
-Flow(12,7). //@6:1-9:2
-Flow(9,11). //@18:2-19:1
-Flow(7,8). //@9:2-9:9
-Flow(7,10). //@9:2-9:9
-Flow(10,5). //@9:9-10:7
-Flow(8,9). //@9:9-18:2
-Flow(6,7). //@15:3-9:2
-Flow(1,6). //@10:3-15:3
-Flow(5,3). //@10:7-10:7
-Flow(5,4). //@10:7-10:7
-Flow(4,2). //@10:7-11:4
-Flow(3,0). //@10:7-13:4
-Flow(2,1). //@11:4-10:3
-Flow(0,1). //@13:4-10:3
-Stmt_BinaryOperatorStmt(0,Assign,[IStore(&t,0)]). // @13:4
-Stmt_BinaryOperatorStmt(2,Assign,[IStore(&t,1)]). // @11:4
-PruneNode(3,false,[Prune(!((n$1 % 2) == 0), false)]). // @10:7
-PruneNode(4,true,[Prune(((n$1 % 2) == 0), true)]). // @10:7
-Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&i,n$1)]). // @10:7
-Join(1,[]).  // @10:3
-Stmt_BinaryOperatorStmt(6,Assign,[ILoad(&i,n$0),IStore(&i,(n$0 + 1))]). // @15:3
-PruneNode(8,false,[Prune(!1, false)]). // @9:9
-PruneNode(10,true,[Prune(1, true)]). // @9:9
-Join(7,[]).  // @9:2
-Stmt_Return(9,[IStore(&return,0)]). // @18:2
-Exit(11).  // @19:1
-Start(12). // @6:1
-*/
 

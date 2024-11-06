@@ -64,7 +64,7 @@ State(2).
 State(3).
 State(4).
 GtEq("max_filesize",5,0).
-Lt("max_filesize",5,0).
+// Lt("max_filesize",5,0).
 State(5).
 NotEq("ret",6,0).
 Eq("ret",6,0).
@@ -241,75 +241,4 @@ AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final(loc) :- Start(loc), AG_temp_lt_0_IMPLY
 .output AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final(IO=stdout)
 
 .output NotTotal(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <_nondet_int> 
-
-//-- Facts for Procedure <addreply> 
-
-//-- Facts for Procedure <main> 
-
-Flow(28,0). //@19:1-20:5
-Flow(26,27). //@46:5-47:1
-Flow(22,26). //@37:5-46:5
-Flow(15,24). //@37:9-37:9
-Flow(15,25). //@37:9-37:9
-Flow(25,23). //@37:9-38:9
-Flow(24,21). //@37:9-40:13
-Flow(23,22). //@38:9-37:5
-Flow(17,22). //@40:9-37:5
-Flow(21,19). //@40:13-40:13
-Flow(21,20). //@40:13-40:13
-Flow(20,18). //@40:13-41:13
-Flow(19,16). //@40:13-43:13
-Flow(18,17). //@41:13-40:9
-Flow(16,17). //@43:13-40:9
-Flow(8,15). //@36:5-37:9
-Flow(10,8). //@28:5-36:5
-Flow(6,13). //@31:9-31:9
-Flow(6,14). //@31:9-31:9
-Flow(14,12). //@31:9-31:21
-Flow(13,10). //@31:9-28:5
-Flow(12,9). //@31:21-31:21
-Flow(12,11). //@31:21-31:21
-Flow(11,7). //@31:21-32:9
-Flow(9,10). //@31:21-28:5
-Flow(7,8). //@32:9-36:5
-Flow(5,6). //@25:5-31:9
-Flow(4,5). //@24:5-25:5
-Flow(3,4). //@23:5-24:5
-Flow(2,3). //@22:5-23:5
-Flow(1,2). //@21:5-22:5
-Flow(0,1). //@20:5-21:5
-Stmt_Decl(0,[IStore(&overflow,0)]). // @20:5
-Stmt_Decl(1,[ICall(_fun__nondet_int,,n$17),IStore(&activated,n$17)]). // @21:5
-Stmt_Decl(2,[ICall(_fun__nondet_int,,n$16),IStore(&user_quota_size,n$16)]). // @22:5
-Stmt_Decl(3,[ICall(_fun__nondet_int,,n$15),IStore(&quota_size,n$15)]). // @23:5
-Stmt_Decl(4,[ICall(_fun__nondet_int,,n$14),IStore(&max_filesize,n$14)]). // @24:5
-Stmt_Decl(5,[ICall(_fun__nondet_int,,n$13),IStore(&ret,n$13)]). // @25:5
-Stmt_BinaryOperatorStmt(7,Assign,[IStore(&overflow,1)]). // @32:9
-PruneNode(9,false,[Prune(!(n$9 >= 0), false)]). // @31:21
-PruneNode(11,true,[Prune((n$9 >= 0), true)]). // @31:21
-Stmt_BinaryOperatorStmt(12,GE,[ILoad(&max_filesize,n$9)]). // @31:21
-PruneNode(13,false,[Prune(!(n$8 < 0), false)]). // @31:9
-PruneNode(14,true,[Prune((n$8 < 0), true)]). // @31:9
-Stmt_BinaryOperatorStmt(6,LT,[ILoad(&temp,n$8)]). // @31:9
-Join(10,[]).  // @28:5
-Skip(8,GotoLabel_afterquota,[]).  // @36:5
-Stmt_Call(16,_fun_addreply,[ICall(_fun_addreply,451,n$4)]). // @43:13
-Stmt_Call(18,_fun_addreply,[ICall(_fun_addreply,226,n$3)]). // @41:13
-PruneNode(19,false,[Prune(!(n$2 == 0), false)]). // @40:13
-PruneNode(20,true,[Prune((n$2 == 0), true)]). // @40:13
-Stmt_BinaryOperatorStmt(21,EQ,[ILoad(&ret,n$2)]). // @40:13
-Join(17,[]).  // @40:9
-Stmt_Call(23,_fun_addreply,[ICall(_fun_addreply,552,n$1)]). // @38:9
-PruneNode(24,false,[Prune(!(n$0 > 0), false)]). // @37:9
-PruneNode(25,true,[Prune((n$0 > 0), true)]). // @37:9
-Stmt_BinaryOperatorStmt(15,GT,[ILoad(&overflow,n$0)]). // @37:9
-Join(22,[]).  // @37:5
-Stmt_Return(26,[IStore(&return,-1)]). // @46:5
-Exit(27).  // @47:1
-Start(28). // @19:1
-*/
 

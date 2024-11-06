@@ -32,3 +32,5 @@ int main(){
     resultCmdName[i] = '\0';
     if (parseSucceeded == 0) return 0;
 }
+
+//Eq("parseSucceeded",10,0).

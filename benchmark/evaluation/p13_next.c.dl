@@ -86,31 +86,3 @@ AF_AX_AX_x_eq_0_Final(loc) :- Start(loc), AF_AX_AX_x_eq_0(loc), !NotTotal(loc).
 
 .output NotTotal(IO=stdout)
 
-/* Other information 
-
-//-- Facts for Procedure <__VERIFIER_nondet_int> 
-
-//-- Facts for Procedure <main> 
-
-Flow(9,0). //@7:1-8:5
-Flow(3,7). //@10:5-10:5
-Flow(7,8). //@10:5-15:1
-Flow(1,5). //@10:9-10:9
-Flow(1,6). //@10:9-10:9
-Flow(6,4). //@10:9-11:9
-Flow(5,2). //@10:9-14:10
-Flow(4,3). //@11:9-10:5
-Flow(2,3). //@14:10-10:5
-Flow(0,1). //@8:5-10:9
-Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$3),IStore(&y,n$3)]). // @8:5
-Stmt_BinaryOperatorStmt(2,Assign,[ILoad(&x,n$1),IStore(&x,(n$1 - 1))]). // @14:10
-Stmt_BinaryOperatorStmt(4,Assign,[IStore(&x,0)]). // @11:9
-PruneNode(5,false,[Prune(!(n$0 == 1), false)]). // @10:9
-PruneNode(6,true,[Prune((n$0 == 1), true)]). // @10:9
-Stmt_BinaryOperatorStmt(1,EQ,[ILoad(&y,n$0)]). // @10:9
-Stmt_BetweenJoinAndExit(7,[]). // @10:5
-Join(3,[]).  // @10:5
-Exit(8).  // @15:1
-Start(9). // @7:1
-*/
-

@@ -32,8 +32,6 @@ flow(17,18).
 flow(18,19).
 flow(19,20).
 flow(20,20).
-clearServerRequestAlternativeByteHandler(7).
-
 flow(21,22).
 flow(22,23).
 flow(23,23).
@@ -193,7 +191,7 @@ AF_clearServerRequestAlternativeByteHandlerPred_T(interm_state,loc) :- !clearSer
 AF_clearServerRequestAlternativeByteHandlerPred_S(loc) :- !clearServerRequestAlternativeByteHandlerPred(loc), control_flow(loc,tempOne), AF_clearServerRequestAlternativeByteHandlerPred_S(tempOne).
 AF_clearServerRequestAlternativeByteHandlerPred_S(loc) :- AF_clearServerRequestAlternativeByteHandlerPred_T(loc,loc).
 AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !AF_clearServerRequestAlternativeByteHandlerPred_S(loc).
-not_fRTPSink_eq_0(loc) :- State(loc), NotEq("fRTPSink",loc,0).
+not_fRTPSink_eq_0(loc) :- State(loc), NotEqD("fRTPSink",loc,0).
 not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !not_fRTPSink_eq_0(loc).
 not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- AF_clearServerRequestAlternativeByteHandlerPred(loc).
 NOT_not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc) :- State(loc), !not_fRTPSink_eq_0_IMPLY_AF_clearServerRequestAlternativeByteHandlerPred(loc).

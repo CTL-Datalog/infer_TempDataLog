@@ -1,8 +1,4 @@
-/*(Start())@0 · 
-    ((("tmp">1)@1 · ("parseSucceeded"=1)@2 · 
-        ((["parseSucceeded"=0]@3 · ("parseSucceeded"=0)@4 · (Return(0))@5) \/ ([("parseSucceeded"!=0)]@6 · (("parseSucceeded"!=0))@7 · (Return(0))@8))) \/
-     (("tmp"<=1)@9 · ("parseSucceeded"=1)@10 · 
-        ((["parseSucceeded"=0]@11 · ("parseSucceeded"=0)@12 · (Return(0))@13) \/ ([("parseSucceeded"!=0)]@14 · (("parseSucceeded"!=0))@15 · (Return(0))@16))))*/
+/*(Start())@0 · ((("tmp">1)@1 · ("parseSucceeded"=1)@2 · ((["parseSucceeded"=0]@3 · ("parseSucceeded"=0)@4 · (Return(0))@5) \/ ([("parseSucceeded"!=0)]@6 · (("parseSucceeded"!=0))@7 · (Return(0))@8))) \/ (("tmp"<=1)@9 · ("parseSucceeded"=1)@10 · ((["parseSucceeded"=0]@11 · ("parseSucceeded"=0)@12 · (Return(0))@13) \/ ([("parseSucceeded"!=0)]@14 · (("parseSucceeded"!=0))@15 · (Return(0))@16))))*/
 
 flow(0,1).
 flow(1,2).
@@ -112,48 +108,5 @@ AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final(loc) :- Start(loc), AG_tmp_lteq
 .output Return
 .output AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final(IO=stdout)
 
-
 .output NotTotal(IO=stdout)
-
-/* Other information 
-
-//-- Facts for Procedure <main> 
-
-Flow(16,0). //@10:1-11:5
-Flow(13,15). //@33:5-33:5
-Flow(15,11). //@33:5-34:1
-Flow(9,12). //@33:9-33:9
-Flow(9,14). //@33:9-33:9
-Flow(14,10). //@33:9-33:30
-Flow(12,13). //@33:9-33:5
-Flow(10,11). //@33:30-34:1
-Flow(8,9). //@32:5-33:9
-Flow(4,8). //@24:9-32:5
-Flow(2,6). //@24:13-24:13
-Flow(2,7). //@24:13-24:13
-Flow(7,5). //@24:13-24:23
-Flow(6,3). //@24:13-25:15
-Flow(5,4). //@24:23-24:9
-Flow(3,4). //@25:15-24:9
-Flow(1,2). //@12:5-24:13
-Flow(0,1). //@11:5-12:5
-Stmt_Decl(0,[IStore(&resultCmdName[0],0)]). // @11:5
-Stmt_Decl(1,[IStore(&reqStr," ")]). // @12:5
-Stmt_BinaryOperatorStmt(3,Assign,[IStore(&parseSucceeded,1)]). // @25:15
-Stmt_BinaryOperatorStmt(5,Assign,[IStore(&parseSucceeded,1)]). // @24:23
-PruneNode(6,false,[Prune(!(n$4 > 1), false)]). // @24:13
-PruneNode(7,true,[Prune((n$4 > 1), true)]). // @24:13
-Stmt_BinaryOperatorStmt(2,GT,[ILoad(&tmp,n$4)]). // @24:13
-Join(4,[]).  // @24:9
-Stmt_BinaryOperatorStmt(8,Assign,[ILoad(&i,n$3),IStore(&resultCmdName[n$3],0)]). // @32:5
-Stmt_Return(10,[IStore(&return,0)]). // @33:30
-PruneNode(12,false,[Prune(!(n$0 == 0), false)]). // @33:9
-PruneNode(14,true,[Prune((n$0 == 0), true)]). // @33:9
-Stmt_BinaryOperatorStmt(9,EQ,[ILoad(&parseSucceeded,n$0)]). // @33:9
-Stmt_BetweenJoinAndExit(15,[]). // @33:5
-Join(13,[]).  // @33:5
-Exit(11).  // @34:1
-Start(16). // @10:1
-*/
-
 
