@@ -22,11 +22,13 @@ flow(15,9).
 flow(21,9).
 Start(4).
 State(4).
+NotEq("A",5,1).
 State(5).
 Eq("R",6,0).
 State(6).
 Eq("A",9,1).
 State(9).
+NotEq("A",10,1).
 State(10).
 LtEq("n",11,0).
 Gt("n",11,0).
@@ -54,10 +56,10 @@ control_flow(11,16) :- GtD("n",11,0).
 .decl control_flow(x:number,y:number)
 .decl transFlow(x:number,y:number)
 .decl NotTotal(loc:number)
-.decl NotEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl LtEq(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
 .decl LtEqD(x:symbol,loc:number,n:number)
@@ -95,10 +97,10 @@ EF_NOT_A_eq_1_IMPLY_AF_R_eq_0(loc) :- control_flow(loc,tempOne), EF_NOT_A_eq_1_I
 EF_NOT_A_eq_1_IMPLY_AF_R_eq_0(loc) :- NOT_A_eq_1_IMPLY_AF_R_eq_0(loc).
 AG_A_eq_1_IMPLY_AF_R_eq_0(loc) :- State(loc), !EF_NOT_A_eq_1_IMPLY_AF_R_eq_0(loc).
 AG_A_eq_1_IMPLY_AF_R_eq_0_Final(loc) :- Start(loc), AG_A_eq_1_IMPLY_AF_R_eq_0(loc), !NotTotal(loc).
-.output NotEq
 .output Gt
 .output LtEq
 .output Eq
+.output NotEq
 .output Start
 .output State
 .output flow

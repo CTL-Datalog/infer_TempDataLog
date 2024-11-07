@@ -4,7 +4,7 @@
  * -ctl "EF{exit: true}"
  */
 
-/*@ AF(EXIT()) @*/
+/*@ AF(y=5) @*/
 
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
@@ -12,12 +12,15 @@ void main() {
     int i= __VERIFIER_nondet_int(); 
     int x= __VERIFIER_nondet_int(); 
     int y = 1;
-    // if (i>10 || x == y) return; generated patch 
+    if (i>10 || x == y){ 
+        // y=5; 
+        return;}  // generated patch 
 
     if (i > 10) { 
         x = 1;
     }   
     while (x == y) {} // non-term : true 
+    y=5; 
     return;
 }
 // (i>10\/x=1) /\ (x=y)^w   \/   (i<=10/\x!=1) /\ (ret=0)

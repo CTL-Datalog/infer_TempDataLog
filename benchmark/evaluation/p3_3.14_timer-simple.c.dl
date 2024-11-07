@@ -28,8 +28,8 @@ Lt("timer_1",2,10).
 Eq("timer_1",2,0).
 State(2).
 State(3).
-NotEq("timer_1",6,0).
 Lt("timer_1",6,10).
+NotEq("timer_1",6,0).
 State(7).
 GtEq("timer_1",8,10).
 NotEq("timer_1",8,0).
