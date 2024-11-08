@@ -127,6 +127,7 @@ State(39).
 Return(-1,40).
 State(40).
 State(6).
+GtEq("temp",41,0).
 State(42).
 Gt("overflow",43,0).
 State(43).

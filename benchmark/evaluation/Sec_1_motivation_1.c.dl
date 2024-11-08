@@ -1,38 +1,28 @@
 /*𝝐 */
 
 
-/*(Start())@6 · ("i"=_)@7 · ("x"=_)@8 · ("y"=1)@9 · ((["i">10]@10 · ("i">10)@11 · (Return(0))@12) \/ (["i"<=10]@13 · ("i"<=10)@14 · ((["x"="y"]@15 · ("x"="y")@16 · (Return(0))@17) \/ ([("x"!="y")]@18 · (("x"!="y"))@19 · ((["i">10]@20 · ("i">10)@21 · ("x"=1)@22 · (([("x"!="y")]@23 · (("x"!="y"))@24 · ("y"=5)@25 · (Return(0))@26) \/ (["x"="y"]@27 · ("x"="y")@28 · (("y">="x")@29)^w))) \/ (["i"<=10]@30 · ("i"<=10)@31 · (([("x"!="y")]@32 · (("x"!="y"))@33 · ("y"=5)@34 · (Return(0))@35) \/ (["x"="y"]@36 · ("x"="y")@37 · (("y">="x")@38)^w))))))))*/
+/*(Start())@6 · ("i"=_)@7 · ("x"=_)@8 · ("y"=1)@9 · ((["i">10]@10 · ("i">10)@11 · ("x"=1)@12 · (([("x"!="y")]@13 · (("x"!="y"))@14 · ("y"=5)@15 · (Return(0))@16) \/ (["x"="y"]@17 · ("x"="y")@18 · (("y">="x")@19)^w))) \/ (["i"<=10]@20 · ("i"<=10)@21 · (([("x"!="y")]@22 · (("x"!="y"))@23 · ("y"=5)@24 · (Return(0))@25) \/ (["x"="y"]@26 · ("x"="y")@27 · (("y">="x")@28)^w))))*/
 
 flow(6,7).
 flow(7,8).
 flow(8,9).
 flow(10,11).
 flow(11,12).
-flow(12,12).
 flow(13,14).
+flow(14,15).
 flow(15,16).
-flow(16,17).
-flow(17,17).
-Eq("y",16,5).
-Eq("y",11,5).
+flow(16,16).
+flow(17,18).
 flow(18,19).
+flow(19,19).
 flow(20,21).
-flow(21,22).
+flow(22,23).
 flow(23,24).
 flow(24,25).
-flow(25,26).
-flow(26,26).
+flow(25,25).
+flow(26,27).
 flow(27,28).
-flow(28,29).
-flow(29,29).
-flow(30,31).
-flow(32,33).
-flow(33,34).
-flow(34,35).
-flow(35,35).
-flow(36,37).
-flow(37,38).
-flow(38,38).
+flow(28,28).
 Start(6).
 State(6).
 LtEq("i",7,10).
@@ -44,61 +34,41 @@ State(8).
 State(10).
 Gt("i",11,10).
 State(11).
-Return(0,12).
-State(12).
-State(9).
+EqVar("x",12,"y").
 State(13).
-LtEq("i",14,10).
-State(15).
-EqVar("x",16,"y").
-State(16).
-Return(0,17).
-State(17).
+NotEqVar("x",14,"y").
 State(14).
+NotEqVar("x",15,"y").
+Eq("y",15,5).
+State(15).
+Return(0,16).
+State(16).
+State(12).
+State(17).
+EqVar("x",18,"y").
 State(18).
-NotEqVar("x",19,"y").
-State(20).
-Gt("i",21,10).
-State(21).
-EqVar("x",22,"y").
-State(23).
-NotEqVar("x",24,"y").
-State(24).
-NotEqVar("x",25,"y").
-Eq("y",25,5).
-State(25).
-Return(0,26).
-State(26).
-State(22).
-State(27).
-EqVar("x",28,"y").
-State(28).
-State(29).
 State(19).
-State(30).
-LtEq("i",31,10).
-State(32).
-NotEqVar("x",33,"y").
-State(33).
-Eq("y",34,5).
-State(34).
-Return(0,35).
-State(35).
-State(31).
-State(36).
-EqVar("x",37,"y").
-State(37).
-State(38).
+State(9).
+State(20).
+LtEq("i",21,10).
+State(22).
+NotEqVar("x",23,"y").
+State(23).
+Eq("y",24,5).
+State(24).
+Return(0,25).
+State(25).
+State(21).
+State(26).
+EqVar("x",27,"y").
+State(27).
+State(28).
 control_flow(9,10) :- GtD("i",9,10).
-control_flow(9,13) :- LtEqD("i",9,10).
-control_flow(14,15) :- EqVarD("x",14,"y").
-control_flow(14,18) :- NotEqVarD("x",14,"y").
-control_flow(19,20) :- GtD("i",19,10).
-control_flow(22,23) :- NotEqVarD("x",22,"y").
-control_flow(22,27) :- EqVarD("x",22,"y").
-control_flow(19,30) :- LtEqD("i",19,10).
-control_flow(31,32) :- NotEqVarD("x",31,"y").
-control_flow(31,36) :- EqVarD("x",31,"y").
+control_flow(12,13) :- NotEqVarD("x",12,"y").
+control_flow(12,17) :- EqVarD("x",12,"y").
+control_flow(9,20) :- LtEqD("i",9,10).
+control_flow(21,22) :- NotEqVarD("x",21,"y").
+control_flow(21,26) :- EqVarD("x",21,"y").
 //AF("y"=5)
 .decl Start(x:number)
 .decl State(x:number)
@@ -108,15 +78,15 @@ control_flow(31,36) :- EqVarD("x",31,"y").
 .decl NotTotal(loc:number)
 .decl Return(n0:number,n1:number)
 .decl NotEq(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
 .decl Eq(x:symbol,loc:number,n:number)
 .decl NotEqVar(x:symbol,loc:number,y:symbol)
 .decl EqVar(x:symbol,loc:number,y:symbol)
-.decl LtEq(x:symbol,loc:number,n:number)
 .decl Gt(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
-.decl NotEqVarD(x:symbol,loc:number,y:symbol)
-.decl EqVarD(x:symbol,loc:number,y:symbol)
 .decl LtEqD(x:symbol,loc:number,n:number)
+.decl EqVarD(x:symbol,loc:number,y:symbol)
+.decl NotEqVarD(x:symbol,loc:number,y:symbol)
 .decl GtD(x:symbol,loc:number,n:number)
 .decl y_eq_5(loc:number)
 .decl AF_y_eq_5_T(interm_state:number,loc:number)
@@ -129,12 +99,12 @@ NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
 EqD(x,loc,n) :- Eq(x,loc,n).
 EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
-NotEqVarD(x,loc,n) :- NotEqVar(x,loc,n).
-NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,n), !EqVar(x,loc,n).
-EqVarD(x,loc,n) :- EqVar(x,loc,n).
-EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,n), !NotEqVar(x,loc,n).
 LtEqD(x,loc,n) :- LtEq(x,loc,n).
 LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,n), !Gt(x,loc,n).
+EqVarD(x,loc,n) :- EqVar(x,loc,n).
+EqVarD(x,loc,n) :- EqVarD(x,locI,n), control_flow(locI,loc), !EqVar(x,loc,n), !NotEqVar(x,loc,n).
+NotEqVarD(x,loc,n) :- NotEqVar(x,loc,n).
+NotEqVarD(x,loc,n) :- NotEqVarD(x,locI,n), control_flow(locI,loc), !NotEqVar(x,loc,n), !EqVar(x,loc,n).
 GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
 y_eq_5(loc) :- State(loc), EqD("y",loc,5).
@@ -145,10 +115,10 @@ AF_y_eq_5_S(loc) :- AF_y_eq_5_T(loc,loc).
 AF_y_eq_5(loc) :- State(loc), !AF_y_eq_5_S(loc).
 AF_y_eq_5_Final(loc) :- Start(loc), AF_y_eq_5(loc), !NotTotal(loc).
 .output NotEq
+.output LtEq
 .output Eq
 .output NotEqVar
 .output EqVar
-.output LtEq
 .output Gt
 .output Start
 .output State

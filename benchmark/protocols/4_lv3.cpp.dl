@@ -52,8 +52,8 @@ NotEq("fRTPSink",7,0).
 State(7).
 Eq("fRTPSink",8,0).
 State(8).
+clearServerRequestAlternativeByteHandler(7).
 RTPSink__removeStreamSocket(9).
-
 State(10).
 NotEq("fRTCPInstance",11,0).
 State(11).
