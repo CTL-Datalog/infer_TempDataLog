@@ -1216,28 +1216,10 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in  *)
   (*let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in *)
   let r, _ = getRegularExprFromCFG_helper_new [] startState in 
-  r
+  (print_endline ("right after getRegularExprFromCFG_helper_new: " ^ string_of_regularExpr r);
+  r)
 
 
-let rec normaliseTheDisjunctions (re:regularExpr) : regularExpr = 
-  let (fstSet:(fstElem list)) = fst re in 
-  let fstSet' = removeRedundant fstSet compareEvent in 
-  (*
-  print_endline (" ============ \n" ^ string_of_regularExpr re ^ ":\n"); 
-  print_endline (List.fold_left fstSet ~init:"" ~f:(fun acc a -> acc ^ ", " ^  (string_of_fst_event a)) ^ "\n");
-  print_endline (List.fold_left fstSet' ~init:"" ~f:(fun acc a -> acc ^ ", " ^ (string_of_fst_event a)));
-  *)
-  match fstSet' with 
-  | [] -> normalise_es re     
-  | _ -> 
-    let disjunctions = List.map fstSet' ~f:(fun f -> 
-      let deriv = normalise_es (derivitives f re) in 
-      match deriv with 
-      | Emp -> eventToRe f
-      | _ ->
-        Concate (eventToRe f, normaliseTheDisjunctions deriv)
-    ) in 
-    disjunctRE disjunctions
 
 let rec getAllPathConditions (re:regularExpr): pure list = 
   match re with 
@@ -1514,7 +1496,7 @@ pure * rankingfunction
           if entailConstrains left_hand_side right_hand_side 
           then 
             if 
-            (entailConstrains TRUE (Eq( (rankingTerm ), Plus(rankingTerm', Basic (BINT 2))))) then FALSE 
+            (entailConstrains TRUE (Eq( (rankingTerm ), Plus(rankingTerm', Basic (BINT 2))))) then Ast_utility.FALSE 
             else 
             (Ast_utility.TRUE)  
           else 

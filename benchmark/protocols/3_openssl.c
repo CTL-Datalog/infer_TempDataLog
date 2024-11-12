@@ -57,10 +57,10 @@ int main() {
 
     read_bytes = 0;
     //do {
-        if ((unsigned int)len - read_bytes > rr->length)
-            n = rr->length;
-        else
-            n = (unsigned int)len - read_bytes;
+        //if ((unsigned int)len - read_bytes > rr->length)
+        //    n = rr->length;
+        //else
+        //    n = (unsigned int)len - read_bytes;
         if (!peek) {
             rr->length -= n;
             rr->off += n;
@@ -93,5 +93,4 @@ int main() {
 }
 
 
-// add SSL3_RECORD_set_read(51).
-// add SSL3_RECORD_set_read(138).
+// add SSL3_RECORD_set_read(50).
