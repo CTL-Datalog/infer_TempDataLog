@@ -70,8 +70,7 @@ Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.d
 
 ```
 $ cd ../symlog
-$ python run.py lv5 /home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl tmp/2_lv5 
-AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final 0
+$ python run.py lv5 /home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl tmp/2_lv5 AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final 0
 ```
 
 By the end of the console printing, you will see the following: 
