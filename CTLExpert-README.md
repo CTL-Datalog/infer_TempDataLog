@@ -157,7 +157,7 @@ $ rm /tmp/x86_64-ubuntu-2104-souffle-2.2-Linux.deb
 
 4. install required python dependencies
 ```
-$ cd CTLExpert/repair/ctl-symlog
+$ cd CTLExpert/ctl-symlog
 $ pip install -r requirements.txt
 $ pip install -e .
 ```
@@ -165,13 +165,13 @@ $ pip install -e .
 How to run the repair:
 
 ```
-$ cd CTLExpert/repair/ctl-symlog
-$ python run.py 1_pure_ftpd /home/infer_TempDataLog/benchmark/protocols/1_pure-ftpd.c.dl tmp/1_pure_ftpd AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final 0
+$ cd CTLExpert/ctl-symlog
+$ python run.py 1_pure_ftpd ../infer_TempDataLog/benchmark/protocols/1_pure-ftpd.c.dl tmp/1_pure_ftpd AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final 0
 ```
 
 Two patches were generated and can be found at:
-- `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_1.dl`
-- `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_2.dl`
+- `tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_1.dl`
+- `tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_2.dl`
 
 The patches make the following changes:
 1. Patch 1 removes the fact `Lt("temp", 7, 0).`, which corresponds to adding `if (temp < 0) { return; }` in the source code
