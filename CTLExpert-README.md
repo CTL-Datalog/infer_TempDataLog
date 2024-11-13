@@ -171,8 +171,13 @@ $ cd CTLExpert/repair/ctl-symlog
 $ python run.py 1_pure_ftpd /home/infer_TempDataLog/benchmark/protocols/1_pure-ftpd.c.dl tmp/1_pure_ftpd AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final 0
 ```
 
-There are two patches generated, located in `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_1.dl` and `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_2.dl`.
-They removed the fact `Lt("temp", 7, 0).` and removed the fact `Lt("max_filesize", 5, 0).` respectively. 
+Two patches were generated and can be found at:
+- `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_1.dl`
+- `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_2.dl`
+
+The patches make the following changes:
+1. Patch 1 removes the fact `Lt("temp", 7, 0).`, which corresponds to adding `if (temp < 0) { return; }` in the source code
+2. Patch 2 removes the fact `Lt("max_filesize", 5, 0).`, which corresponds to adding `if (max_filesize < 0) { return; }` in the source code
 
 
 
