@@ -1,6 +1,6 @@
 # Overview
 
-**Without modifying the submitted artifact**, this file contains the information for: 
+This file contains the information for: 
 - Instructions for testing CTLExpert from Docker
 - Instructions for building CTLExpert from scratch
 
@@ -20,52 +20,49 @@ $ ls
 `AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(handleHTTPCmd_notSupported()))`: 
 ```
 $ cd infer_TempDataLog
-$ infer/bin/infer run -- clang -c benchmark/protocols/lv1_T.cpp 
+$ infer/bin/infer run -- clang -c benchmark/protocols/2_lv5_T.cpp
 ```
 By the end of the console printing, you will see the following: 
 ```
-<==
- Runing Datalog $ souffle -F. -D. /home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl 
+ Runing Datalog $ souffle -F. -D. /home/infer_TempDataLog/benchmark/protocols/2_lv5_T.cpp.dl 
 ==>
 ---------------
-AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_ReturnPred_Final
+AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final
 ===============
-2
-11
+0
 ===============
-Totol_execution_time: 0.074450969696 s
-===============================================
+
+Totol_execution_time: 0.190281867981 s
+=========================================================================
 ```
 
 It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1_T.cpp.dl`, and the current implementation satisfies the property. 
-Because the property holds at states 2 and 11, and they are the entry states of the two functions defined in the program. 
+Because the property holds at state 0, and it is the entry state of the two functions defined in the program. 
 
 
 
 - Analyze the buggy version of the program (Program 26  X in Table II), which does not satisfy its annotated property: 
 
 ```
-$ infer/bin/infer run -- clang -c benchmark/protocols/lv1.cpp 
+$ infer/bin/infer run -- clang -c benchmark/protocols/2_lv5.cpp
 ```
 By the end of the console printing, you will see the following: 
 ```
-<==
- Runing Datalog $ souffle -F. -D. /home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl 
+ Runing Datalog $ souffle -F. -D. /home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl 
 ==>
 ---------------
-AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final
+AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final
 ===============
-2
 ===============
 
-Totol_execution_time: 0.0692870616913 s
-========================================
+Totol_execution_time: 0.192929983139 s
+=========================================================================
 ```
 
 It indicates that the generated Datalog file is in `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl`, and the current implementation does not satisfy the property. 
-Because the property holds at only state 2, and the second function does not satisfy the property. 
+Because the property does not hold at the entry state.
 
-Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl` is sent for repair. 
+Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl` is sent for repair. 
 
 
 - Repair via the generated Datalog program (Program 26 in Table III): 
@@ -73,7 +70,8 @@ Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl`
 
 ```
 $ cd ../symlog
-$ python run.py lv1 /home/infer_TempDataLog/benchmark/protocols/lv1.cpp.dl tmp/lv1 AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final 12
+$ python run.py lv1 /home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl tmp/2_lv5 
+AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final 0
 ```
 
 By the end of the console printing, you will see the following: 
