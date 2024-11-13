@@ -70,56 +70,46 @@ Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.d
 
 ```
 $ cd ../symlog
-$ python run.py lv1 /home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl tmp/2_lv5 
+$ python run.py lv5 /home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl tmp/2_lv5 
 AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final 0
 ```
 
 By the end of the console printing, you will see the following: 
 
 ```
+Time taken: 0.46761131286621094
 ============================================================
-Running lv1 with patched program tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl, producing Datalog Output: 
+Running lv5 with patched program tmp/lv5/2_lv5_cpp_dl/2_lv5.cpp_patch_1.dl, producing Datalog Output: 
 ---------------
-AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final
+NotTotal
 ===============
-2
-12
 ===============
-
-
-============================================================
-Running lv1 with patched program tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl, producing Datalog Output: 
 ---------------
-AG_prevClientConnection_eq_0_OR_prevClientConnection_eq_this__IMPLY_AF_handleHTTPCmd_notSupportedPred_Final
+AG_tmp_lteq_1_IMPLY_AF_parseSucceeded_eq_0_Final
 ===============
-2
-12
+0
 ===============
 ```
 
-
-It indicates that there are two patches generated, and the patched Datalog files are: `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl` and `/home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl`. 
-
-Moreover, both patched Datalog files are able to output that both functions satisfy the property now. 
-*Note that the entry state number of the second function is changed to 12 now; that's because the automatically generated control flow graph of the initially correct code and the buggy code are different.  
+It indicates that one patch was finally selected, and the patched Datalog file is: `/home/symlog/tmp/lv5/2_lv5_cpp_dl/2_lv5.cpp_patch_1.dl`. 
 
 
 - How to check and interpret the repairs: 
 
-The added facts can be seen by the end of these two patched files: 
+The added facts can be seen by the end of the patched Datalog file: 
 ```
-vim /home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_1.dl
-# the last line shows: handleHTTPCmd_notSupported(18). // updated fact
+vim /home/symlog/tmp/lv5/2_lv5_cpp_dl/2_lv5.cpp_patch_1.dl
 
-vim /home/symlog/tmp/lv1/lv1_cpp_dl/lv1.cpp_patch_2.dl
-# the last line shows handleHTTPCmd_notSupported(19). // updated fact
+// ========== Patch Summary ==========
+// Added facts:
+// + Eq("parseSucceeded", 10, 0).
+// Removed facts:
+// - NotEq("parseSucceeded", 10, 0).
 ```
 
 
-The `lv1.cpp_patch_1.dl` repairs the program by adding the fact 'handleHTTPCmd_notSupported(18).', which is a correct patch.   
-The `lv1.cpp_patch_2.dl` repairs the program by adding the fact 'handleHTTPCmd_notSupported(19).', which is a correct patch.   
-Adding the fact 'handleHTTPCmd_notSupported(18)' or 'handleHTTPCmd_notSupported(19)', indicating to add a function call to 'handleHTTPCmd_notSupported()' in the source code's control flow graph state 18 or 19. 
-Both indicate inserting the call in the second if-else branch solves the property violation. 
+The `2_lv5.cpp_patch_1.dl` repairs the program by changing the fact `NotEq("parseSucceeded", 10, 0).` to `Eq("parseSucceeded", 10, 0).`. 
+This indicates that changing the assignment of `parseSucceeded` at state 10 to 0 solves the property violation. 
 
 
 # Reproduce the Table 1, 2 and 3 
@@ -175,20 +165,20 @@ $ pip install -e .
 ```
 
 How to run the repair:
-Copy the CTL Datalog files from the ‘Test case locations’ to CTLExpert/repair/ctl-symlog/tests/ctl, strip down all comments, change all .output without (IO=stdout) into .input, and remove (IO=stdout). 
 
 ```
 $ cd CTLExpert/repair/ctl-symlog
-$ python tests/test_symbolic_executor.py
+$ python run.py 1_pure_ftpd /home/infer_TempDataLog/benchmark/protocols/1_pure-ftpd.c.dl tmp/1_pure_ftpd AG_temp_lt_0_IMPLY_AF_overflow_gt_0_Final 0
 ```
 
-The output, which is the solved model for program 27, is displayed in the console. The model corresponds to the repair patch: adding `SSL3_RECORD_set_read(90).` and `SSL3_RECORD_set_read(169).`
+There are two patches generated, located in `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_1.dl` and `/home/symlog/tmp/1_pure_ftpd/1_pure-ftpd_c_dl/1_pure-ftpd.c_patch_2.dl`.
+They removed the fact `Lt("temp", 7, 0).` and removed the fact `Lt("max_filesize", 5, 0).` respectively. 
 
 
 
 
 ### Test case location: 
 
-1. Table 1 (1-15): `CTLExpert/analysis/infer_TempDataLog-main/benchmark/evaluation'`
-3. Table 2 (16-25): `CTLExpert/analysis/infer_TempDataLog-main/benchmark/termination`; and
-   (26-28): `CTLExpert/analysis/infer_TempDataLog-main/benchmark/protocols`
+1. Table 1 (1-15): `CTLExpert/infer_TempDataLog-main/benchmark/evaluation'`
+3. Table 2 (16-25): `CTLExpert/infer_TempDataLog-main/benchmark/termination`; and
+   (26-28): `CTLExpert/infer_TempDataLog-main/benchmark/protocols`
