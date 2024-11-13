@@ -124,10 +124,11 @@ Adding the fact 'handleHTTPCmd_notSupported(18)' or 'handleHTTPCmd_notSupported(
 Both indicate inserting the call in the second if-else branch solves the property violation. 
 
 
-# Reproduce the Table 1 and 2 
+# Reproduce the Table 1, 2 and 3 
 ```
 ./run_table_1
 ./run_table_2
+./run_table_3
 ```
 
 
