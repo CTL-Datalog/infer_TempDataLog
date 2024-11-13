@@ -129,8 +129,7 @@ Download and unzip the submitted artifact "CTLExpert.zip" from Zenodo: `https://
 $ apt install opam menhir cmake z3 sqlite3 
 $ opam init 
 $ opam switch create 4.14.0
-$ git clone https://github.com/CTL-Datalog/infer_TempDataLog.git
-$ cd CTLExpert/analysis/infer_TempDataLog-main 
+$ cd CTLExpert/infer_TempDataLog-main 
 $ ./compile  # This takes 3 mins from docker and up to 2 hours from scratch
 $ infer/bin/infer --help  # Test the generation of the executable
 ```
