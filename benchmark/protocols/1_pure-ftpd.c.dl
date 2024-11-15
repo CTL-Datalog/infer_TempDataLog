@@ -4,7 +4,7 @@
 /*𝝐 */
 
 
-/*(Start())@0 · ("overflow"=0)@1 · ("activated"=_)@2 · ("user_quota_size"=_)@3 · ("quota_size"=_)@4 · ("max_filesize"=_)@5 · ("ret"=_)@6 · ((("temp"<0)@7 · ((["max_filesize">=0]@8 · ("max_filesize">=0)@9 · ("overflow"=1)@10 · ((["overflow">0]@11 · ("overflow">0)@12 · (addreply(552))@13 · (Return(-1))@14) \/ (["overflow"<=0]@15 · ("overflow"<=0)@16 · ((["ret"=0]@17 · ("ret"=0)@18 · (addreply(226))@19 · (Return(-1))@20) \/ ([("ret"!=0)]@21 · (("ret"!=0))@22 · (addreply(451))@23 · (Return(-1))@24))))) \/ (["max_filesize"<0]@25 · ("max_filesize"<0)@26 · ((["overflow">0]@27 · ("overflow">0)@28 · (addreply(552))@29 · (Return(-1))@30) \/ (["overflow"<=0]@31 · ("overflow"<=0)@32 · ((["ret"=0]@33 · ("ret"=0)@34 · (addreply(226))@35 · (Return(-1))@36) \/ ([("ret"!=0)]@37 · (("ret"!=0))@38 · (addreply(451))@39 · (Return(-1))@40))))))) \/ (("temp">=0)@41 · ((["overflow">0]@42 · ("overflow">0)@43 · (addreply(552))@44 · (Return(-1))@45) \/ (["overflow"<=0]@46 · ("overflow"<=0)@47 · ((["ret"=0]@48 · ("ret"=0)@49 · (addreply(226))@50 · (Return(-1))@51) \/ ([("ret"!=0)]@52 · (("ret"!=0))@53 · (addreply(451))@54 · (Return(-1))@55))))))*/
+/*(Start())@0 · ("overflow"=0)@1 · ("activated"=_)@2 · ("user_quota_size"=_)@3 · ("quota_size"=_)@4 · ("max_filesize"=_)@5 · ("ret"=_)@6 · ((["max_filesize"<0]@7 · ("max_filesize"<0)@8 · (Return(0))@9) \/ (["max_filesize">=0]@10 · ("max_filesize">=0)@11 · ((("temp"<0)@12 · ((["max_filesize">=0]@13 · ("max_filesize">=0)@14 · ("overflow"=1)@15 · ((["overflow">0]@16 · ("overflow">0)@17 · (addreply(552))@18 · (Return(-1))@19) \/ (["overflow"<=0]@20 · ("overflow"<=0)@21 · ((["ret"=0]@22 · ("ret"=0)@23 · (addreply(226))@24 · (Return(-1))@25) \/ ([("ret"!=0)]@26 · (("ret"!=0))@27 · (addreply(451))@28 · (Return(-1))@29))))) \/ (["max_filesize"<0]@30 · ("max_filesize"<0)@31 · ((["overflow">0]@32 · ("overflow">0)@33 · (addreply(552))@34 · (Return(-1))@35) \/ (["overflow"<=0]@36 · ("overflow"<=0)@37 · ((["ret"=0]@38 · ("ret"=0)@39 · (addreply(226))@40 · (Return(-1))@41) \/ ([("ret"!=0)]@42 · (("ret"!=0))@43 · (addreply(451))@44 · (Return(-1))@45))))))) \/ (("temp">=0)@46 · ((["overflow">0]@47 · ("overflow">0)@48 · (addreply(552))@49 · (Return(-1))@50) \/ (["overflow"<=0]@51 · ("overflow"<=0)@52 · ((["ret"=0]@53 · ("ret"=0)@54 · (addreply(226))@55 · (Return(-1))@56) \/ ([("ret"!=0)]@57 · (("ret"!=0))@58 · (addreply(451))@59 · (Return(-1))@60))))))))*/
 
 flow(0,1).
 flow(1,2).
@@ -12,50 +12,54 @@ flow(2,3).
 flow(3,4).
 flow(4,5).
 flow(5,6).
-flow(6,7).
+flow(7,8).
 flow(8,9).
-flow(9,10).
+flow(9,9).
+flow(10,11).
 flow(11,12).
-flow(12,13).
 flow(13,14).
-flow(14,14).
-flow(15,16).
+flow(14,15).
+flow(16,17).
 flow(17,18).
 flow(18,19).
-flow(19,20).
-flow(20,20).
-flow(21,22).
+flow(19,19).
+flow(20,21).
 flow(22,23).
 flow(23,24).
-flow(24,24).
-flow(25,26).
+flow(24,25).
+flow(25,25).
+flow(26,27).
 flow(27,28).
 flow(28,29).
-flow(29,30).
-flow(30,30).
-flow(31,32).
+flow(29,29).
+flow(30,31).
+flow(32,33).
 flow(33,34).
 flow(34,35).
-flow(35,36).
-flow(36,36).
-flow(37,38).
+flow(35,35).
+flow(36,37).
 flow(38,39).
 flow(39,40).
-flow(40,40).
-flow(6,41).
+flow(40,41).
+flow(41,41).
 flow(42,43).
 flow(43,44).
 flow(44,45).
 flow(45,45).
-flow(46,47).
+flow(11,46).
+flow(47,48).
 flow(48,49).
 flow(49,50).
-flow(50,51).
-flow(51,51).
-flow(52,53).
+flow(50,50).
+flow(51,52).
 flow(53,54).
 flow(54,55).
-flow(55,55).
+flow(55,56).
+flow(56,56).
+flow(57,58).
+flow(58,59).
+flow(59,60).
+flow(60,60).
 Start(0).
 State(0).
 LtEq("overflow",1,0).
@@ -64,109 +68,119 @@ State(2).
 State(3).
 State(4).
 GtEq("max_filesize",5,0).
-// Lt("max_filesize",5,0).
+Lt("max_filesize",5,0).
 State(5).
 NotEq("ret",6,0).
 Eq("ret",6,0).
-Lt("temp",7,0).
-State(8).
-GtEq("max_filesize",9,0).
-State(9).
-Gt("overflow",10,0).
-State(11).
-Gt("overflow",12,0).
-State(12).
-addreply(552,13).
-State(13).
-Return(-1,14).
-State(14).
-State(10).
-State(15).
-LtEq("overflow",16,0).
-State(17).
-Eq("ret",18,0).
-State(18).
-addreply(226,19).
-State(19).
-Return(-1,20).
-State(20).
-State(16).
-State(21).
-NotEq("ret",22,0).
-State(22).
-addreply(451,23).
-State(23).
-Return(-1,24).
-State(24).
 State(7).
-State(25).
-Lt("max_filesize",26,0).
-State(27).
-Gt("overflow",28,0).
-State(28).
-addreply(552,29).
-State(29).
-Return(-1,30).
-State(30).
-State(26).
-State(31).
-LtEq("overflow",32,0).
-State(33).
-Eq("ret",34,0).
-State(34).
-addreply(226,35).
-State(35).
-Return(-1,36).
-State(36).
-State(32).
-State(37).
-NotEq("ret",38,0).
-State(38).
-addreply(451,39).
-State(39).
-Return(-1,40).
-State(40).
+Lt("max_filesize",8,0).
+State(8).
+Return(0,9).
+State(9).
 State(6).
-GtEq("temp",41,0).
+State(10).
+GtEq("max_filesize",11,0).
+Lt("temp",12,0).
+State(13).
+GtEq("max_filesize",14,0).
+State(14).
+Gt("overflow",15,0).
+State(16).
+Gt("overflow",17,0).
+State(17).
+addreply(552,18).
+State(18).
+Return(-1,19).
+State(19).
+State(15).
+State(20).
+LtEq("overflow",21,0).
+State(22).
+Eq("ret",23,0).
+State(23).
+addreply(226,24).
+State(24).
+Return(-1,25).
+State(25).
+State(21).
+State(26).
+NotEq("ret",27,0).
+State(27).
+addreply(451,28).
+State(28).
+Return(-1,29).
+State(29).
+State(12).
+State(30).
+Lt("max_filesize",31,0).
+State(32).
+Gt("overflow",33,0).
+State(33).
+addreply(552,34).
+State(34).
+Return(-1,35).
+State(35).
+State(31).
+State(36).
+LtEq("overflow",37,0).
+State(38).
+Eq("ret",39,0).
+State(39).
+addreply(226,40).
+State(40).
+Return(-1,41).
+State(41).
+State(37).
 State(42).
-Gt("overflow",43,0).
+NotEq("ret",43,0).
 State(43).
-addreply(552,44).
+addreply(451,44).
 State(44).
 Return(-1,45).
 State(45).
-State(41).
-State(46).
-LtEq("overflow",47,0).
-State(48).
-Eq("ret",49,0).
-State(49).
-addreply(226,50).
-State(50).
-Return(-1,51).
-State(51).
+State(11).
+GtEq("temp",46,0).
 State(47).
-State(52).
-NotEq("ret",53,0).
+Gt("overflow",48,0).
+State(48).
+addreply(552,49).
+State(49).
+Return(-1,50).
+State(50).
+State(46).
+State(51).
+LtEq("overflow",52,0).
 State(53).
-addreply(451,54).
+Eq("ret",54,0).
 State(54).
-Return(-1,55).
+addreply(226,55).
 State(55).
-control_flow(7,8) :- GtEqD("max_filesize",7,0).
-control_flow(10,11) :- GtD("overflow",10,0).
-control_flow(10,15) :- LtEqD("overflow",10,0).
-control_flow(16,17) :- EqD("ret",16,0).
-control_flow(16,21) :- NotEqD("ret",16,0).
-control_flow(7,25) :- LtD("max_filesize",7,0).
-control_flow(26,27) :- GtD("overflow",26,0).
-control_flow(26,31) :- LtEqD("overflow",26,0).
-control_flow(32,33) :- EqD("ret",32,0).
-control_flow(32,37) :- NotEqD("ret",32,0).
-control_flow(41,42) :- GtD("overflow",41,0).
-control_flow(41,46) :- LtEqD("overflow",41,0).
-control_flow(47,48) :- EqD("ret",47,0).
-control_flow(47,52) :- NotEqD("ret",47,0).
+Return(-1,56).
+State(56).
+State(52).
+State(57).
+NotEq("ret",58,0).
+State(58).
+addreply(451,59).
+State(59).
+Return(-1,60).
+State(60).
+control_flow(6,7) :- LtD("max_filesize",6,0).
+control_flow(6,10) :- GtEqD("max_filesize",6,0).
+control_flow(12,13) :- GtEqD("max_filesize",12,0).
+control_flow(15,16) :- GtD("overflow",15,0).
+control_flow(15,20) :- LtEqD("overflow",15,0).
+control_flow(21,22) :- EqD("ret",21,0).
+control_flow(21,26) :- NotEqD("ret",21,0).
+control_flow(12,30) :- LtD("max_filesize",12,0).
+control_flow(31,32) :- GtD("overflow",31,0).
+control_flow(31,36) :- LtEqD("overflow",31,0).
+control_flow(37,38) :- EqD("ret",37,0).
+control_flow(37,42) :- NotEqD("ret",37,0).
+control_flow(46,47) :- GtD("overflow",46,0).
+control_flow(46,51) :- LtEqD("overflow",46,0).
+control_flow(52,53) :- EqD("ret",52,0).
+control_flow(52,57) :- NotEqD("ret",52,0).
 //AG(("temp"<0 => AF("overflow">0)))
 .decl Start(x:number)
 .decl State(x:number)
@@ -182,12 +196,12 @@ control_flow(47,52) :- NotEqD("ret",47,0).
 .decl GtEq(x:symbol,loc:number,n:number)
 .decl Lt(x:symbol,loc:number,n:number)
 .decl LtEq(x:symbol,loc:number,n:number)
-.decl LtD(x:symbol,loc:number,n:number)
 .decl NotEqD(x:symbol,loc:number,n:number)
 .decl EqD(x:symbol,loc:number,n:number)
 .decl LtEqD(x:symbol,loc:number,n:number)
 .decl GtD(x:symbol,loc:number,n:number)
 .decl GtEqD(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
 .decl overflow_gt_0(loc:number)
 .decl AF_overflow_gt_0_T(interm_state:number,loc:number)
 .decl AF_overflow_gt_0_S(loc:number)
@@ -202,8 +216,6 @@ transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
 NotTotal(loc) :- State(loc), !control_flow(loc,_).
 NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
 control_flow(x,y) :- flow(x,y).
-LtD(x,loc,n) :- Lt(x,loc,n).
-LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
 NotEqD(x,loc,n) :- NotEq(x,loc,n).
 NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
 EqD(x,loc,n) :- Eq(x,loc,n).
@@ -214,6 +226,8 @@ GtD(x,loc,n) :- Gt(x,loc,n).
 GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEq(x,loc,n).
 GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,n), !Lt(x,loc,n).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
 overflow_gt_0(loc) :- State(loc), GtD("overflow",loc,0).
 AF_overflow_gt_0_T(interm_state,loc) :- AF_overflow_gt_0_T(tempOne,loc), !overflow_gt_0(tempOne), control_flow(tempOne,interm_state).
 AF_overflow_gt_0_T(interm_state,loc) :- !overflow_gt_0(loc), control_flow(loc,interm_state).

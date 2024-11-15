@@ -13,6 +13,7 @@ int main()
     int linesToRead = __VERIFIER_nondet_int();
     if( linesToRead < 0 )  
         return 0;
+    // if( linesToRead <= 0 )  return 0;
     int h = __VERIFIER_nondet_int();
     while( h > 0 ) 
     {

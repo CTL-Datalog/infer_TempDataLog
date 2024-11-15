@@ -6,7 +6,7 @@
  * -ctl "AF{QuotaExceeded() -> }"
  */
 
-/*@ AG((temp<0) => AF(overflow>0)) @*/
+/*@ (AG((temp<0) => AF(overflow>0)))  @*/
 
 
 //#Unsafe
@@ -24,6 +24,8 @@ int main () {
     int max_filesize = _nondet_int(); 
     int ret = _nondet_int(); 
     int temp; 
+
+    if (max_filesize <  0 ) return ; 
 
     if ((
         // (max_filesize >=  0 &&

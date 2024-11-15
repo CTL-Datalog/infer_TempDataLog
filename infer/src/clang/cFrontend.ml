@@ -2519,7 +2519,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       )) 
   in
 
-  if !flag == false then ()
+  if !flag == false then   
+    print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s")
+
   else 
 
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
