@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+Actual path: ./tests/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "t >= 0" -ctl "AG{AND{AF{t==1}}{AF{t==0}}} " ./tests/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.001448 s
+
+Done.
+
+===== STDERR =====

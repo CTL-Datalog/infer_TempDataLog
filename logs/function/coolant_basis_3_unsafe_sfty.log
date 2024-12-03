@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/coolant_basis_3_unsafe_sfty.c
+Actual path: ./tests/ctl/ltl_automizer/coolant_basis_3_unsafe_sfty.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0" -ctl "AG{OR{init != 3}{AG{AF{time > otime}}}} " ./tests/ctl/ltl_automizer/coolant_basis_3_unsafe_sfty.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.021420 s
+
+Done.
+
+===== STDERR =====

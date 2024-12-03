@@ -1,0 +1,10 @@
+Original path: tests/ctl/existential_test3.c
+Actual path: ./tests/ctl/existential_test3.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 5 -precondition "x==2" -ctl "EF{r==1} " ./tests/ctl/existential_test3.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.021213 s
+
+Done.
+
+===== STDERR =====

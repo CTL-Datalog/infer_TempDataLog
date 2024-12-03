@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/cav2015.c
+Actual path: ./tests/ctl/ltl_automizer/cav2015.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x < 0" -ordinals 3 -ctl "AG{OR{x <= 0}{AF{y == 0}}}" ./tests/ctl/ltl_automizer/cav2015.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.001935 s
+
+Done.
+
+===== STDERR =====

@@ -1,0 +1,10 @@
+Original path: tests/ctl/fin_ex.c
+Actual path: ./tests/ctl/fin_ex.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "n > 0" -ctl "EG{EF{n==1}} " ./tests/ctl/fin_ex.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.003168 s
+
+Done.
+
+===== STDERR =====

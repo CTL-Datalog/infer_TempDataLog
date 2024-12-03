@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/Bug_NoLoopAtEndForTerminatingPrograms_safe.c
+Actual path: ./tests/ctl/ltl_automizer/Bug_NoLoopAtEndForTerminatingPrograms_safe.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "ap==0" -ctl "NOT{AF{ap > 2}} " ./tests/ctl/ltl_automizer/Bug_NoLoopAtEndForTerminatingPrograms_safe.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.005360 s
+
+Done.
+
+===== STDERR =====

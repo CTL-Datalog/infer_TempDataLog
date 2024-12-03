@@ -1,0 +1,10 @@
+Original path: tests/ctl/until_existential.c
+Actual path: ./tests/ctl/until_existential.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x > y" -ctl "EU{x >= y}{x == y} " ./tests/ctl/until_existential.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.000838 s
+
+Done.
+
+===== STDERR =====

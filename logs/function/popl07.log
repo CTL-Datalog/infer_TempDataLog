@@ -1,0 +1,5 @@
+Command: ./main.exe -ctl "EG{AND{set == 1}{EG{unset != 1}}}" -domain polyhedra -joinbwd 3 -minimal -ordinals 2 -precondition "set == 0 && unset == 0" tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c
+===== STDOUT =====
+
+===== STDERR =====
+Fatal error: exception Sys_error("tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c: No such file or directory")

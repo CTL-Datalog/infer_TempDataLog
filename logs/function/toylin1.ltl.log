@@ -1,0 +1,10 @@
+Original path: tests/ctl/koskinen/toylin1.ltl.c
+Actual path: ./tests/ctl/koskinen/toylin1.ltl.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{resp==5}" ./tests/ctl/koskinen/toylin1.ltl.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.004434 s
+
+Done.
+
+===== STDERR =====

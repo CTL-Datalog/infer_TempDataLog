@@ -1,0 +1,10 @@
+Original path: tests/ctl/multi_branch_choice.c
+Actual path: ./tests/ctl/multi_branch_choice.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AND{EF{x==4}}{EF{x==-4}} " ./tests/ctl/multi_branch_choice.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.002746 s
+
+Done.
+
+===== STDERR =====

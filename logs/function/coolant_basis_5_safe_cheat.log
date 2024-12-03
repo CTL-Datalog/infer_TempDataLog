@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+Actual path: ./tests/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0" -ctl "AU{init == 0}{OR{AU{init == 1}{AG{init == 3}}}{AG{init == 1}}} " ./tests/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.047448 s
+
+Done.
+
+===== STDERR =====

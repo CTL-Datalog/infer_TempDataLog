@@ -1,0 +1,10 @@
+Original path: tests/ctl/global_test_simple.c
+Actual path: ./tests/ctl/global_test_simple.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 6 -precondition "true" -ctl "AG{AF{x <= -10}} " ./tests/ctl/global_test_simple.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.001189 s
+
+Done.
+
+===== STDERR =====

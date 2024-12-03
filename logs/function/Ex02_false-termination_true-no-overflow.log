@@ -1,0 +1,10 @@
+Original path: tests/ctl/sv_comp/Ex02_false-termination_true-no-overflow.c
+Actual path: ./tests/ctl/sv_comp/Ex02_false-termination_true-no-overflow.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "OR{i >= 5}{AF{exit: true}} " ./tests/ctl/sv_comp/Ex02_false-termination_true-no-overflow.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.017781 s
+
+Done.
+
+===== STDERR =====

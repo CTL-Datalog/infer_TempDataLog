@@ -1,0 +1,10 @@
+Original path: tests/ctl/report/test_until.c
+Actual path: ./tests/ctl/report/test_until.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x >= y" -ctl "AU{x >= y}{x==y} " ./tests/ctl/report/test_until.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.005085 s
+
+Done.
+
+===== STDERR =====

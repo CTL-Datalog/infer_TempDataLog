@@ -1,0 +1,10 @@
+Original path: tests/ctl/next.c
+Actual path: ./tests/ctl/next.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AX{AX{x==0}} " ./tests/ctl/next.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.000302 s
+
+Done.
+
+===== STDERR =====

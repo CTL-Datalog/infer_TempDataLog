@@ -1,0 +1,5 @@
+Command: ./main.exe -domain polyhedra -minimal -ctl "EF{EG{wakend < 1}}" -precondition "wakend==1" -ordinals 2 -joinbwd 5 tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c
+===== STDOUT =====
+
+===== STDERR =====
+Fatal error: exception Sys_error("tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c: No such file or directory")

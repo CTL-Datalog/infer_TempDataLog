@@ -1,0 +1,10 @@
+Original path: tests/sink.c
+Actual path: ./tests/guarantee/sink.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AG{AF{x==0}}" -ordinals 1 ./tests/guarantee/sink.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.001345 s
+
+Done.
+
+===== STDERR =====

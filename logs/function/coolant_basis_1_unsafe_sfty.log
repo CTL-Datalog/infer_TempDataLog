@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/coolant_basis_1_unsafe_sfty.c
+Actual path: ./tests/ctl/ltl_automizer/coolant_basis_1_unsafe_sfty.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "chainBroken == 0" -ctl "AG{OR{chainBroken != 1}{AG{chainBroken == 1}}} " ./tests/ctl/ltl_automizer/coolant_basis_1_unsafe_sfty.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.111065 s
+
+Done.
+
+===== STDERR =====

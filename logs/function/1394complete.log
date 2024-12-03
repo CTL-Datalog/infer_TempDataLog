@@ -1,0 +1,5 @@
+Command: ./main.exe -domain polyhedra -minimal -ctl "OR{AG{phi_io_compl != 1}}{AG{phi_nSUC_ret != 1}}" -precondition "keA==0 && keR==0 && ioA==0 && ioR==0 && phi_nSUC_ret == 0 && phi_io_compl == 0" tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c
+===== STDOUT =====
+
+===== STDERR =====
+Fatal error: exception Sys_error("tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c: No such file or directory")
