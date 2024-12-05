@@ -8,8 +8,11 @@ int main() {
     // assume x > y
     int x = __VERIFIER_nondet_int(); 
     int y ;
+    // if (x<=y) {x=y; return;}
+
     while (x > y) {
         x = x - 1;
     }
     // now x == y
 }
+// delete //LtEqVar("x",3,"y").
