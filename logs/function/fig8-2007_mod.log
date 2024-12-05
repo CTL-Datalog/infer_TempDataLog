@@ -1,0 +1,8 @@
+Original path: tests/ctl/koskinen/fig8-2007_mod.c
+Actual path: ./tests/ctl/koskinen/fig8-2007_mod.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 4 -precondition "true" -ctl "OR{set==0}{AF{unset == 1}} " ./tests/ctl/koskinen/fig8-2007_mod.c
+===== STDOUT =====
+
+===== STDERR =====
+Parse Error (Invalid Syntax) near ./tests/ctl/koskinen/fig8-2007_mod.c:28:21
+Fatal error: exception Failure("Parse Error")

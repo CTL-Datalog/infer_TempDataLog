@@ -1,0 +1,10 @@
+Original path: tests/pingpong.c
+Actual path: ./tests/guarantee/pingpong.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{z==1} " ./tests/guarantee/pingpong.c
+===== STDOUT =====
+Analysis Result: TRUE
+Time: 0.008095 s
+
+Done.
+
+===== STDERR =====

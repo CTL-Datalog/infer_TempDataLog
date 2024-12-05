@@ -1,0 +1,10 @@
+Original path: tests/ctl/and_test.c
+Actual path: ./tests/ctl/and_test.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "n > 0" -ctl "AND{AG{AF{n==1}}}{AF{n==0}} " ./tests/ctl/and_test.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.003008 s
+
+Done.
+
+===== STDERR =====

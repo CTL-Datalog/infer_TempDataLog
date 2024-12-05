@@ -1,0 +1,12 @@
+Original path: tests/countdown.c
+Actual path: ./tests/guarantee/countdown.c
+Skipped alternatives:
+  - ./tests/termination/countdown.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AG{AF{x == 0}} " ./tests/guarantee/countdown.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.002861 s
+
+Done.
+
+===== STDERR =====

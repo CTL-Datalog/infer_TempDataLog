@@ -1,0 +1,10 @@
+Original path: tests/ctl/koskinen/acqrel_mod.c
+Actual path: ./tests/ctl/koskinen/acqrel_mod.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "a!=1" -ctl "AG{OR{a!=1}{AF{r==1}}} " ./tests/ctl/koskinen/acqrel_mod.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.003127 s
+
+Done.
+
+===== STDERR =====

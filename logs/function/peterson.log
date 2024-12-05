@@ -1,0 +1,10 @@
+Original path: tests/peterson.c
+Actual path: ./tests/guarantee/peterson.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AG{AF{C1: true}} " ./tests/guarantee/peterson.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.321542 s
+
+Done.
+
+===== STDERR =====

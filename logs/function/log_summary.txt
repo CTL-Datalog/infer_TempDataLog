@@ -1,0 +1,596 @@
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x >= y" -ctl "AU{x >= y}{x==y} " ./tests/ctl/report/test_until.c
+Analysis Result: TRUE
+Time: 0.005085 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x < 200" -ctl "EF{r==1} " ./tests/ctl/report/test_existential2.c
+Analysis Result: UNKNOWN
+Time: 0.002387 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -ctl_existential_equivalence -precondition "x > 0" -ctl "EF{r==1}" ./tests/ctl/report/test_existential3.c
+Analysis Result: TRUE
+Time: 0.006122 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 6 -precondition "true" -ctl "AG{AF{x <= -10}} " ./tests/ctl/global_test_simple.c
+Analysis Result: UNKNOWN
+Time: 0.001189 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x == y + 20" -ctl "AU{x >= y}{x==y} " ./tests/ctl/until_test.c
+Analysis Result: TRUE
+Time: 0.005091 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{x == 0} " ./tests/guarantee/countdown.c
+Analysis Result: UNKNOWN
+Time: 0.002892 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AG{AF{x == 0}} " ./tests/guarantee/countdown.c
+Analysis Result: UNKNOWN
+Time: 0.002861 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{C1: true} " ./tests/guarantee/peterson.c
+Analysis Result: UNKNOWN
+Time: 0.282836 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AG{AF{C1: true}} " ./tests/guarantee/peterson.c
+Analysis Result: UNKNOWN
+Time: 0.321542 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{enable == 0} " ./tests/guarantee/mnav.c
+Analysis Result: UNKNOWN
+Time: 0.006598 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{z==1} " ./tests/guarantee/pingpong.c
+Analysis Result: TRUE
+Time: 0.008095 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{x==0}" -ordinals 1 ./tests/guarantee/sink.c
+Analysis Result: UNKNOWN
+Time: 0.001370 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AG{AF{x==0}}" -ordinals 1 ./tests/guarantee/sink.c
+Analysis Result: UNKNOWN
+Time: 0.001345 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "n > 0" -ctl "AND{AG{AF{n==1}}}{AF{n==0}} " ./tests/ctl/and_test.c
+Analysis Result: UNKNOWN
+Time: 0.003008 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "OR{AF{AG{x < -100}}}{AF{x==20}} " ./tests/ctl/or_test.c
+Analysis Result: UNKNOWN
+Time: 0.001271 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x==1" -ctl "AX{AX{AX{x==0}}} " ./tests/ctl/next.c
+Analysis Result: TRUE
+Time: 0.000292 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AX{AX{x==0}} " ./tests/ctl/next.c
+Analysis Result: TRUE
+Time: 0.000302 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{r==1} " ./tests/ctl/existential_test1.c
+Analysis Result: TRUE
+Time: 0.000884 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "2*x <= y+3" -ctl "EF{r==1} " ./tests/ctl/existential_test1.c
+Analysis Result: TRUE
+Time: 0.000880 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{r==1} " ./tests/ctl/existential_test1.c
+Analysis Result: TRUE
+Time: 0.000872 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{r==1} " ./tests/ctl/existential_test2.c
+Analysis Result: TRUE
+Time: 0.000697 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{r==1} " ./tests/ctl/existential_test3.c
+Analysis Result: TRUE
+Time: 0.005981 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x > 0" -ctl_existential_equivalence -ctl "EF{r==1}" ./tests/ctl/existential_test3.c
+Analysis Result: TRUE
+Time: 0.006022 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 5 -precondition "x==2" -ctl "EF{r==1} " ./tests/ctl/existential_test3.c
+Analysis Result: TRUE
+Time: 0.021213 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{r==1} " ./tests/ctl/existential_test4.c
+Analysis Result: TRUE
+Time: 0.001580 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "a!=1" -ctl "AG{OR{a!=1}{AF{r==1}}} " ./tests/ctl/koskinen/acqrel_mod.c
+Analysis Result: UNKNOWN
+Time: 0.003127 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "n > 0" -ctl "EG{EF{n==1}} " ./tests/ctl/fin_ex.c
+Analysis Result: UNKNOWN
+Time: 0.003168 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x > y" -ctl "EU{x >= y}{x == y} " ./tests/ctl/until_existential.c
+Analysis Result: UNKNOWN
+Time: 0.000838 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "A==0 && R==0" -ctl "AG{OR{A!=1}{AF{R==1}}}" -ordinals 3 ./tests/ctl/koskinen/acqrel.c
+Analysis Result: UNKNOWN
+Time: 0.001573 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 4 -precondition "true" -ctl "OR{set==0}{AF{unset == 1}} " ./tests/ctl/koskinen/fig8-2007_mod.c
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{OR{x==4}{x==-4}} " ./tests/ctl/multi_branch_choice.c
+Analysis Result: TRUE
+Time: 0.002769 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AND{EF{x==4}}{EF{x==-4}} " ./tests/ctl/multi_branch_choice.c
+Analysis Result: TRUE
+Time: 0.002746 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "OR{i >= 5}{AF{exit: true}} " ./tests/ctl/sv_comp/Ex02_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.017781 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AG{i==0}} " ./tests/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.001284 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{EG{i==0}} " ./tests/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.001253 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{AG{i==0}} " ./tests/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.001271 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{EG{i==0}} " ./tests/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.001256 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AND{AF{j >= 21}}{i==100}} " ./tests/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+Analysis Result: TRUE
+Time: 0.012772 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AND{EF{j >= 21}}{i==100}} " ./tests/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+Analysis Result: TRUE
+Time: 0.013017 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{AND{AF{j >= 21}}{i==100}} " ./tests/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+Analysis Result: TRUE
+Time: 0.012875 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{AND{EF{j >= 21}}{i==100}} " ./tests/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+Analysis Result: TRUE
+Time: 0.012615 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AND{x==7}{AF{AG{x==2}}}} " ./tests/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+Analysis Result: UNKNOWN
+Time: 0.000418 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AND{x==7}{AF{EG{x==2}}}} " ./tests/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+Analysis Result: UNKNOWN
+Time: 0.000433 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AND{x==7}{EF{AG{x==2}}}} " ./tests/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+Analysis Result: UNKNOWN
+Time: 0.000407 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AND{x==7}{EF{EG{x==2}}}} " ./tests/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+Analysis Result: UNKNOWN
+Time: 0.000427 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{AG{j==0}} " ./tests/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.002482 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{AG{j==0}} " ./tests/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.002377 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{EG{j==0}} " ./tests/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.002573 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{EG{j==0}} " ./tests/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.002521 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "chainBroken == 0" -ctl "AG{OR{chainBroken != 1}{AG{chainBroken == 1}}} " ./tests/ctl/ltl_automizer/coolant_basis_1_safe_sfty.c
+Analysis Result: TRUE
+Time: 0.110157 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "chainBroken == 0" -ctl "AG{OR{chainBroken != 1}{AG{chainBroken == 1}}} " ./tests/ctl/ltl_automizer/coolant_basis_1_unsafe_sfty.c
+Analysis Result: TRUE
+Time: 0.111065 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 7 -precondition "true" -ctl "AG{AF{otime < time}} " ./tests/ctl/ltl_automizer/coolant_basis_2_safe_lifeness.c
+Analysis Result: TRUE
+Time: 0.361764 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 7 -precondition "true" -ctl "AG{AF{otime < time}} " ./tests/ctl/ltl_automizer/coolant_basis_2_unsafe_lifeness.c
+Analysis Result: TRUE
+Time: 0.357113 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0" -ctl "AG{OR{init != 3}{AG{AF{time > otime}}}} " ./tests/ctl/ltl_automizer/coolant_basis_3_safe_sfty.c
+Analysis Result: UNKNOWN
+Time: 0.017948 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0" -ctl "AG{OR{init != 3}{AG{AF{time > otime}}}} " ./tests/ctl/ltl_automizer/coolant_basis_3_unsafe_sfty.c
+Analysis Result: UNKNOWN
+Time: 0.021420 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0 && temp < limit" -ctl "AG{OR{init != 3}{OR{temp <= limit}{AF{AG{chainBroken == 1}}}}} " ./tests/ctl/ltl_automizer/coolant_basis_4_safe_sfty.c
+Analysis Result: UNKNOWN
+Time: 0.020545 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0" -ctl "AU{init == 0}{OR{AU{init == 1}{AG{init == 3}}}{AG{init == 1}}} " ./tests/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+Analysis Result: UNKNOWN
+Time: 0.047448 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0 && temp < limit" -ctl "AG{OR{limit <= -273 && limit >= 10}{OR{tempIn >= 0}{AF{ warnLED == 1}}}} " ./tests/ctl/ltl_automizer/coolant_basis_6_safe_sfty.c
+Analysis Result: UNKNOWN
+Time: 0.019158 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0 && temp < limit" -ctl "AG{OR{limit <= -273 && limit >= 10}{OR{tempIn >= 0}{AF{ warnLED == 1}}}} " ./tests/ctl/ltl_automizer/coolant_basis_6_unsafe_sfty.c
+Analysis Result: UNKNOWN
+Time: 0.019496 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "i == 1 && n >= 0 && i > n" -ctl "AG{i >= n} " ./tests/ctl/ltl_automizer/nestedRandomLoop_true-valid-ltl.c
+Analysis Result: UNKNOWN
+Time: 0.002032 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "t >= 0" -ctl "AG{AND{AF{t==1}}{AF{t==0}}} " ./tests/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+Analysis Result: UNKNOWN
+Time: 0.001448 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x < 0" -ordinals 3 -ctl "AG{OR{x <= 0}{AF{y == 0}}}" ./tests/ctl/ltl_automizer/PotentialMinimizeSEVPABug.c
+Analysis Result: UNKNOWN
+Time: 0.002245 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "x < 0" -ordinals 3 -ctl "AG{OR{x <= 0}{AF{y == 0}}}" ./tests/ctl/ltl_automizer/cav2015.c
+Analysis Result: UNKNOWN
+Time: 0.001935 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{x > 10000} " ./tests/ctl/ltl_automizer/simple-1.c
+Analysis Result: UNKNOWN
+Time: 0.001625 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{x > 100} " ./tests/ctl/ltl_automizer/simple-2.c
+Analysis Result: UNKNOWN
+Time: 0.001655 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "ap==0" -ctl "NOT{AF{ap > 2}} " ./tests/ctl/ltl_automizer/Bug_NoLoopAtEndForTerminatingPrograms_safe.c
+Analysis Result: TRUE
+Time: 0.005360 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 3 -ctl "NOT{AG{OR{timer_1 != 0}{AF{output_1 == 1}}}}" ./tests/ctl/ltl_automizer/timer-simple.c
+Analysis Result: UNKNOWN
+Time: 0.004383 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "t==0" -ctl "AG{AND{AF{t == 1}}{AF{t == 0}}}" ./tests/ctl/ltl_automizer/togglecounter_true-valid-ltl.c
+Analysis Result: UNKNOWN
+Time: 0.000695 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 3 -ctl "EF{exit: true}" ./tests/ctl/potential_termination_1.c
+Analysis Result: UNKNOWN
+Time: 0.005681 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 3 -ctl "EF{x < 0}" ./tests/ctl/sv_comp/Bangalore_false-no-overflow.c
+Analysis Result: UNKNOWN
+Time: 0.024578 s
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AU{x <= y}{x==y} " ./tests/ctl/until_test.c
+Analysis Result: TRUE
+Time: 0.004960 s
+
+Done.
+
+
+Executing: ./main.exe -ctl "AG{OR{A!=1}{AF{R==1}}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2 -precondition "A==0 && R==0" ./tests/ctl/koskinen/acqrel.c
+Analysis Result: UNKNOWN
+
+Done.
+
+
+Executing: ./main.exe -ctl "AG{OR{A!=1}{EF{R==1}}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2 -precondition "A==0 && R==0" ./tests/ctl/koskinen/acqrel.c
+Analysis Result: UNKNOWN
+
+Done.
+
+
+Executing: ./main.exe -ctl "EF{AND{A==1}{AG{R!=1}}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2 -precondition "A==0 && R==0" ./tests/ctl/koskinen/acqrel.c
+Analysis Result: UNKNOWN
+
+Done.
+
+
+Executing: ./main.exe -ctl "EF{AND{A==1}{EG{R!=1}}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2 -precondition "A==0 && R==0" ./tests/ctl/koskinen/acqrel.c
+Analysis Result: UNKNOWN
+
+Done.
+
+
+Executing: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "EF{resp==5}" ./tests/ctl/koskinen/toylin1.ltl.c
+Analysis Result: UNKNOWN
+Time: 0.004434 s
+
+Done.
+
+
+Test Summary:
+Total tests: 106
+Failed tests: 31
+
+Failed commands:
+- set -x #echo on
+- echo "Running FuncTion Core Tests: "
+- echo " "
+- ./main.exe tests/ctl/koskinen/fig8-2007_mod.c -minimal -time -domain polyhedra -joinbwd 4 -precondition "true" -ctl "OR{set==0}{AF{unset == 1}} "
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c -ctl "AG{OR{set != 1}{AF{unset == 1}}}" -domain polyhedra -joinbwd 3 -minimal -ordinals 2 -precondition "set == 0 && unset == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c -ctl "AG{OR{set != 1}{EF{unset == 1}}}" -domain polyhedra -joinbwd 3 -minimal -ordinals 2 -precondition "set == 0 && unset == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c -ctl "EG{AND{set == 1}{AG{unset != 1}}}" -domain polyhedra -joinbwd 3 -minimal -ordinals 2 -precondition "set == 0 && unset == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c -ctl "EG{AND{set == 1}{EG{unset != 1}}}" -domain polyhedra -joinbwd 3 -minimal -ordinals 2 -precondition "set == 0 && unset == 0"
+- timeout 180 ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c -ctl "AG{OR{keA!=1}{AF{keR==1}}}" -precondition "keA==0 && keR == 0" -domain polyhedra -joinbwd 3 -minimal -ordinals 2
+- timeout 180 ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c -ctl "AG{OR{keA!=1}{EF{keR==1}}}" -precondition "keA==0 && keR == 0" -domain polyhedra -joinbwd 3 -minimal -ordinals 2
+- timeout 180 ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c -ctl "EF{AND{keA==1}{AG{keR!=1}}}" -precondition "keA==0 && keR == 0" -domain polyhedra -joinbwd 3 -minimal -ordinals 2
+- timeout 180 ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c -ctl "AG{OR{keA!=1}{EG{keR==1}}}" -precondition "keA==0 && keR == 0" -domain polyhedra -joinbwd 3 -minimal -ordinals 2
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c -domain polyhedra -ordinals 2 -minimal -ctl "OR{AF{phi_io_compl == 1}}{AF{phi_nSUC_ret  == 1}}" -precondition "keA==0 && keR==0 && ioA==0 && ioR==0 && phi_nSUC_ret == 0 && phi_io_compl == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c -domain polyhedra -ordinals 2 -minimal -ctl "AND{EG{phi_io_compl != 1}}{EG{phi_nSUC_ret  != 1}}" -precondition "keA==0 && keR==0 && ioA==0 && ioR==0 && phi_nSUC_ret == 0 && phi_io_compl == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c -domain polyhedra -ordinals 2 -minimal -ctl "AND{EF{phi_io_compl == 1}}{EF{phi_nSUC_ret  == 1}}" -precondition "keA==0 && keR==0 && ioA==0 && ioR==0 && phi_nSUC_ret == 0 && phi_io_compl == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c -domain polyhedra -minimal -ctl "OR{AG{phi_io_compl != 1}}{AG{phi_nSUC_ret  != 1}}" -precondition "keA==0 && keR==0 && ioA==0 && ioR==0 && phi_nSUC_ret == 0 && phi_io_compl == 0"
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c -ctl "AG{AF{WItemsNum >= 1}}" -domain polyhedra -joinbwd 5 -minimal
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c -ctl "AG{EF{WItemsNum >= 1}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c -ctl "EF{AG{WItemsNum < 1}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c -ctl "EF{EG{WItemsNum < 1}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c -domain polyhedra -minimal -ctl "AG{AF{wakend >= 1}}" -precondition "wakend==1" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c -domain polyhedra -minimal -ctl "AG{EF{wakend >= 1}}" -precondition "wakend==1" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c -domain polyhedra -minimal -ctl "EF{AG{wakend < 1}}" -precondition "wakend==1" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c -domain polyhedra -minimal -ctl "EF{EG{wakend < 1}}" -precondition "wakend==1" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c -domain polyhedra -minimal -ctl "OR{c <= 5}{AF{resp > 5}}" -precondition "c > 0 && servers==8 && resp==0 && curr_serv == 8" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c -domain polyhedra -minimal -ctl "OR{c <= 5}{EF{resp > 5}}" -precondition "c > 0 && servers==8 && resp==0 && curr_serv == 8" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c -domain polyhedra -minimal -ctl "AND{c > 5}{AG{resp <= 5}}" -precondition "c > 0 && servers==8 && resp==0 && curr_serv == 8" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c -domain polyhedra -minimal -ctl "AND{c > 5}{EG{resp <= 5}}" -precondition "c > 0 && servers==8 && resp==0 && curr_serv == 8" -ordinals 2 -joinbwd 5
+- ./main.exe tests/ctl/parity_test.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{y==1} "
+- ./main.exe tests/ctl/parity_test.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{y==1} "
+- ./main.exe tests/ctl/parity_test.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{y==1} "
+
+Alternative paths not executed:
+
+Original: tests/countdown.c
+Alternatives:
+  - ./tests/termination/countdown.c
+
+Files not found:
+- tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/popl07.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394-succeed.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/1394complete.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/pgarch.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c
+- tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c
+- tests/ctl/parity_test.c
+- tests/ctl/parity_test.c
+- tests/ctl/parity_test.c

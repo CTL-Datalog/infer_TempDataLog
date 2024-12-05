@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/simple-2.c
+Actual path: ./tests/ctl/ltl_automizer/simple-2.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{x > 100} " ./tests/ctl/ltl_automizer/simple-2.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.001655 s
+
+Done.
+
+===== STDERR =====

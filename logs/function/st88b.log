@@ -1,0 +1,5 @@
+Command: ./main.exe -ctl "EF{EG{WItemsNum < 1}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2 tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c
+===== STDOUT =====
+
+===== STDERR =====
+Fatal error: exception Sys_error("tests/ctl/reasoning_about_nondeterminism_in_programs/st88b.c: No such file or directory")

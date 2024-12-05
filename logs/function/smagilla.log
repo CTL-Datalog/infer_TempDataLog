@@ -1,0 +1,5 @@
+Command: ./main.exe -domain polyhedra -minimal -ctl "AND{c > 5}{EG{resp <= 5}}" -precondition "c > 0 && servers==8 && resp==0 && curr_serv == 8" -ordinals 2 -joinbwd 5 tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c
+===== STDOUT =====
+
+===== STDERR =====
+Fatal error: exception Sys_error("tests/ctl/reasoning_about_nondeterminism_in_programs/smagilla.c: No such file or directory")

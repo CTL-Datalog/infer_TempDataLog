@@ -1,0 +1,10 @@
+Original path: tests/ctl/or_test.c
+Actual path: ./tests/ctl/or_test.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "OR{AF{AG{x < -100}}}{AF{x==20}} " ./tests/ctl/or_test.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.001271 s
+
+Done.
+
+===== STDERR =====

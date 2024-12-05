@@ -1,0 +1,10 @@
+Original path: tests/mnav.c
+Actual path: ./tests/guarantee/mnav.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{enable == 0} " ./tests/guarantee/mnav.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.006598 s
+
+Done.
+
+===== STDERR =====

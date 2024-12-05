@@ -1,0 +1,9 @@
+Original path: tests/ctl/reasoning_about_nondeterminism_in_programs/acqrel.c
+Actual path: ./tests/ctl/koskinen/acqrel.c
+Command: ./main.exe -ctl "EF{AND{A==1}{EG{R!=1}}}" -domain polyhedra -joinbwd 5 -minimal -ordinals 2 -precondition "A==0 && R==0" ./tests/ctl/koskinen/acqrel.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+
+Done.
+
+===== STDERR =====

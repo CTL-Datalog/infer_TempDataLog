@@ -1,0 +1,5 @@
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{y==1} " tests/ctl/parity_test.c
+===== STDOUT =====
+
+===== STDERR =====
+Fatal error: exception Sys_error("tests/ctl/parity_test.c: No such file or directory")

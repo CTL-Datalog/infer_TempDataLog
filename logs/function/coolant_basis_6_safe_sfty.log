@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/coolant_basis_6_safe_sfty.c
+Actual path: ./tests/ctl/ltl_automizer/coolant_basis_6_safe_sfty.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 2 -precondition "init == 0 && temp < limit" -ctl "AG{OR{limit <= -273 && limit >= 10}{OR{tempIn >= 0}{AF{ warnLED == 1}}}} " ./tests/ctl/ltl_automizer/coolant_basis_6_safe_sfty.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.019158 s
+
+Done.
+
+===== STDERR =====

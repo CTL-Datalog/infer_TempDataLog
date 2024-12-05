@@ -1,0 +1,10 @@
+Original path: tests/ctl/ltl_automizer/timer-simple.c
+Actual path: ./tests/ctl/ltl_automizer/timer-simple.c
+Command: ./main.exe -minimal -time -domain polyhedra -joinbwd 3 -ctl "NOT{AG{OR{timer_1 != 0}{AF{output_1 == 1}}}}" ./tests/ctl/ltl_automizer/timer-simple.c
+===== STDOUT =====
+Analysis Result: UNKNOWN
+Time: 0.004383 s
+
+Done.
+
+===== STDERR =====
