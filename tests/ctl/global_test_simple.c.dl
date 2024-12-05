@@ -1,0 +1,115 @@
+/*(Start())@10 · ((["x">=0]@11 · ("x">=0)@12 · ("x"=-20)@13 · (𝝐 )^w) \/ (["x"<0]@16 · ("x"<0)@17 · ((["x"<-3]@18 · ("x"<-3)@19 · ("x"=("x"+1))@20 · ["x">=-3]@21 · ("x">=-3)@22 · (("x"--3)<0)@23 · ("x"=("x"+1))@24 · (("x"=("x"-1))@25 · ((-3-"x")>=1)@26)^w) \/ (["x">=-3]@27 · ("x">=-3)@28 · (("x"=("x"+1))@29 · ["x">=-3]@30 · ("x">=-3)@31 · ("x">=-3)@32)^w))))*/
+
+flow(11,12).
+flow(12,13).
+flow(13,13).
+flow(16,17).
+flow(18,19).
+flow(19,20).
+flow(21,22).
+flow(22,23).
+flow(23,24).
+flow(24,25).
+flow(25,26).
+flow(26,26).
+flow(26,25).
+flow(27,28).
+flow(28,29).
+flow(30,31).
+flow(31,32).
+flow(32,32).
+flow(32,29).
+Start(10).
+State(11).
+GtEq("x",12,0).
+GtEq("x",12,-3).
+State(12).
+Lt("x",13,-3).
+Lt("x",13,0).
+LtEq("x",13,-10).
+State(13).
+State(10).
+State(16).
+Lt("x",17,0).
+State(18).
+Lt("x",19,-3).
+Lt("x",19,0).
+State(19).
+State(20).
+State(21).
+GtEq("x",22,-3).
+State(22).
+State(23).
+State(24).
+State(25).
+State(26).
+State(17).
+State(27).
+GtEq("x",28,-3).
+State(28).
+State(29).
+State(30).
+GtEq("x",31,-3).
+State(31).
+GtEq("x",32,-3).
+State(32).
+control_flow(10,11) :- GtEqD("x",10,0).
+control_flow(10,16) :- LtD("x",10,0).
+control_flow(17,18) :- LtD("x",17,-3).
+control_flow(20,21) :- GtEqD("x",20,-3).
+control_flow(17,27) :- GtEqD("x",17,-3).
+control_flow(29,30) :- GtEqD("x",29,-3).
+//AG(AF("x"<=-10))
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl Lt(x:symbol,loc:number,n:number)
+.decl GtEq(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl LtD(x:symbol,loc:number,n:number)
+.decl GtEqD(x:symbol,loc:number,n:number)
+.decl x_lteq_neg_10(loc:number)
+.decl AF_x_lteq_neg_10_T(interm_state:number,loc:number)
+.decl AF_x_lteq_neg_10_S(loc:number)
+.decl AF_x_lteq_neg_10(loc:number)
+.decl NOT_AF_x_lteq_neg_10(loc:number)
+.decl EF_NOT_AF_x_lteq_neg_10(loc:number)
+.decl AG_AF_x_lteq_neg_10(loc:number)
+.decl AG_AF_x_lteq_neg_10_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,n), !Gt(x,loc,n).
+LtD(x,loc,n) :- Lt(x,loc,n).
+LtD(x,loc,n) :- LtD(x,locI,n), control_flow(locI,loc), !Lt(x,loc,n), !GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEq(x,loc,n).
+GtEqD(x,loc,n) :- GtEqD(x,locI,n), control_flow(locI,loc), !GtEq(x,loc,n), !Lt(x,loc,n).
+x_lteq_neg_10(loc) :- State(loc), LtEqD("x",loc,-10).
+AF_x_lteq_neg_10_T(interm_state,loc) :- AF_x_lteq_neg_10_T(tempOne,loc), !x_lteq_neg_10(tempOne), control_flow(tempOne,interm_state).
+AF_x_lteq_neg_10_T(interm_state,loc) :- !x_lteq_neg_10(loc), control_flow(loc,interm_state).
+AF_x_lteq_neg_10_S(loc) :- !x_lteq_neg_10(loc), control_flow(loc,tempOne), AF_x_lteq_neg_10_S(tempOne).
+AF_x_lteq_neg_10_S(loc) :- AF_x_lteq_neg_10_T(loc,loc).
+AF_x_lteq_neg_10(loc) :- State(loc), !AF_x_lteq_neg_10_S(loc).
+NOT_AF_x_lteq_neg_10(loc) :- State(loc), !AF_x_lteq_neg_10(loc).
+EF_NOT_AF_x_lteq_neg_10(loc) :- control_flow(loc,tempOne), EF_NOT_AF_x_lteq_neg_10(tempOne).
+EF_NOT_AF_x_lteq_neg_10(loc) :- NOT_AF_x_lteq_neg_10(loc).
+AG_AF_x_lteq_neg_10(loc) :- State(loc), !EF_NOT_AF_x_lteq_neg_10(loc).
+AG_AF_x_lteq_neg_10_Final(loc) :- Start(loc), AG_AF_x_lteq_neg_10(loc), !NotTotal(loc).
+.output Gt
+.output LtEq
+.output Lt
+.output GtEq
+.output Start
+.output State
+.output flow
+.output AG_AF_x_lteq_neg_10_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
+

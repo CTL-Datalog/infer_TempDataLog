@@ -37,7 +37,6 @@ Eq("n",12,0).
 State(12).
 NotEq("n",13,0).
 Gt("n",13,0).
-Eq("n",13,1).
 State(13).
 LtEq("n",14,0).
 Eq("n",14,0).
@@ -61,7 +60,6 @@ Eq("n",24,0).
 State(24).
 NotEq("n",25,0).
 Gt("n",25,0).
-Eq("n",25,1).
 State(25).
 LtEq("n",26,0).
 Eq("n",26,0).
@@ -73,74 +71,3 @@ control_flow(7,11) :- EqD("n",7,0).
 control_flow(5,16) :- GtD("n",5,0).
 control_flow(19,20) :- NotEqD("n",19,0).
 control_flow(19,23) :- EqD("n",19,0).
-//AG((AF("n"=1) /\ AF("n"=0)))
-.decl Start(x:number)
-.decl State(x:number)
-.decl flow(x:number,y:number)
-.decl control_flow(x:number,y:number)
-.decl transFlow(x:number,y:number)
-.decl NotTotal(loc:number)
-.decl Return(n0:number,n1:number)
-.decl Gt(x:symbol,loc:number,n:number)
-.decl Eq(x:symbol,loc:number,n:number)
-.decl NotEq(x:symbol,loc:number,n:number)
-.decl LtEq(x:symbol,loc:number,n:number)
-.decl GtD(x:symbol,loc:number,n:number)
-.decl EqD(x:symbol,loc:number,n:number)
-.decl NotEqD(x:symbol,loc:number,n:number)
-.decl LtEqD(x:symbol,loc:number,n:number)
-.decl n_eq_0(loc:number)
-.decl AF_n_eq_0_T(interm_state:number,loc:number)
-.decl AF_n_eq_0_S(loc:number)
-.decl AF_n_eq_0(loc:number)
-.decl n_eq_1(loc:number)
-.decl AF_n_eq_1_T(interm_state:number,loc:number)
-.decl AF_n_eq_1_S(loc:number)
-.decl AF_n_eq_1(loc:number)
-.decl AF_n_eq_1_AND_AF_n_eq_0(loc:number)
-.decl NOT_AF_n_eq_1_AND_AF_n_eq_0(loc:number)
-.decl EF_NOT_AF_n_eq_1_AND_AF_n_eq_0(loc:number)
-.decl AG_AF_n_eq_1_AND_AF_n_eq_0(loc:number)
-.decl AG_AF_n_eq_1_AND_AF_n_eq_0_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
-transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
-NotTotal(loc) :- State(loc), !control_flow(loc,_).
-NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
-control_flow(x,y) :- flow(x,y).
-GtD(x,loc,n) :- Gt(x,loc,n).
-GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
-EqD(x,loc,n) :- Eq(x,loc,n).
-EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEq(x,loc,n).
-NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
-LtEqD(x,loc,n) :- LtEq(x,loc,n).
-LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,n), !Gt(x,loc,n).
-n_eq_0(loc) :- State(loc), EqD("n",loc,0).
-AF_n_eq_0_T(interm_state,loc) :- AF_n_eq_0_T(tempOne,loc), !n_eq_0(tempOne), control_flow(tempOne,interm_state).
-AF_n_eq_0_T(interm_state,loc) :- !n_eq_0(loc), control_flow(loc,interm_state).
-AF_n_eq_0_S(loc) :- !n_eq_0(loc), control_flow(loc,tempOne), AF_n_eq_0_S(tempOne).
-AF_n_eq_0_S(loc) :- AF_n_eq_0_T(loc,loc).
-AF_n_eq_0(loc) :- State(loc), !AF_n_eq_0_S(loc).
-n_eq_1(loc) :- State(loc), EqD("n",loc,1).
-AF_n_eq_1_T(interm_state,loc) :- AF_n_eq_1_T(tempOne,loc), !n_eq_1(tempOne), control_flow(tempOne,interm_state).
-AF_n_eq_1_T(interm_state,loc) :- !n_eq_1(loc), control_flow(loc,interm_state).
-AF_n_eq_1_S(loc) :- !n_eq_1(loc), control_flow(loc,tempOne), AF_n_eq_1_S(tempOne).
-AF_n_eq_1_S(loc) :- AF_n_eq_1_T(loc,loc).
-AF_n_eq_1(loc) :- State(loc), !AF_n_eq_1_S(loc).
-AF_n_eq_1_AND_AF_n_eq_0(loc) :- AF_n_eq_1(loc), AF_n_eq_0(loc).
-NOT_AF_n_eq_1_AND_AF_n_eq_0(loc) :- State(loc), !AF_n_eq_1_AND_AF_n_eq_0(loc).
-EF_NOT_AF_n_eq_1_AND_AF_n_eq_0(loc) :- control_flow(loc,tempOne), EF_NOT_AF_n_eq_1_AND_AF_n_eq_0(tempOne).
-EF_NOT_AF_n_eq_1_AND_AF_n_eq_0(loc) :- NOT_AF_n_eq_1_AND_AF_n_eq_0(loc).
-AG_AF_n_eq_1_AND_AF_n_eq_0(loc) :- State(loc), !EF_NOT_AF_n_eq_1_AND_AF_n_eq_0(loc).
-AG_AF_n_eq_1_AND_AF_n_eq_0_Final(loc) :- Start(loc), AG_AF_n_eq_1_AND_AF_n_eq_0(loc), !NotTotal(loc).
-.output Gt
-.output Eq
-.output NotEq
-.output LtEq
-.output Start
-.output State
-.output flow
-.output Return
-.output AG_AF_n_eq_1_AND_AF_n_eq_0_Final(IO=stdout)
-
-.output NotTotal(IO=stdout)
-
