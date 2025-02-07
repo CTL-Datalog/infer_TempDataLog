@@ -1,0 +1,15 @@
+### CTLEXPERT
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_until.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential3.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/global_test_simple.c
+
+
+
+### Function 
+./main.exe tests/ctl/report/test_until.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AU{x >= y}{x == y}"
+
+./main.exe tests/ctl/report/test_existential3.c -minimal -time -domain polyhedra -joinbwd 2 -ctl_existential_equivalence -precondition "x > 0" -ctl "EF{r==1}"
+
+./main.exe tests/ctl/global_test_simple.c -minimal -time -domain polyhedra -joinbwd 6 -precondition "true" -ctl "AG{AF{x <= -10}} "

@@ -2,8 +2,8 @@
 
 /*@ AG(AF(x=0)) @*/
 
-/*@ AF(x=0) @*/
-GUARANTEE/RECURRENCE (x == 0)
+/* AF(x=0) @*/
+/*GUARANTEE/RECURRENCE (x == 0)
 
 suggested parameters:
 - partition abstract domain = boxes [default]
@@ -13,7 +13,7 @@ suggested parameters:
 
 void main() {
   int x;
-  while (true) {
+  while (1) {
     x = ?;
     while (x != 0) {
       if (x > 0)

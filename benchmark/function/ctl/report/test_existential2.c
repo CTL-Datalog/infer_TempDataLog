@@ -6,7 +6,7 @@ int main() {
     int x;
     int y;
     int r = 0;
-    while (?) { 
+    while (*) { 
         x = x + 1;
         if (x == 200) {
             r = 1;

@@ -2,7 +2,7 @@
 
 /*@ AG(AF(C1: true)) @*/
 
-/*@ AF(C1: true) @*/
+/* AF(C1: true) 
 GUARANTEE/RECURRENCE (C1: true)
 GUARANTEE/RECURRENCE (C2: true)
 

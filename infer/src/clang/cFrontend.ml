@@ -974,15 +974,11 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
           match a with 
           |  (Basic(BINT _ )) ->"Number" 
           |  (Basic(BSTR _ )) -> "Symbol" 
-          |  (Basic(BSTR _ )) -> "Symbol" 
-          |  (Basic(BSTR _ )) -> "Symbol" 
-          |  (Basic(BSTR _ )) -> "Symbol"  
-          |  (Basic(BSTR _ )) -> "Symbol" 
           | _ -> "")  in 
         let funName = (Exp.to_string e_fun) in 
         let funName = String.sub funName 5 (String.length funName - 5) in 
         
-        let funName =removeDotsInVarName funName in 
+        let funName = removeDotsInVarName funName in 
 
         predicateDeclearation:= (funName, argumentTermsType@["Number"]) :: !predicateDeclearation ;
         Singleton (Predicate (funName, argumentTerms), node_key), [] 
@@ -1500,10 +1496,11 @@ pure * rankingfunction
             else 
             (Ast_utility.TRUE)  
           else 
+            (print_endline ("right_hand_side = " ^ string_of_pure  right_hand_side);
             if entailConstrains right_hand_side FALSE && not (entailConstrains TRUE path) then (Neg path)
             else 
             
-            right_hand_side
+            right_hand_side)
       in 
 
       print_endline (string_of_pure  pureIter);
@@ -1592,6 +1589,39 @@ let compute_deriv_of_concern re (ctl:ctl list) =
   | _ -> re
 
 
+let fiterOutTheUsedOperationChanges guard (re:regularExpr) (rfterm:terms) : regularExpr = 
+  let rec helper reIn : regularExpr = 
+    match reIn with 
+    | Emp | Bot | Guard _ -> reIn 
+    | Disjunction (re1, re2) -> Disjunction(helper re1, helper re2)
+    | Concate (re1, re2) -> Concate(helper re1, helper re2)
+    | Kleene re1 -> Kleene(helper re1)
+    | Omega re1 -> Kleene(helper re1)  
+    | Singleton _ ->  
+      (match transitionSummary reIn with 
+      | [(path, stateLi)] -> 
+        let rankingTerm' = computePostRankingFunctionFromTransitionSUmmary rfterm stateLi in 
+        (*print_endline ("fiterOutTheUsedOperationChanges rankingTerm' = " ^ string_of_terms rankingTerm');
+        *)
+
+        let left_hand_side = PureAnd (guard, path) in 
+        let right_hand_side = normalise_pure_prime (Eq( (rfterm ), rankingTerm'))in
+        if entailConstrains left_hand_side right_hand_side then reIn else Emp
+
+      | _ ->  raise (Failure "fiterOutTheUsedOperationChanges Singleton")
+      )
+  in helper re 
+;;
+
+let commonVariable_rankingFunctions rankingFuns : bool = 
+  let allVars = List.map rankingFuns ~f:(fun (p, _) -> getAllVarFromTerm p []) in
+  match allVars with 
+  | [x] :: [y]::rest -> 
+    if String.compare x y == 0 then true 
+    else false
+  | _ -> false
+
+  ;;
 
 let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr): regularExpr option  =  
   let re = normalise_es re in
@@ -1626,11 +1656,13 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let loopGuard =  (pi, !allTheUniqueIDs) in 
 
 
-  let deriv_of_concern = compute_deriv_of_concern nonleakingBranches ctl in 
+  let deriv_of_concern =  compute_deriv_of_concern nonleakingBranches ctl in 
 
   if List.length rankingFuns == 0 then 
     Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv_of_concern))))
 
+  else if commonVariable_rankingFunctions rankingFuns then None 
+    (* this is when there are more than one ranking functions upon one single varaible *)
   else 
   
 
@@ -1640,7 +1672,10 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   print_endline("------------termination analysis"); 
                                 (* a trace,    Some(terminational wp, ranking function) *)
   let (weakestPreTerm, (rfterm, leakingRE)) = wp4Termination transitionSummaries (pi) rankingFuns in 
-  
+
+  let deriv_of_concern = fiterOutTheUsedOperationChanges pi deriv_of_concern rfterm in 
+
+
 
   let weakestPreTerm = normalise_pure_prime (weakestPreTerm) in 
   let terminating = 
@@ -1741,9 +1776,14 @@ let rec convertAllTheKleeneToOmega (pathAcc:pure) (re:regularExpr) ctl: (regular
       | None -> None,  pathAcc
       | Some loopsummary -> 
         let loopsummary = normalise_es loopsummary in 
-        print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
-        if entailConstrains reNonCyclePure FALSE then Some loopsummary, pathAcc
-        else Some (Disjunction(reNonCycle, loopsummary)), pathAcc
+        if entailConstrains reNonCyclePure FALSE then 
+          (print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
+          Some loopsummary, pathAcc)
+        else 
+          (
+          let loopsummary = Disjunction(reNonCycle, loopsummary) in 
+          print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
+          Some loopsummary, pathAcc)
       )
     )
 
@@ -2568,7 +2608,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting 
-  (*  @ ["/* Other information \n"]@facts@["*/\n"] *) );
+    @ ["/* Other information \n"]@facts@["*/\n"]  );
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 

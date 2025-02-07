@@ -1,8 +1,8 @@
 // -ctl_str "AU{x >= y}{x == y}"
 
-/*@ AU(x <= y)(x=y) @*/
 
-/*@ AU(x >= y)(x=y) @*/
+
+/*@ AU(x >= y, x=y) @*/
 // -domain polyhedra
 // -precondition "x == y + 20"
 int main() {

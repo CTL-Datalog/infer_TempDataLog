@@ -1,6 +1,8 @@
 /*
 
 /*@ AF(z=1) @*/
+
+/*
 GUARANTEE (z == 1)
 
 suggested parameters:

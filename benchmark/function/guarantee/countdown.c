@@ -1,8 +1,10 @@
 /* from Urban Miné VMCAI 2015 paper
 
+/* AF(x = 0) @*/
+
 /*@ AG(AF(x = 0)) @*/
 
-/*@ AF(x = 0) @*/
+/* AF(x = 0) 
 GUARANTEE/RECURRENCE (x == 0)
 
 suggested parameters:
@@ -13,7 +15,7 @@ suggested parameters:
 
 void main() {
   int x, c = 1;
-  while (true) {
+  while (1) {
     x = c;
     while (x > 0) {
       x = x - 1;

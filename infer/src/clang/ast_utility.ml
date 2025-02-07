@@ -743,6 +743,9 @@ let rec normalise_pure (pi:pure) : pure =
 
 
   | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
+  | Lt (Minus(t1, Basic( BINT n1)), Basic( BINT n2)) -> Lt (normalise_terms t1, Basic( BINT (n2+n1)))
+
+  | GtEq (Minus(Basic( BINT n1),  t1), Basic( BINT n2)) -> LtEq (normalise_terms t1, Basic( BINT (n1-n2)))
 
   | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
@@ -1130,17 +1133,6 @@ let rec getAllVarFromTerm (t:terms) (acc:string list):string list =
 | _ -> acc
 ;;
 
-let rec getAllStrFromTerm (t:terms) (acc:string list):string list = 
-  match t with
-| Basic (BSTR name) -> List.append acc [name]
-| Plus (t1, t2) -> 
-    let cur = getAllStrFromTerm t1 acc in 
-    getAllStrFromTerm t2 cur
-| Minus (t1, t2) -> 
-    let cur = getAllStrFromTerm t1 acc in 
-    getAllStrFromTerm t2 cur
-| _ -> acc
-;;
 
 let rec getAllNumFromTerm (t:terms):int list = 
   match t with
@@ -1156,24 +1148,24 @@ let rec getAllStrFromPure (pi:pure) (acc:string list):string list =
     TRUE -> acc
   | FALSE -> acc
   | Gt (term1, term2) -> 
-      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
-      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      let allVarFromTerm1 = getAllVarFromTerm term1 [] in
+      let allVarFromTerm2 = getAllVarFromTerm term2 [] in
       List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
   | Lt (term1, term2) -> 
-      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
-      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      let allVarFromTerm1 = getAllVarFromTerm term1 [] in
+      let allVarFromTerm2 = getAllVarFromTerm term2 [] in
       List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
   | GtEq (term1, term2) -> 
-      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
-      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      let allVarFromTerm1 = getAllVarFromTerm term1 [] in
+      let allVarFromTerm2 = getAllVarFromTerm term2 [] in
       List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
   | LtEq (term1, term2) -> 
-      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
-      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      let allVarFromTerm1 = getAllVarFromTerm term1 [] in
+      let allVarFromTerm2 = getAllVarFromTerm term2 [] in
       List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
   | Eq (term1, term2) -> 
-      let allVarFromTerm1 = getAllStrFromTerm term1 [] in
-      let allVarFromTerm2 = getAllStrFromTerm term2 [] in
+      let allVarFromTerm1 = getAllVarFromTerm term1 [] in
+      let allVarFromTerm2 = getAllVarFromTerm term2 [] in
       List.append acc (List.append allVarFromTerm1 allVarFromTerm2)
   | PureAnd (pi1,pi2) -> 
       let temp1 = getAllStrFromPure pi1 [] in
@@ -1185,7 +1177,7 @@ let rec getAllStrFromPure (pi:pure) (acc:string list):string list =
       let temp1 = getAllStrFromPure pi1 [] in
       let temp2 = getAllStrFromPure pi2 [] in
       List.append acc (List.append temp1 temp2) 
-  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllStrFromTerm t [])
+  | Predicate (_, termLi) -> List.fold_left termLi ~init:[] ~f:(fun acc t -> acc @ getAllVarFromTerm t [])
 
   ;;
 
