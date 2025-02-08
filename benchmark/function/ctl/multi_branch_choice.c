@@ -1,8 +1,10 @@
-/**
 
-/*@ EF(x=4) AND EF(x=-4) @*/
 
-/*@ AF(OR(x=4)(x=-4)) @*/
+/* EF(x=4) AND EF(x=-4) @*/
+
+/*@ AF((x=4) \/ (x=-4)) @*/
+
+/* AF(OR(x=4)(x=-4)) 
  * Samuel Ueltschi: multiple branches with initial non-det choice
  *
  * FuncTion arguments: 
@@ -12,9 +14,10 @@
  */
 
 int main() {
-    int x;
+    int x = __VERIFIER_nondet_int();
+    int t = __VERIFIER_nondet_int();
 
-    if (?) {
+    if (t) {
         x = 1;
     } else {
         x = -1;

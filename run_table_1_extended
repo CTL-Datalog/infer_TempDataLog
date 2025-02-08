@@ -5,7 +5,47 @@ infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential3.
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/global_test_simple.c
 
+infer/bin/infer run -- clang -c benchmark/function/guarantee/countdown.c
 
+infer/bin/infer run -- clang -c benchmark/function/guarantee/mnav.c
+
+infer/bin/infer run -- clang -c benchmark/function/guarantee/pingpong.c
+
+infer/bin/infer run -- clang -c benchmark/function/guarantee/sink.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/or_test.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test1.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test2.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test3.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test4.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel_mod.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel_mod.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/fin_ex.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/fig8-2007_mod.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/multi_branch_choice.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/toylin1.ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/until_test.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Bangalore_false-no-overflow.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/potential_termination_1.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/togglecounter_true-valid-ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/timer-simple.c
 
 ### Function 
 ./main.exe tests/ctl/report/test_until.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AU{x >= y}{x == y}"
@@ -13,3 +53,8 @@ infer/bin/infer run -- clang -c benchmark/function/ctl/global_test_simple.c
 ./main.exe tests/ctl/report/test_existential3.c -minimal -time -domain polyhedra -joinbwd 2 -ctl_existential_equivalence -precondition "x > 0" -ctl "EF{r==1}"
 
 ./main.exe tests/ctl/global_test_simple.c -minimal -time -domain polyhedra -joinbwd 6 -precondition "true" -ctl "AG{AF{x <= -10}} "
+
+./main.exe tests/countdown.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{x == 0} "
+
+./main.exe tests/guarantee/mnav.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AF{enable == 0} "
+

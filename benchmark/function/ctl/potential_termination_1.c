@@ -1,6 +1,6 @@
 
 
-/*@ EF(exit: true) @*/
+/*@ EF(Return(0)) @*/
 /**
  * Samuel Ueltschi: example for potential termination
  *
@@ -12,8 +12,8 @@ int main() {
     int x;
     int y;
     y = 1;
-    i = ?;
-    x = ?;
+    i = __VERIFIER_nondet_int();
+    x = __VERIFIER_nondet_int();
 
     if (i > 10) {
         x = 1;

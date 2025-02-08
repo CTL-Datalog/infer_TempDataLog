@@ -1,6 +1,6 @@
 // *************************************************************
 
-/*@ AG(OR(a!=1)(AF(r=1))) @*/
+/* AG(OR(a!=1)(AF(r=1))) @*/
 //
 // Original source code by Byron Cook & Eric Koskinen, July 2010
 // https://github.com/ultimate-pa/ultimate/blob/dev/trunk/examples/LTL/koskinen/branching-benchmarks/acqrel.c
@@ -14,16 +14,18 @@
 // FuncTion arguments
 // -ctl_str AG{OR{a!=1}{AF{r==1}}}
 // -precondition "a!=1"
+/*@ AG((a=0) => (AF(r=1))) @*/
+
 int main() {
 
-    int n;
-    int n_init;
+    int n = __VERIFIER_nondet_int();
+    int n_init = __VERIFIER_nondet_int();
 
-    int m;
-    int m_init;
+    int m = __VERIFIER_nondet_int();
+    int m_init = __VERIFIER_nondet_int();
 
-    int a; //assume a != 1
-    int r;
+    int a = __VERIFIER_nondet_int(); //assume a != 1
+    int r = __VERIFIER_nondet_int();
 
     r = 0;
 
@@ -39,6 +41,6 @@ int main() {
         r = 0;
     }
 
-    while(true){}
+    while(1){}
 }
 

@@ -14,7 +14,7 @@ suggested parameters:
 void main() {
   int x;
   while (1) {
-    x = ?;
+    x = __VERIFIER_nondet_int();
     while (x != 0) {
       if (x > 0)
         x = x - 1;

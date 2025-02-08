@@ -1692,7 +1692,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
       let finalStatePure = 
         match rfterm with 
         | (Minus(Minus(t1, t2), Basic(BINT 1))) -> Eq(t1, t2)
-        | _ -> normalise_pure_prime(Lt(rfterm, Basic(BINT 0)))
+        | _ -> normalise_pure_prime (Eq(rfterm, Basic(BINT (-1)))) (*  (Lt(rfterm, Basic(BINT 0))) *)
       in 
       let terminatingFinalState = Concate(deriv_of_concern , Singleton (finalStatePure
         , !allTheUniqueIDs)) in 

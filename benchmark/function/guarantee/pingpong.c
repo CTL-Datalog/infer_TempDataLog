@@ -14,6 +14,12 @@ suggested parameters:
 void main() {
 	int x = 0, y = 0, z = 0;
 
+	int t1 = __VERIFIER_nondet_int();
+	int t2 = __VERIFIER_nondet_int();
+	int t3 = __VERIFIER_nondet_int();
+	int t4 = __VERIFIER_nondet_int();
+	int t5 = __VERIFIER_nondet_int();
+	
 	// x = 1;
 	// await (y > 0);
 	// z = 1;
@@ -26,7 +32,7 @@ void main() {
 		// z = 1;
 		//
 		// y = 1;
-		if (?) {
+		if (t1) {
 			x = 1;
 			// await (y > 0);
 			// z = 1;
@@ -36,7 +42,7 @@ void main() {
 				// z = 1;
 				//
 				// y = 1;
-				if (?) {
+				if (t2) {
 					z = 1;
 					y = 1;
 				} else {
@@ -67,7 +73,7 @@ void main() {
 		// await (x > 0);
 		// y = 1;
 		if (x > 0 && y > 0) {
-			if (?) {
+			if (t3) {
 				z = 1;
 				// await (x > 0);
 				// y = 1;
@@ -89,7 +95,7 @@ void main() {
 				// z = 1;
 				//
 				// y = 1;
-				if (?) {
+				if (t4) {
 					z = 1;
 					y = 1;
 				} else {
@@ -112,7 +118,7 @@ void main() {
 				// z = 1;
 				//
 				// y = 1;
-				if (?) {
+				if (t5) {
 					z = 1;
 					y = 1;
 				} else {

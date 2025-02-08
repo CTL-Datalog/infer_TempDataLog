@@ -1,6 +1,6 @@
 /* from Urban Miné VMCAI 2015 paper
 
-/* AF(x = 0) @*/
+/* (AF(x = 0)) @*/
 
 /*@ AG(AF(x = 0)) @*/
 
@@ -14,7 +14,7 @@ suggested parameters:
 */
 
 void main() {
-  int x, c = 1;
+  int c, x = 1;
   while (1) {
     x = c;
     while (x > 0) {
@@ -23,3 +23,4 @@ void main() {
     }
   }
 }
+// expected to be true 

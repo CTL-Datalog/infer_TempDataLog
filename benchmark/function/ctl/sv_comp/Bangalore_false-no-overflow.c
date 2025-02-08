@@ -1,7 +1,7 @@
-/*
+
 
 /*@ EF(x < 0) @*/
- * Date: 06/07/2015
+/* * Date: 06/07/2015
  * Created by: Ton Chanh Le (chanhle@comp.nus.edu.sg)
  * Adapted from the example Bangalore_true-termination.c
  */

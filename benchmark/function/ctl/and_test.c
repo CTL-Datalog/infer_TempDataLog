@@ -2,7 +2,7 @@
 
 /*@ AG(AF(n=1)) AND AF(n=0) @*/
 
-/*@ AG(AF(n=1)) AND AF(n=0) @*/
+/* AG(AF(n=1)) AND AF(n=0) */
 
 void main() {
     int n;

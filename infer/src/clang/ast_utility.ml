@@ -740,6 +740,7 @@ let rec normalise_pure (pi:pure) : pure =
 
   | Gt (Minus(Basic(BINT n1),Basic( BSTR v1)),Basic( BINT n2)) -> Lt(Basic(BSTR v1), Basic (BINT(n1-n2)))
   
+  | GtEq (Basic( BINT n), t1) -> LtEq(t1, Basic( BINT n))
 
 
   | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
@@ -834,8 +835,12 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | LtEq (Minus(t1, t2),Basic( BINT 0)) -> LtEq (t1, t2)
   | GtEq (Minus(t1, t2),Basic( BINT 0)) -> GtEq(t1, t2)
 
+  | GtEq (Basic( BINT n), t1) -> LtEq(t1, Basic( BINT n))
 
   | Gt (Minus(Basic(BINT n1),Basic( BSTR v1)),Basic( BINT n2)) -> Lt(Basic(BSTR v1), Basic (BINT(n1-n2)))
+
+  | Eq (Minus(t1, Basic( BINT n1)), Basic( BINT n2)) -> Eq(t1, Basic( BINT (n2+n1)))
+
   
   | Eq (Plus(t1, Basic( BINT n)),Basic( BINT 0)) -> Eq(t1,  Basic( BINT (-1 * n)))
   

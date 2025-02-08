@@ -6,13 +6,14 @@
 // -domain polyhedra
 
 void main() {
-    int n;  //assume n > 0
+    int n= __VERIFIER_nondet_int();
+    int t = __VERIFIER_nondet_int();
 
     while (n > 0) {
         n--;
     }
 
-    if (?) {
+    if (t) {
         while (n == 0) {
             n++;
             n--;

@@ -1,14 +1,12 @@
 // *************************************************************
 
-/*@ EF(AND(A=1)(EG(R!=1))) @*/
+/* EF((A=1) AND (EG(!(R=1)))) @*/
 
-/*@ EF(AND(A=1)(AG(R!=1))) @*/
+/*@ EF((A=1) AND (AG(!(R=1)))) @*/
 
-/*@ AG(OR(A!=1)(EF(R=1))) @*/
+/* AG((A=1) => (EF(R=1))) @*/
 
-/*@ AG(OR(A!=1)(AF(R=1))) @*/
-
-/*@ AG(OR(A!=1)(AF(R=1))) @*/
+/* AG((A=1) => (AF(R=1))) @*/
 //
 //     Branching-time reasoning for infinite-state systems
 //
@@ -29,11 +27,11 @@ int A = 0;
 int R = 0;
 
 void main() {
-  int n;
-  while(?) {
+  int n= __VERIFIER_nondet_int();
+  while(1) {
     A = 1;
     A = 0;
-    n = ?;
+    n = __VERIFIER_nondet_int();
     while(n>0) {
       n--;
     }
