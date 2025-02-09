@@ -1,6 +1,6 @@
 // -ctl "AG{OR{x <= 0}{AF{y == 0}}}"
 
-/*@ AG(OR(x <= 0)(AF(y = 0))) @*/
+/*@ AG((x > 0) => (AF(y = 0))) @*/
 //#Safe
 //@ ltl invariant positive: ([] ( AP(x > 0) ==> <>AP(y==0)));
 

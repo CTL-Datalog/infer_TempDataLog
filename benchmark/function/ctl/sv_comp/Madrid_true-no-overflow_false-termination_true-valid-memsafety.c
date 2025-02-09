@@ -1,13 +1,14 @@
-/*
 
-/*@ AF(AND(x=7)(EF(EG(x=2)))) @*/
 
-/*@ AF(AND(x=7)(EF(AG(x=2)))) @*/
+/*@ AF((x=7) AND (EF(EG(x=2)))) @*/
 
-/*@ AF(AND(x=7)(AF(EG(x=2)))) @*/
+/* AF((x=7) AND (EF(AG(x=2)))) @*/
 
-/*@ AF(AND(x=7)(AF(AG(x=2)))) @*/
- * Date: 2013-05-02
+/* AF((x=7) AND(AF(EG(x=2)))) @*/
+
+/* AF((x=7) AND (AF(AG(x=2)))) @*/
+
+/* * Date: 2013-05-02
  * Author: heizmann@informatik.uni-freiburg.de
  *
  */

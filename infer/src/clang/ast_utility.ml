@@ -726,6 +726,7 @@ let rec normalise_pure (pi:pure) : pure =
   | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
   | Lt (Basic(BINT n), Basic(BSTR v)) -> Gt (Basic(BSTR v), Basic(BINT n))
   | Gt (Basic(BINT n), Basic(BSTR v)) -> Lt (Basic(BSTR v), Basic(BINT n))
+  | Eq (Basic(BINT n), Basic(BSTR v)) -> Eq (Basic(BSTR v), Basic(BINT n))
 
   | Gt (leftHandside,Basic( BINT 0)) -> 
     (match normalise_terms leftHandside with

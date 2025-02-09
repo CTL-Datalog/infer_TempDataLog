@@ -4,11 +4,12 @@
 // CHECK( init(main()), LTL( G("i >= n") ) )
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
-int n;
-int i = 1;
+
 
 int main()
 {
+	int n = __VERIFIER_nondet_int();
+	int i = 1;
 	while(1){
 		i++;
 		while(i > n){

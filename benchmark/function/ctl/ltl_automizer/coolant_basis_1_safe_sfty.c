@@ -1,6 +1,6 @@
 
 
-/*@ AG(OR(chainBroken != 1)(AG(chainBroken = 1))) @*/
+/*@ AG((chainBroken = 1) => (AG(chainBroken = 1))) @*/
 //#Safe
 //@ ltl invariant positive: [](AP(chainBroken == 1) ==> []AP(chainBroken == 1));
 

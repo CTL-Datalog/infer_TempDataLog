@@ -47,6 +47,41 @@ infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/togglecount
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/timer-simple.c
 
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/Bug_NoLoopAtEndForTerminatingPrograms_safe.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/cav2015.c
+
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/PotentialMinimizeSEVPABug.c
+
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/nestedRandomLoop_true-valid-ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_6_unsafe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_1_safe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_1_unsafe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_2_safe_lifeness.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_2_unsafe_lifeness.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_3_safe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/nestedRandomLoop_true-valid-ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+
 ### Function 
 ./main.exe tests/ctl/report/test_until.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AU{x >= y}{x == y}"
 

@@ -1,6 +1,6 @@
 //-ctl "NOT{AF{ap > 2}}" -precondition "ap==0"
 
-/*@ NOT(AF(ap > 2)) @*/
+/*@ ! (AF(ap > 2)) @*/
 //#Safe
 //
 //@ ltl invariant positive: !<>AP(ap > 2);
