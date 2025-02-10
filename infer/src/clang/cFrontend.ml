@@ -1613,6 +1613,13 @@ let fiterOutTheUsedOperationChanges guard (re:regularExpr) (rfterm:terms) : regu
   in helper re 
 ;;
 
+let rec containDisjunction (re:regularExpr) : bool = 
+  match re with 
+  | Disjunction _ -> true 
+  | Concate (re1, re2) -> containDisjunction re1 || containDisjunction re2
+  | _ -> false
+;;
+
 let commonVariable_rankingFunctions rankingFuns : bool = 
   let allVars = List.map rankingFuns ~f:(fun (p, _) -> getAllVarFromTerm p []) in
   match allVars with 
@@ -1659,7 +1666,9 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let deriv_of_concern =  compute_deriv_of_concern nonleakingBranches ctl in 
 
   if List.length rankingFuns == 0 then 
-    Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv_of_concern))))
+    (if containDisjunction deriv_of_concern then None 
+    else 
+      Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv_of_concern)))))
 
   else if commonVariable_rankingFunctions rankingFuns then None 
     (* this is when there are more than one ranking functions upon one single varaible *)

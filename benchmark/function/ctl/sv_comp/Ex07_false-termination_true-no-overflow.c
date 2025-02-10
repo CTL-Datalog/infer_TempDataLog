@@ -1,12 +1,12 @@
 typedef enum { false, true } bool;
 
-/*@ AF(AG(i=0)) @*/
+/* AF(AG(i=0)) @*/
 
 /* EF(EG(i=0)) @*/
 
-/* EF(AG(i=0)) @*/
+/*EF(AG(i=0)) @*/
 
-/* AF(EG(i=0)) @*/
+/*@  AF(EG(i=0)) @*/
 
 
 
