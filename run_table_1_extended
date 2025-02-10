@@ -92,6 +92,24 @@ infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex02_false-termin
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
 
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/simple-2.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/timer-simple.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/nestedRandomLoop_true-valid-ltl.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_3_unsafe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_4_safe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_6_safe_sfty.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_6_unsafe_sfty.c
+
 ### Function 
 ./main.exe tests/ctl/report/test_until.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AU{x >= y}{x == y}"
 

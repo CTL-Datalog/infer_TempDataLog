@@ -1,6 +1,7 @@
 
 
-/*@ AG(OR(init != 3)(AG(AF(time > otime)))) @*/
+/*@ AG((init = 3) => (AG(AF(time > otime)))) @*/
+
 //#Unsafe
 //@ ltl invariant positive: []( ! AP(init == 3) || []<>AP(time > otime));
 

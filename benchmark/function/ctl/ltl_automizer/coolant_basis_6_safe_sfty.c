@@ -1,8 +1,8 @@
 
 
-/*@ AG(OR(limit <= -273 && limit >= 10)(OR(tempIn >= 0)(AF( warnLED = 1)))) @*/
+/*@ ((tempIn >= 0) => (AF(awarnLED = 1))) @*/
 //#Safe
-//@ ltl invariant positive: []( (AP(limit > -273) || AP(limit < 10)) ==> (AP(tempIn < 0) ==> <> AP(warnLED == 1)) );
+//@ ltl invariant positive: []( (AP(limit > -273) || AP(limit < 10)) ==> (AP(tempIn < 0) ==> <> AP(awarnLED == 1)) );
 
 #include <stdio.h>  
 
@@ -10,14 +10,14 @@ extern void __VERIFIER_error() __attribute__ ((__noreturn__));
 extern void __VERIFIER_assume() __attribute__ ((__noreturn__));
 extern int __VERIFIER_nondet_int() __attribute__ ((__noreturn__));
 
-int error, tempDisplay, warnLED = 0, tempIn = 0, chainBroken,
+int error, tempDisplay, awarnLED = 0, tempIn = 0, chainBroken,
  temp, otime = 0, time = 0, limit = 0, init = 0;
 
 
 void display(int tempdiff, int warning)
 {
 	tempDisplay = tempdiff;
-	warnLED = warning;
+	awarnLED = warning;
 }
 
 int vinToCels(int kelvin)
@@ -49,7 +49,7 @@ int main()
 {
     init = 0;
     tempDisplay = 0;
-    warnLED = 1;
+    awarnLED = 1;
     tempIn = 0;
     error = 0;
     chainBroken = 0;

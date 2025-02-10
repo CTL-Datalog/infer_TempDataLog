@@ -1,6 +1,6 @@
 // -ctl "AF{x > 100}"
 
-/*@ AF(x > 100) @*/
+/*@ AF(x > 10000) @*/
 //#Safe
 //@ ltl invariant positive: (<> AP(x > 100));
 

@@ -1,6 +1,6 @@
 
 
-/*@ AG(OR(init != 3)(OR(temp <= limit)(AF(AG(chainBroken = 1))))) @*/
+/*@ AG((init = 3)=> ((temp > limit) => (AF(AG(chainBroken = 1))))) @*/
 //#Safe
 //@ ltl invariant positive: []( !AP(init == 3) || ( !AP(temp > limit) || <>[]AP( chainBroken == 1) ) );
 

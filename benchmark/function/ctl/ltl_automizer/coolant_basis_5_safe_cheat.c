@@ -1,6 +1,6 @@
 // # Here we cheat to make the example run by replacing the non determinism by a single unknown global variable
 
-/*@ AU(init = 0)(OR(AU(init = 1)(AG(init = 3)))(AG(init = 1))) @*/
+/*@ AU(init = 0, (AU(init = 1, AG(init = 3))) \/ (AG(init = 1))) @*/
 //
 //@ ltl invariant positive: AP(init == 0) U( (AP(init == 1) U [] AP(init == 3)) || [] AP(init == 1));
 //
