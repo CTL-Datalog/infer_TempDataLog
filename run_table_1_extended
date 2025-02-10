@@ -1,6 +1,8 @@
 ### CTLEXPERT
 infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_until.c
 
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential2.c
+
 infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential3.c
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/global_test_simple.c
@@ -81,6 +83,14 @@ infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Madrid_true-no-ov
 infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/next.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/guarantee/peterson.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex02_false-termination_true-no-overflow.c
+
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
 
 ### Function 
 ./main.exe tests/ctl/report/test_until.c -minimal -time -domain polyhedra -joinbwd 2 -precondition "true" -ctl "AU{x >= y}{x == y}"

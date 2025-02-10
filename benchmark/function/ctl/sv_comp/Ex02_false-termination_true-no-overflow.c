@@ -1,6 +1,6 @@
 typedef enum {false,true} bool;
 
-/*@ (AF(EXIT())) \/ ( i>= 5)   @*/
+/*@ (i<5) => (AF(EXIT()))   @*/
 
 extern int __VERIFIER_nondet_int(void);
 

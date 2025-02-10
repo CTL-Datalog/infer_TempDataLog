@@ -1862,6 +1862,76 @@ let removeAlltheTriggerEvent re (pLi) : regularExpr =
 
   in 
   helper re
+
+type records = (string * int) list 
+
+let subsititute_term_via_record (t:terms) (records:records) : terms = 
+  let rec findx (records:records) (x:string) : int option = 
+    match records with 
+    | [] -> None 
+    | (x', n) :: xs -> if String.compare x x' == 0 then Some n else findx xs x
+  in 
+  let rec helper tIn : terms = 
+    match tIn with 
+    | Basic (BSTR x) -> 
+      (match findx records x with 
+      | None -> tIn 
+      | Some (n) -> Basic (BINT n)
+      )
+    | Plus (t1, t2) -> Plus(helper t1, helper t2)
+    | Minus (t1, t2) -> Minus(helper t1, helper t2)
+    | _ -> tIn
+  in 
+  helper t
+;;
+
+let subsititute_assignments (re:regularExpr) : regularExpr = 
+  let rec updateRecords records x n : records = 
+    match records with 
+    | [] -> [(x, n)]
+    | (x', n') :: xs -> if String.compare x x' == 0 then (x, n) :: xs else (x', n') :: updateRecords xs x n
+  in 
+  let rec helper reIn records : (regularExpr * records) = 
+    match reIn with
+    | Singleton (Eq(Basic(BSTR x), Basic(BINT n)), _) -> 
+      let records' = updateRecords records x n in 
+      reIn, records' 
+
+    | Singleton (Eq(Basic(BSTR x), t), loc) -> 
+      let t' = normalise_terms (subsititute_term_via_record t records) in 
+      (*print_endline ("t = " ^ string_of_terms t); 
+      print_endline ("t' = " ^ string_of_terms t'); *)
+
+      let reIn' = Singleton (Eq(Basic(BSTR x), t'), loc) in 
+      let records' = 
+        (match  t' with 
+        | Basic(BINT n) -> updateRecords records x n
+        | _ -> records
+      ) in 
+      reIn', records'
+
+    | Concate (re1, re2) -> 
+      let re1', records1 = helper re1 records in 
+      let re2', records2 = helper re2 records1 in 
+      Concate (re1', re2'), records2
+    | Disjunction (re1, re2) -> 
+      let re1', _ = helper re1 records in 
+      let re2', _ = helper re2 records in 
+      Disjunction(re1', re2'), []
+    | Kleene re' -> 
+      let re1'', records1 = helper re' records in 
+      Kleene re1'', records1
+    | Omega re' -> 
+      let re1'', records1 = helper re' records in 
+      Omega re1'', records1
+    |  _ -> reIn, records
+
+  in 
+  let re', record' = helper re [] in 
+  (* List.iter ~f:(fun (x, n) -> print_endline (x ^ " = " ^ string_of_int n))  record'; 
+  *)
+  re' 
+;;
     
 
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr option = 
@@ -1902,6 +1972,9 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   print_endline ("\nAfter renaming and deletePossibleGuards:\n"^string_of_regularExpr (pass)^ "\n------------")); 
 
 
+  let pass = subsititute_assignments pass in
+
+  print_endline ("\nAfter subsititute_assignments:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
   Some pass
   ;;
