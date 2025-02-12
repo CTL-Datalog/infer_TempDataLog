@@ -1941,6 +1941,23 @@ let subsititute_assignments (re:regularExpr) : regularExpr =
   *)
   re' 
 ;;
+
+let remove_unusedStartPred re : regularExpr = 
+  match fst re with 
+  | [] -> re 
+  | [(PureEv (Predicate(str, t) , loc))] -> 
+    if String.compare str "Start" == 0 then  
+      let deriv1 = derivitives (PureEv (Predicate(str, t) , loc)) re in 
+      (match fst deriv1 with
+      | [(PureEv (p , locq))] -> 
+        let deriv2 = derivitives (PureEv (p , locq)) deriv1 in 
+        normalise_es (Concate (Singleton(PureAnd(p, Predicate("Start", t)), locq) , deriv2))
+      | _ -> re
+
+      
+      )
+    else re 
+  | _ -> re ;; 
     
 
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr option = 
@@ -1984,6 +2001,11 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   let pass = subsititute_assignments pass in
 
   print_endline ("\nAfter subsititute_assignments:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+
+  let pass = remove_unusedStartPred pass in
+
+  print_endline ("\nAfter remove_unusedStartPred:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+
 
   Some pass
   ;;
@@ -2183,6 +2205,7 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
  *)
   (*print_endline ("\n======\npredicates pure \n" ^ string_of_pure p); 
 *)
+
   let relevent (conds:pure) (var: string) : bool = 
     let (allVar:string list) = getAllVarFromPure conds [] in 
     (twoStringSetOverlap allVar ([var]))
@@ -2321,6 +2344,10 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     else currentValuation, []
 
 
+  | PureAnd (p1, p2) -> 
+    let currentValuation1, res1 = getFactFromPureEv p1 state predicates predicatesSpec pathConstrint currentValuation in 
+    let currentValuation2, res2 = getFactFromPureEv p2 state predicates predicatesSpec pathConstrint currentValuation in 
+    currentValuation1@currentValuation2 , res1@ res2
 
   | _ -> 
     print_endline (string_of_pure p ^ "is left out");

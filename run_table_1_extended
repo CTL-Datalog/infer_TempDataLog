@@ -41,6 +41,8 @@ infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/until_test.c
 
+infer/bin/infer run -- clang -c benchmark/function/ctl/until_existential.c
+
 infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Bangalore_false-no-overflow.c
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/potential_termination_1.c
