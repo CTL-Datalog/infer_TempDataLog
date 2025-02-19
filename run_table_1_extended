@@ -1,5 +1,92 @@
-### CTLEXPERT
+
+
+infer/bin/infer run -- clang -c benchmark/function//ctl/report/test_until.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential2.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential3.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/global_test_simple.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/until_test.c
+infer/bin/infer run -- clang -c benchmark/function/guarantee/countdown.c
+infer/bin/infer run -- clang -c benchmark/function/guarantee/countdown.c
+infer/bin/infer run -- clang -c benchmark/function/guarantee/mnav.c
+infer/bin/infer run -- clang -c benchmark/function/guarantee/pingpong.c
+infer/bin/infer run -- clang -c benchmark/function/guarantee/sink.c
+infer/bin/infer run -- clang -c benchmark/function/guarantee/sink.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/and_test.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/or_test.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/next.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/next.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test1.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test2.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test3.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/existential_test4.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel_mod.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/fin_ex.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/until_existential.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/fig8-2007_mod.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/multi_branch_choice.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/multi_branch_choice.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex02_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Ex07_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/java_Sequence_true-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Madrid_true-no-overflow_false-termination_true-valid-memsafety.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/NO_02_false-termination_true-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_1_safe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_1_unsafe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_2_safe_lifeness.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_2_unsafe_lifeness.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_3_safe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_3_unsafe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_4_safe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_6_safe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_6_unsafe_sfty.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/nestedRandomLoop_true-valid-ltl.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/toggletoggle_true-valid-ltl.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/PotentialMinimizeSEVPABug.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/cav2015.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/simple-1.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/simple-2.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/Bug_NoLoopAtEndForTerminatingPrograms_safe.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/timer-simple.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/togglecounter_true-valid-ltl.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/potential_termination_1.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/sv_comp/Bangalore_false-no-overflow.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/until_test.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/toylin1.ltl.c
+tests/ctl/potential_termination_1.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/toylin1.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/timer-simple.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/togglecounter_true-valid-ltl.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/ltl_automizer/coolant_basis_5_safe_cheat.c
+tests/ctl/sv_comp/Bangalore_false-no-overflow.c
+AF_parity_test
+NestedLoop
+infer/bin/infer run -- clang -c benchmark/function/ctl/koskinen/acqrel.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential3.c
+infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_global.c
 infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_until.c
+tests/ctl/next.c
+tests/ctl/multi_branch_choice.c
+tests/ctl/multi_branch_choice.c
+
+### CTLEXPERT
+infer/bin/infer run -- clang -c infer/bin/infer run -- clang -c benchmark/function/
 
 infer/bin/infer run -- clang -c benchmark/function/ctl/report/test_existential2.c
 

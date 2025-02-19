@@ -2613,6 +2613,19 @@ let rec extend_spec_agaf pLi: unit =
 
   )
 
+let outputFinalReport str path = 
+
+  let oc = open_out_gen [Open_append; Open_creat] 0o666 path in 
+  try 
+    Printf.fprintf oc "%s" str;
+    close_out oc;
+    ()
+
+  with e ->                      (* 一些不可预见的异常发生 *)
+    close_out_noerr oc;           (* 紧急关闭 *)
+    raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
+  ;; 
+
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
   let tenv = Tenv.create () in
@@ -2667,9 +2680,17 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       
       )) 
   in
+  let total_time = string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) in 
+  let which_system = if String.compare (String.sub (Sys.getcwd()) 0 5 ) "/home" == 0 then 1 else 0 in 
+  let loris1_path = "/home/infer_TempDataLog/"  in
+  let mac_path = "/Users/yahuis/Desktop/git/infer_TempDataLog/" in 
+  let path = if which_system == 1  then loris1_path else mac_path  in 
+  let output_report =  path ^ "TempFix-out/report.csv" in 
+
+  outputFinalReport (total_time^"\n") output_report ; 
 
   if !flag == false then   
-    print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s")
+    print_endline ("\nTotol_execution_time: " ^  total_time ^ " s")
 
   else 
 
