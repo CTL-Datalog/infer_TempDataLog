@@ -9,8 +9,8 @@ This file contains the information for:
 
 - Obtain the docker image 
 ```
-$ docker pull anonymous716/ctlexpert-main:latest
-$ docker run -i -t  anonymous716/ctlexpert-main:latest
+$ docker pull anonymous716/ctlexpert:latest
+$ docker run -i -t  anonymous716/ctlexpert:latest
 $ cd home
 $ ls 
 # there are two folders: infer_TempDataLog and symlog
