@@ -41,7 +41,7 @@ Because the property holds at state 0, and it is the entry state of the two func
 
 
 
-- Analyze the buggy version of the program (Program 26  X in Table II), which does not satisfy its annotated property: 
+- Analyze the buggy version of the program (Program 11  X in Table II), which does not satisfy its annotated property: 
 
 ```
 $ infer/bin/infer run -- clang -c benchmark/protocols/2_lv5.cpp
@@ -65,7 +65,7 @@ Because the property does not hold at the entry state.
 Next, this Datalog file `/home/infer_TempDataLog/benchmark/protocols/2_lv5.cpp.dl` is sent for repair. 
 
 
-- Repair via the generated Datalog program (Program 26 in Table III): 
+- Repair via the generated Datalog program (Program 11 in Table III): 
 
 
 ```
