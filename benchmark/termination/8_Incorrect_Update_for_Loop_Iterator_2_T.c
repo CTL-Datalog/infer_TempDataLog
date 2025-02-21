@@ -10,7 +10,7 @@ termination: TRUE
 
 int main()
 {
-    int l = __VERIFIER_nondet_uchar();
+    int l = __VERIFIER_nondet_int();
 
     while( l )
     {

@@ -66,7 +66,7 @@ int main(){
     Groupsock* fRTPgs;
     Groupsock* fRTCPgs;
 
-  if (dests!= NULL) {
+  //if (dests!= NULL) {
     if (fRTPSink != NULL) {
       clearServerRequestAlternativeByteHandler(fRTPSink->envir(), dests->tcpSocketNum);
       fRTPSink = NULL;
@@ -76,6 +76,6 @@ int main(){
       fRTCPInstance->removeStreamSocket(dests->tcpSocketNum, dests->rtcpChannelId);
       fRTCPInstance->unsetSpecificRRHandler(dests->tcpSocketNum, dests->rtcpChannelId);
     }
-  } 
+  //} 
 }
 

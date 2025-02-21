@@ -16,7 +16,7 @@ $ ls
 # there are two folders: infer_TempDataLog and symlog
 ```
 
-- Analyze a program (Program 26 $\checkmark$ in Table II) that satisfy its annotated property, and the property is 
+- Analyze a program (Program 11 $\checkmark$ in Table II) that satisfy its annotated property, and the property is 
 `AG((prevClientConnection = 0) \/ (prevClientConnection = this_)  => AF(handleHTTPCmd_notSupported()))`: 
 ```
 $ cd infer_TempDataLog
@@ -182,6 +182,6 @@ The patches make the following changes:
 
 ### Test case location: 
 
-1. Table 1 (1-15): `CTLExpert/infer_TempDataLog-main/benchmark/evaluation'`
-3. Table 2 (16-25): `CTLExpert/infer_TempDataLog-main/benchmark/termination`; and
-   (26-28): `CTLExpert/infer_TempDataLog-main/benchmark/protocols`
+1. Table 1 : `CTLExpert/infer_TempDataLog-main/benchmark/evaluation'`
+3. Table 2 (1-9): `CTLExpert/infer_TempDataLog-main/benchmark/termination`; and
+   (10-13): `CTLExpert/infer_TempDataLog-main/benchmark/protocols`

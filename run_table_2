@@ -1,3 +1,32 @@
+time ./Ultimate.py --file ./termintaion/1_libvncserver_Adding_Subtracting_Zero_1_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/1_Adding_Subtracting_Zero_1_T.c --spec ./termintaion/prp.prp --architecture 32bit
+
+time ./Ultimate.py --file ./termintaion/2_FFmpeg_Adding_Subtracting_Zero_2_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/2_Adding_Subtracting_Zero_2_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/3_cmus_Adding_Subtracting_Zero_3_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/3_Adding_Subtracting_Zero_3_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/4_e2fsprogs_Adding_Subtracting_Zero_4_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/4_Adding_Subtracting_Zero_4_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/5_csound-android_Adding_Subtracting_Zero_5_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/5_Adding_Subtracting_Zero_5_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/7_fontconfig_Incorrect_Initialization_4_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/7_Incorrect_Initialization_4_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/8_asterisk_Incorrect_Update_for_Loop_Iterator_2_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/8_Incorrect_Update_for_Loop_Iterator_2_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/9_dpdk_Missing_Corner-case_Handling_1_NT.c  --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/9_Missing_Corner-case_Handling_1_T.c  --spec ./termintaion/prp.prp --architecture 32bit 
+
+time ./Ultimate.py --file ./termintaion/10_xorg-server_Missing_Corner-case_Handling_2_NT.c --spec ./termintaion/prp.prp --architecture 32bit 
+time ./Ultimate.py --file ./termintaion/10_Missing_Corner-case_Handling_2_T.c --spec ./termintaion/prp.prp --architecture 32bit 
+
+
+
 # 16
 infer/bin/infer run -- clang -c benchmark/termination/1_Adding_Subtracting_Zero_1_T.c 
 infer/bin/infer run -- clang -c benchmark/termination/1_libvncserver_Adding_Subtracting_Zero_1_NT.c 
