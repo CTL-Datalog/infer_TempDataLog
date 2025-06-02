@@ -20,6 +20,8 @@ void eval(void)
   return;
 }
 
+/*@ AF(EXIT()) @*/
+
 
 int main() {
 

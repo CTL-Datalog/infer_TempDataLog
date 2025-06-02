@@ -589,16 +589,18 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
     | Some t1 , Some t2 -> Some (Plus (t1, t2))
     | _, _  -> None )
 
+  | Cast (_, t) -> expressionToTerm t stack
+
+
   | BinOp _ (*_ -> Basic (BSTR ("BinOp"))*)
   | Exn _ (*-> Basic (BSTR ("Exn"))*)
   | Closure _ (*-> Basic (BSTR ("Closure"))*)
-  | Cast _ (*-> Basic (BSTR ("Cast"))*)
   | Lfield _ (*-> Basic (BSTR ("Lfield"))*)
   | Lindex _ (*-> Basic (BSTR ("Lindex"))*)
   | Sizeof _ -> None (*Basic (BSTR ("Sizeof"))*)
 
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
-  (*print_endline ("expressionToPure : " ^ (Exp.to_string exp)); *)
+  print_endline ("expressionToPure : " ^ (Exp.to_string exp)); 
   match exp with 
 
   | BinOp (bop, e1, e2) -> 
@@ -880,6 +882,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         in 
         Guard(p', node_key)
       | None -> 
+      print_endline ("expressionToPure none");
         Emp
         (*Guard(TRUE, node_key) *) ), stack'
     | Load l :: Prune (e, loc, f, _):: _ ->  
@@ -2397,7 +2400,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
    decomposedpathConditionsCTL are the precicates derived from the specifiction, 
 
    print_endline ("SpecpathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedpathConditionsCTL))));   
-  print_endline ("PorgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
+  print_endline ("ProgPathConditions \n" ^ (String.concat ~sep:",\n" (List.map ~f:(fun p -> string_of_pure p) (decomposedPathConditions))));   
 *)
   
 
@@ -2447,7 +2450,7 @@ let convertRE2Datalog (re:regularExpr) (specs:ctl list): (relation list * rule l
           
           
           (*
-          print_endline (List.fold_left ~init:"valueFacts " ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
+          print_endline (List.fold_left ~init:("valueFacts for "^ string_of_int state)  ~f:(fun acc value -> acc ^ (", " ^ string_of_relation value)) valueFacts); 
           *)
 
           let (derivitives:regularExpr) = 

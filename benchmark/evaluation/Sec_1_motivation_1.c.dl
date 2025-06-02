@@ -1,9 +1,8 @@
 /*𝝐 */
 
 
-/*(Start())@6 · ("i"=_)@7 · ("x"=_)@8 · ("y"=1)@9 · ((["i">10]@10 · ("i">10)@11 · ("x"=1)@12 · (([("x"!="y")]@13 · (("x"!="y"))@14 · ("y"=5)@15 · (Return(0))@16) \/ (["x"="y"]@17 · ("x"="y")@18 · (("y">="x")@19)^w))) \/ (["i"<=10]@20 · ("i"<=10)@21 · (([("x"!="y")]@22 · (("x"!="y"))@23 · ("y"=5)@24 · (Return(0))@25) \/ (["x"="y"]@26 · ("x"="y")@27 · (("y">="x")@28)^w))))*/
+/*("i"=_∧Start())@7 · ("x"=_)@8 · ("y"=1)@9 · ((["i">10]@10 · ("i">10)@11 · ("x"=1)@12 · (([("x"!="y")]@13 · (("x"!="y"))@14 · ("y"=5)@15 · (Return(0))@16) \/ (["x"="y"]@17 · ("x"=1)@18 · (("y">="x")@19)^w))) \/ (["i"<=10]@20 · ("i"<=10)@21 · (([("x"!="y")]@22 · (("x"!="y"))@23 · ("y"=5)@24 · (Return(0))@25) \/ (["x"="y"]@26 · ("x"=1)@27 · (("y">="x")@28)^w))))*/
 
-flow(6,7).
 flow(7,8).
 flow(8,9).
 flow(10,11).
@@ -23,10 +22,9 @@ flow(25,25).
 flow(26,27).
 flow(27,28).
 flow(28,28).
-Start(6).
-State(6).
 LtEq("i",7,10).
 Gt("i",7,10).
+Start(7).
 State(7).
 NotEqVar("x",8,"y").
 EqVar("x",8,"y").
@@ -127,4 +125,45 @@ AF_y_eq_5_Final(loc) :- Start(loc), AF_y_eq_5(loc), !NotTotal(loc).
 .output AF_y_eq_5_Final(IO=stdout)
 
 .output NotTotal(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <main> 
+
+Flow(15,0). //@11:1-12:5
+Flow(13,14). //@26:5-27:1
+Flow(10,13). //@25:5-26:5
+Flow(8,12). //@22:5-22:12
+Flow(12,9). //@22:12-22:12
+Flow(12,11). //@22:12-22:12
+Flow(11,8). //@22:12-22:5
+Flow(9,10). //@22:12-25:5
+Flow(5,8). //@19:5-22:5
+Flow(3,6). //@19:9-19:9
+Flow(3,7). //@19:9-19:9
+Flow(7,4). //@19:9-20:9
+Flow(6,5). //@19:9-19:5
+Flow(4,5). //@20:9-19:5
+Flow(2,3). //@14:5-19:9
+Flow(1,2). //@13:5-14:5
+Flow(0,1). //@12:5-13:5
+Stmt_Decl(0,[ICall(_fun___VERIFIER_nondet_int,,n$9),IStore(&i,n$9)]). // @12:5
+Stmt_Decl(1,[ICall(_fun___VERIFIER_nondet_int,,n$8),IStore(&x,n$8)]). // @13:5
+Stmt_Decl(2,[IStore(&y,1)]). // @14:5
+Stmt_BinaryOperatorStmt(4,Assign,[IStore(&x,1)]). // @20:9
+PruneNode(6,false,[Prune(!(n$5 > 10), false)]). // @19:9
+PruneNode(7,true,[Prune((n$5 > 10), true)]). // @19:9
+Stmt_BinaryOperatorStmt(3,GT,[ILoad(&i,n$5)]). // @19:9
+Join(5,[]).  // @19:5
+PruneNode(9,false,[Prune(!(n$1 == n$2), false)]). // @22:12
+PruneNode(11,true,[Prune((n$1 == n$2), true)]). // @22:12
+Stmt_BinaryOperatorStmt(12,EQ,[ILoad(&x,n$1),ILoad(&y,n$2)]). // @22:12
+Join(8,[]).  // @22:5
+Stmt_BinaryOperatorStmt(10,Assign,[IStore(&y,5)]). // @25:5
+Stmt_Return(13,[]). // @26:5
+Exit(14).  // @27:1
+Start(15). // @11:1
+*/
 
