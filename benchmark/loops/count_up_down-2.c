@@ -10,13 +10,10 @@ void __VERIFIER_assert(int cond) {
 }
 unsigned int __VERIFIER_nondet_uint();
 
-/*@ AF(EXIT()) @*/
-
 int main()
 {
   unsigned int n = __VERIFIER_nondet_uint();
-  unsigned int x= __VERIFIER_nondet_uint();
-  unsigned int  y=0;
+  unsigned int x=n, y=0;
   while(x>0)
   {
     x--;

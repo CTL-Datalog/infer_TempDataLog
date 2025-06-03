@@ -327,8 +327,9 @@ let retriveComments (source:string) : (string list) =
 
 (* lines of code, lines of sepc, number_of_protocol *)
 let retriveSpecifications (source:string) : (ctl list * int * int * int) = 
-  let ic = open_in source in
   try
+    let ic = open_in source in
+
       let lines =  (input_lines ic ) in
       let rec helper (li:string list) = 
         match li with 
@@ -346,7 +347,10 @@ let retriveSpecifications (source:string) : (ctl list * int * int * int) =
       let sepcifications = List.map partitions 
         ~f:(fun singlespec -> 
           (*print_endline (singlespec);*)
-          Parser.ctl Lexer.token (Lexing.from_string singlespec)) in      
+          Parser.ctl Lexer.token (Lexing.from_string singlespec)) in  
+          
+                  close_in_noerr ic;           (* 紧急关闭 *)
+
 
       (sepcifications, line_of_code, line_of_spec, List.length partitions)
       (*
@@ -357,9 +361,11 @@ let retriveSpecifications (source:string) : (ctl list * int * int * int) =
       *)
 
     with e ->                      (* 一些不可预见的异常发生 *)
-      close_in_noerr ic;           (* 紧急关闭 *)
-      raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
+          print_endline ("Something wrong in  " ^ source);
 
+      ([], 0, 0, 0)
+      (*raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
+*)
    ;;
 
 
@@ -2648,7 +2654,19 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   L.(debug Capture Verbose) "@\n Start buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
-  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
+  let source_file_string = SourceFile.to_string  (translation_unit_context.CFrontend_config.source_file) in
+
+  let source_file_root = "/" ^ Filename.dirname source_file_string ^ "/spec.c" in 
+
+
+  let (source_Address, decl_list, specifications_local, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in       
+  
+  let path = Sys.getcwd () in
+  let (specifications_macro, lines_of_spec_macro, _, number_of_protocol_macro) = retriveSpecifications (path ^ source_file_root) in 
+
+  let specifications = specifications_local @ specifications_macro in 
+
+    
   let start = Unix.gettimeofday () in 
 
   print_endline ("<== Anlaysing " ^ source_Address  ^ " ==>");

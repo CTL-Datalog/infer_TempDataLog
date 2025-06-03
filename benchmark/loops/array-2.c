@@ -10,16 +10,12 @@ void __VERIFIER_assert(int cond) {
 }
 int __VERIFIER_nondet_int();
 
-/*@ AF(EXIT()) @*/
-
 int main()
 {
   unsigned int SIZE=1;
   unsigned int j,k;
   int array[SIZE], menor;
   
-  j = __VERIFIER_nondet_int();
-
   menor = __VERIFIER_nondet_int();
 
   for(j=0;j<SIZE;j++) {
