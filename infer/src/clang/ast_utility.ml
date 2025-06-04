@@ -122,11 +122,12 @@ type ctl =
 
 type rankingfunction =  (terms * regularExpr) (* the term and the leacking behaviour *)
 
+
 (* Global States *)
 let (varSet: (string list) ref) = ref [] 
 let (handlerVar: string option ref) = ref None 
-
 let (spec_agaf: (string list) ref) = ref [] 
+let (explicitNondeterminism: (terms list) ref) = ref [] 
 
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
@@ -245,6 +246,13 @@ let rec string_of_list_terms tL: string =
   | [] -> ""
   | [t] -> string_of_terms t 
   | x :: xs ->  string_of_terms x ^", "^ string_of_list_terms xs 
+
+let rec string_of_li (f: 'a -> string) (tL: 'a list): string = 
+  match tL with 
+  | [] -> ""
+  | [t] -> f t 
+  | x :: xs ->  f x ^", "^ string_of_li f xs 
+
 
 let rec string_of_pure (p:pure):string =   
   match p with
@@ -445,7 +453,7 @@ let relaxed_compareEvent (ev1:fstElem) (ev2:fstElem) : bool  =
   | _ -> false 
   
 
-let rec existAux f (li:('a list)) (ele:'a) = 
+let rec existAux f (li:('b list)) (ele:'a) = 
     match li with 
     | [] ->  false 
     | x :: xs -> if f x ele then true else existAux f xs ele

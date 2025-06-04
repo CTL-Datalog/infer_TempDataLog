@@ -716,12 +716,14 @@ let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store 
   | Some temp -> 
     let funName = (Exp.to_string e_fun) in 
     if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall funName then 
-      Some (Eq (temp, Basic(ANY)))
+      (explicitNondeterminism := temp :: !explicitNondeterminism; 
+      Some (Eq (temp, Basic(ANY))))
     else 
       (*let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in *)
       (* Predicate(funName, argumentTerms) *)
+      (explicitNondeterminism := temp :: !explicitNondeterminism; 
       Some (Eq (temp, Basic(ANY)))
-
+)
 
 
 let rec getPureFromBinaryOperatorStmtInstructions (op: string) (instrs:Sil.instr list) stack : pure option = 
@@ -1221,8 +1223,8 @@ let getRegularExprFromCFG (procedure:Procdesc.t) : regularExpr =
   let _ = List.map reoccurs ~f:(fun a -> print_endline ("reoccurrance" ^ string_of_int a)) in  *)
   (*let r, _ = getRegularExprFromCFG_helper reoccurs Emp [] startState in *)
   let r, _ = getRegularExprFromCFG_helper_new [] startState in 
-  (print_endline ("right after getRegularExprFromCFG_helper_new: " ^ string_of_regularExpr r);
-  r)
+  (*print_endline ("right after getRegularExprFromCFG_helper_new: " ^ string_of_regularExpr r);*)
+  r
 
 
 
@@ -1968,6 +1970,47 @@ let remove_unusedStartPred re : regularExpr =
     else re 
   | _ -> re ;; 
     
+let findDifference (var:string list) (explicitNondeterminism: terms list) : string list  = 
+    List.filter ~f:(fun str -> 
+      let hof term ele = 
+        match term with 
+        | Basic (BSTR v) -> if String.compare v ele == 0 then true else false 
+        | _ -> false 
+      in 
+      if existAux hof explicitNondeterminism str then false else true 
+    
+    ) var 
+
+let rec constructPurefromimplicitNondeterminism (var:string list) : pure = 
+  match var with 
+  | [] -> TRUE 
+  | [x] -> Eq (Basic (BSTR x), Basic(ANY))
+  | x :: xs -> PureAnd(Eq (Basic (BSTR x), Basic(ANY)) , constructPurefromimplicitNondeterminism xs )
+  
+
+let rec getFirstState (re:regularExpr) : int option = 
+  match fst re with 
+  | [] -> None  
+  | f :: _ -> 
+    (match f with
+    | PureEv (_, p)
+    | GuardEv (_, p) -> Some p 
+    | KleeneEv reIn 
+    | OmegaEv reIn ->  getFirstState reIn
+    )
+  
+
+let mergePureIntoTheFirstState (re:regularExpr) (p :  pure) : regularExpr = 
+  match fst re with 
+  | [f]  -> 
+    (match f with
+    | PureEv (pure, state) -> 
+      let derivitives = (derivitives f re) in 
+      Concate (Singleton (PureAnd(pure, p), state),  derivitives)
+    | _ -> re
+    )
+  | _ -> re 
+
 
 let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr option = 
 
@@ -2016,8 +2059,44 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   print_endline ("\nAfter remove_unusedStartPred:\n"^string_of_regularExpr (pass)^ "\n------------"); 
 
 
+  print_endline("ExplicitNondeterminism : " ^ string_of_list_terms (!explicitNondeterminism));
+  let allVar = removeRedundant (List.fold_left ~init:[] ~f:(fun acc a -> acc @ varFromPure a) (getAllPathConditions pass)) (fun a b -> if String.compare a b == 0 then true else false) in 
+  print_endline("allVar : " ^ (string_of_li (fun a -> a) allVar));
+  let implicitNondeterminism = findDifference allVar !explicitNondeterminism in 
+  print_endline("implicitNondeterminism : " ^ (string_of_li (fun a -> a) implicitNondeterminism));
+
+  (*let state = match (getFirstState pass)  with  
+    | Some s -> s 
+    | None ->       
+      let () = allTheUniqueIDs := !allTheUniqueIDs + 1 in 
+      !allTheUniqueIDs
+  in 
+
+    let pass = implicitNondeterminismTORE implicitNondeterminism  state in
+
+  *)
+
+  let implicitNondeterminismPure = constructPurefromimplicitNondeterminism implicitNondeterminism in 
+  let pass = mergePureIntoTheFirstState pass implicitNondeterminismPure in 
+  (*
+  2. add pure into the start state 
+  *)
+  print_endline ("\nAfter mergeimplicitNondeterminismPureIntoTheFirstState:\n"^string_of_regularExpr (pass)^ "\n------------"); 
+
+
   Some pass
   ;;
+
+  
+
+    (*
+        !(existAux 
+    (fun a b -> 
+      match a with 
+      | Basic (BSTR v) -> if String.compare v b == 0 then true else false 
+      | _ -> false 
+    ) explicitNondeterminism str )
+    *)
 
 
 let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 
@@ -2635,17 +2714,6 @@ let outputFinalReport str path =
     raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
   ;; 
 
-let rec getFirstState (re:regularExpr) : int option = 
-  match fst re with 
-  | [] -> None  
-  | f :: _ -> 
-    (match f with
-    | PureEv (_, p)
-    | GuardEv (_, p) -> Some p 
-    | KleeneEv reIn 
-    | OmegaEv reIn ->  getFirstState reIn
-    )
-  
 
 
 
@@ -2690,6 +2758,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let () = bodyDeclearation := [] in 
 
   let () = predicateDeclearation := [] in 
+
+  let () = explicitNondeterminism := [] in 
 
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
@@ -2800,74 +2870,3 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   then DotCfg.emit_frontend_cfg source_file cfg ;
   L.debug Capture Verbose "Stored on disk:@[<v>%a@]@." Cfg.pp_proc_signatures cfg ;
   ()
-
-
-(*let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
-  let tenv = Tenv.create () in
-  CType_decl.add_predefined_types tenv ;
-  init_global_state_capture () ;
-  let source_file = translation_unit_context.CFrontend_config.source_file in
-  let integer_type_widths = translation_unit_context.CFrontend_config.integer_type_widths in
-
-  print_endline ("\n================ Here is Yahui's Code ================="); 
-
-
-  let (source_Address, decl_list, specifications, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in         
-  
-  let () = totol_Lines_of_Spec := !totol_Lines_of_Spec + lines_of_spec in 
-
-  let () = totol_Lines_of_Code := !totol_Lines_of_Code + lines_of_code in 
-  let () = totol_specifications := List.append !totol_specifications specifications in 
-  let start = Unix.gettimeofday () in 
-
-  (*let reasoning_Res = List.map decl_list  
-    ~f:(fun dec -> reason_about_declaration dec !totol_specifications source_Address) in 
-  *)
-  let compution_time = (Unix.gettimeofday () -. start) in 
-    (* Input program has  *)
-    let msg = 
-      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
-      ^ "[CURRENT REPORT]:"
-      ^ source_Address ^ "\n"
-      ^ string_of_int ( !totol_Lines_of_Code ) ^ " lines of code; " 
-      ^ string_of_int !totol_Lines_of_Spec ^ " lines of specs; for " 
-      in 
-  
-    print_string (msg); 
-
-  (*
-  print_endline ("Totol_execution_time: " ^ string_of_float compution_time); 
-  print_endline ("\n============ Here is the end of Yahui's Code ============\n" 
-                 ^ "=========================================================\n" );
-                 *)
-                
-  
-  
-  L.(debug Capture Verbose)
-    "@\n Start building call/cfg graph for '%a'....@\n" SourceFile.pp source_file ;
-  let cfg = compute_icfg translation_unit_context tenv ast in
-  
-  let out_c = Out_channel.create "zprint" in
-  let fmt = F.formatter_of_out_channel out_c in
-  Cfg.pp_proc_signatures fmt cfg; 
-
-  print_string("<<<SYH:Finished creating icfg>>>\n");
-
-
-
-  CAddImplicitDeallocImpl.process cfg tenv ;
-  CAddImplicitGettersSetters.process cfg tenv ;
-  CReplaceDynamicDispatch.process cfg ;
-  L.(debug Capture Verbose) "@\n End building call/cfg graph for '%a'.@\n" SourceFile.pp source_file ;
-  SourceFiles.add source_file cfg (Tenv.FileLocal tenv) (Some integer_type_widths) ;
-  if Config.debug_mode then Tenv.store_debug_file_for_source source_file tenv ;
-  if
-    Config.debug_mode || Config.testing_mode || Config.frontend_tests
-    || Option.is_some Config.icfg_dotty_outfile
-  then DotCfg.emit_frontend_cfg source_file cfg ;
-  L.debug Capture Verbose "Stored on disk:@[<v>%a@]@." Cfg.pp_proc_signatures cfg ;
-  
-  
-  ()
-  *)
-
