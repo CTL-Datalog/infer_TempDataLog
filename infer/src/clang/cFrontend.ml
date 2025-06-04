@@ -502,7 +502,7 @@ let get_facts procedure =
         | ThrowNPE -> 
           (*Procdesc.Node.pp_stmt fmt stmt_kind ; *)
           (Printf.sprintf "Stmt_Other(%s). //%s" node_key node_loc)
-      in
+        in
 
         [info]
     in
@@ -2635,6 +2635,19 @@ let outputFinalReport str path =
     raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
   ;; 
 
+let rec getFirstState (re:regularExpr) : int option = 
+  match fst re with 
+  | [] -> None  
+  | f :: _ -> 
+    (match f with
+    | PureEv (_, p)
+    | GuardEv (_, p) -> Some p 
+    | KleeneEv reIn 
+    | OmegaEv reIn ->  getFirstState reIn
+    )
+  
+
+
 
 let do_source_file (translation_unit_context : CFrontend_config.translation_unit_context) ast =
   let tenv = Tenv.create () in
@@ -2684,16 +2697,21 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); *)
 
+  let finalheader = ref [] in 
+
   let flag = ref true in 
   let summaries = (Cfg.fold_sorted cfg ~init:[] 
     ~f:(fun accs procedure -> 
 
       if !flag == false then accs
       else 
-        (print_endline ("\n//-------------\nFor procedure: " ^ Procname.to_string (Procdesc.get_proc_name procedure) ^":" );
+        let (procedure_name:string) = Procname.to_string (Procdesc.get_proc_name procedure) in 
+        (print_endline ("\n//-------------\nFor procedure: " ^ procedure_name ^":" );
         let summary = computeSummaryFromCGF procedure specifications in 
         match summary with 
-        | Some summary -> List.append accs [summary] 
+        | Some summary -> 
+          finalheader := !finalheader @ [(procedure_name, getFirstState summary)]; 
+          List.append accs [summary] 
         | None -> 
         flag := false; 
         print_endline ("Verification Res = Unknown"); accs )
@@ -2718,7 +2736,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let (factPrinting: string list) = flattenList (List.map summaries ~f: (fun summary -> 
       (*let summary' = createNecessaryDisjunction summary specifications in*)
       let (facts, rules) = convertRE2Datalog (summary) specifications in 
-      ("/*" ^ string_of_regularExpr summary ^ "*/") :: 
+      ("/*" ^ string_of_regularExpr summary ^ "*/") ::  
       string_of_facts (sortFacts facts) :: 
       string_of_rules (sortRules rules) :: []
   )) in 
@@ -2760,6 +2778,12 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   Out_channel.write_lines (source_Address ^ ".dl") 
   (factPrinting@specPrinting@datalogProgPrinting 
     @ ["/* Other information \n"]@facts@["*/\n"]  );
+
+  print_endline (List.fold_left !finalheader ~init:"" ~f:(fun acc (f_name, state) -> 
+    match state with 
+    | None ->  acc 
+    | Some n ->  
+   acc ^ "\n" ^  f_name ^ ":" ^ string_of_int n  ));
 
 
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 
