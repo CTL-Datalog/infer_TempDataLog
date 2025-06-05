@@ -3,6 +3,8 @@ let flowKeyword = "flow"
 let controlFlowKeyword = "control_flow"
 let retKeyword = "Return"
 let exitKeyWord = "EXIT"
+let abortKeyWord = "abort"
+
 let entryKeyWord = "Start"
 let stateKeyWord = "State"
 let locKeyWord = "loc"
@@ -31,6 +33,11 @@ let geqKeyWordVar = geqKeyWord^ postfixPurePred
 
 
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int";"_nondet_int";"__VERIFIER_nondet_int"]
+
+
+let assertionFunCall = []
+(* "_fun___VERIFIER_assert" *)
+
 
 
 
@@ -751,18 +758,36 @@ let rec normalise_pure (pi:pure) : pure =
   
   | GtEq (Basic( BINT n), t1) -> LtEq(t1, Basic( BINT n))
 
+  | Gt (Minus(t1,t2),Minus(t3, t4)) -> 
+    if stricTcompareTerm t1 t3 then normalise_pure (Lt(t2, t4))
+    else Gt (Minus(t1,t2),Minus(t3, t4))
 
   | Gt (t1, t2) -> Gt (normalise_terms t1, normalise_terms t2)
   | Lt (Minus(t1, Basic( BINT n1)), Basic( BINT n2)) -> Lt (normalise_terms t1, Basic( BINT (n2+n1)))
 
   | GtEq (Minus(Basic( BINT n1),  t1), Basic( BINT n2)) -> LtEq (normalise_terms t1, Basic( BINT (n1-n2)))
 
+  | Lt (t1, Plus(t2, t3)) -> 
+    if stricTcompareTerm t1 t2 then Gt (t3, Basic(BINT 0))
+    else Lt (t1, normalise_terms(Plus(t2, t3)))
+
+
   | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
+
+  | GtEq (t1, Plus(t2, t3)) -> 
+    if stricTcompareTerm t1 t2 then LtEq (t3, Basic(BINT 0))
+    else GtEq (t1, normalise_terms(Plus(t2, t3)))
+
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
 
   | LtEq (Minus(Basic(BSTR x),Basic( BINT n1)), Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))) -> 
     if String.compare x x1 == 0 then  LtEq(Basic(BSTR y), Basic( BINT (n2-n1)))
     else LtEq (normalise_terms (Minus(Basic(BSTR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))))
+
+  | LtEq (Minus(t1,t2),Minus(t3, t4)) -> 
+    if stricTcompareTerm t1 t3 then normalise_pure (GtEq(t2, t4))
+    else LtEq (Minus(t1,t2),Minus(t3, t4))
+
 
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
 
@@ -823,13 +848,22 @@ let rec normalise_pure_prime (pi:pure) : pure =
     else (LtEq (t1, Minus(t3, t4)))
   | LtEq (Minus(t1,Basic( BINT 1)),Minus(t2,Basic( BINT 1))) -> LtEq(t1, t2)
 
+  | LtEq (Minus(Basic(BSTR x),Basic( BINT n1)), Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))) -> 
+    if String.compare x x1 == 0 then  LtEq(Basic(BSTR y), Basic( BINT (n2-n1)))
+    else LtEq (normalise_terms (Minus(Basic(BSTR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))))
+
+
+  | LtEq (Minus(t1,t2),Minus(t3, t4)) -> 
+    if stricTcompareTerm t1 t3 then GtEq(t2, t4)
+    else LtEq (Minus(t1,t2),Minus(t3, t4))
+
+
   | LtEq (Basic(BINT n), Basic(BSTR v)) -> GtEq (Basic(BSTR v), Basic(BINT n))
 
   | LtEq (t1,Minus(t2,t3)) -> 
     if stricTcompareTerm t1 t2 then (LtEq(t3, Basic( BINT 0)))
     else LtEq (t1,Minus(t2,t3))
 
-  | Lt (Minus(Minus(t1, t2), Basic ( BINT 1)), Basic ( BINT 0)) -> LtEq (t1, t2)
 
 
   | Lt (Basic(BINT n), Basic(BSTR v)) -> Gt (Basic(BSTR v), Basic(BINT n))
@@ -868,9 +902,6 @@ let rec normalise_pure_prime (pi:pure) : pure =
   | Lt (t1, t2) -> Lt (normalise_terms t1, normalise_terms t2)
   | GtEq (t1, t2) -> GtEq (normalise_terms t1, normalise_terms t2)
 
-  | LtEq (Minus(Basic(BSTR x),Basic( BINT n1)), Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))) -> 
-    if String.compare x x1 == 0 then  LtEq(Basic(BSTR y), Basic( BINT (n2-n1)))
-    else LtEq (normalise_terms (Minus(Basic(BSTR x),Basic( BINT n1))), normalise_terms (Minus(Minus(Basic(BSTR x1),Basic( BSTR y)), Basic( BINT n2))))
 
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
 

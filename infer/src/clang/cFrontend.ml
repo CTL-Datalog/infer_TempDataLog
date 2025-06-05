@@ -338,7 +338,7 @@ let retriveSpecifications (source:string) : (ctl list * int * int * int) =
       in 
       let line = helper lines in
       
-      let line_of_code = List.length lines in 
+      let line_of_code = (List.length lines) + 1 in 
       let partitions = retriveComments line in (*in *)
       let line_of_spec = List.fold_left partitions ~init:0 ~f:(fun acc a -> acc + (List.length (Str.split (Str.regexp "\n") a)))  in 
       (* (if List.length partitions == 0 then ()
@@ -718,6 +718,8 @@ let getPureFromFunctionCall (e_fun:Exp.t) (arg_ts:(Exp.t * Typ.t) list) ((Store 
     if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall funName then 
       (explicitNondeterminism := temp :: !explicitNondeterminism; 
       Some (Eq (temp, Basic(ANY))))
+    else if  existAux (fun a b -> String.compare a b == 0) assertionFunCall funName then 
+      (Some TRUE)
     else 
       (*let argumentTerms =  List.map arg_ts ~f:(fun (eA, _) -> expressionToTerm eA stack) in *)
       (* Predicate(funName, argumentTerms) *)
@@ -967,13 +969,14 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         Singleton (Predicate (retKeyword, [Basic(BINT 0)]), node_key), []
       )
     | Call x  -> 
-    if existAux (fun a b -> String.compare a b == 0) nonDetermineFunCall x then 
+    if existAux (fun a b -> String.compare a b == 0) (nonDetermineFunCall@assertionFunCall) x then 
       Emp, [] 
       (* this is when if ( *  ), we omit it. *)
 
     else 
-
-      (match instrs with 
+      
+      (print_endline ("Call x = " ^ x); 
+        match instrs with 
       | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
         let (argumentTerms:terms list) =  List.fold_left arg_ts ~init:[] ~f:(fun acc (eA, _) -> 
           match expressionToTerm eA stack with 
@@ -1426,7 +1429,7 @@ let devideByExitOrReturn (re:regularExpr) : (regularExpr * regularExpr) =
         let (cTerm, cNonTerm) = 
           match f with 
           | PureEv (Predicate (str, _), _) -> 
-            if String.compare str retKeyword ==0 || String.compare str  exitKeyWord  ==0 
+            if String.compare str retKeyword ==0 || String.compare str exitKeyWord ==0 || String.compare str abortKeyWord  ==0 
             then (eventToRe f, Bot)
             else (Bot, eventToRe f) 
 
@@ -1482,7 +1485,7 @@ let rec containUnknown (term:terms) : bool =
 let wp4Termination (transitionSummaries:transitionSummary) (guard:pure) (rankingFuns:rankingfunction list) : 
 pure * rankingfunction 
 = 
-
+  let rankingFuns = List.rev rankingFuns in 
   let rec helper rf : (pure * rankingfunction) = 
     let (rankingTerm, _) = rf in 
 
@@ -1787,24 +1790,34 @@ let rec convertAllTheKleeneToOmega (pathAcc:pure) (re:regularExpr) ctl: (regular
       print_endline ("Cycle: " ^ string_of_regularExpr  cycleRe);
 
       let fst = fst reNonCycle in 
-      let (reNonCyclePure, _), reNonCycle'  = 
-        match fst with 
-        | [(GuardEv gv)] -> gv, normalise_es (derivitives (GuardEv gv) reNonCycle)
-        | _  -> raise (Failure "reNonCycle does not start with a GuardEv")
-      in 
-      (match (getLoopSummary ctl pathAcc cycleRe reNonCycle') with 
-      | None -> None,  pathAcc
-      | Some loopsummary -> 
-        let loopsummary = normalise_es loopsummary in 
-        if entailConstrains reNonCyclePure FALSE then 
-          (print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
-          Some loopsummary, pathAcc)
-        else 
-          (
-          let loopsummary = Disjunction(reNonCycle, loopsummary) in 
-          print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
-          Some loopsummary, pathAcc)
-      )
+      
+      match fst with 
+      | [(GuardEv gv)] ->
+        (
+        (*let (p, _) = gv in   
+        match p with 
+        | Ast_utility.FALSE -> 
+          None, pathAcc (*raise (Failure "reNonCycle does not start with a GuardEv")  *)
+        | _ -> 
+        *)
+        let (reNonCyclePure, _), reNonCycle'  = gv, normalise_es (derivitives (GuardEv gv) reNonCycle) in (match (getLoopSummary ctl pathAcc cycleRe reNonCycle') with 
+        | None -> None,  pathAcc
+        | Some loopsummary -> 
+          let loopsummary = normalise_es loopsummary in 
+          if entailConstrains reNonCyclePure FALSE then 
+            (print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
+            Some loopsummary, pathAcc)
+          else 
+            (
+            let loopsummary = Disjunction(reNonCycle, loopsummary) in 
+            print_endline ("loopsummary: " ^ string_of_regularExpr loopsummary); 
+            Some loopsummary, pathAcc)))
+      | _  -> 
+        (*let dummy_loop_summary = Disjunction(Emp, Omega(Emp)) in 
+        Some dummy_loop_summary,  pathAcc
+        *)
+      
+        None, pathAcc (* raise (Failure "reNonCycle does not start with a GuardEv") *)  
     )
 
   | Kleene _ -> 
@@ -2088,15 +2101,6 @@ let computeSummaryFromCGF (procedure:Procdesc.t) (specs:ctl list) : regularExpr 
   ;;
 
   
-
-    (*
-        !(existAux 
-    (fun a b -> 
-      match a with 
-      | Basic (BSTR v) -> if String.compare v b == 0 then true else false 
-      | _ -> false 
-    ) explicitNondeterminism str )
-    *)
 
 
 let rec findRelaventValueSetFromTerms (t:terms) (var:string) : int list = 
@@ -2735,6 +2739,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   L.(debug Capture Verbose) "@\n Start buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
+  let start = Unix.gettimeofday () in 
+
   let source_file_string = SourceFile.to_string  (translation_unit_context.CFrontend_config.source_file) in
 
   let source_file_root = "/" ^ Filename.dirname source_file_string ^ "/spec.c" in 
@@ -2745,10 +2751,11 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let path = Sys.getcwd () in
   let (specifications_macro, lines_of_spec_macro, _, number_of_protocol_macro) = retriveSpecifications (path ^ source_file_root) in 
 
+
+
   let specifications = specifications_local @ specifications_macro in 
 
     
-  let start = Unix.gettimeofday () in 
 
   print_endline ("<== Anlaysing " ^ source_Address  ^ " ==>");
 
@@ -2856,11 +2863,13 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
    acc ^ "\n" ^  f_name ^ ":" ^ string_of_int n  ));
 
 
+
   let command = "souffle -F. -D. " ^ source_Address ^ ".dl" in 
   print_endline ("<==\n Runing Datalog $ " ^ command  ^ " \n==>");
   let _ = Sys.command command in 
 
-  print_endline ("\nTotol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s"); 
+  print_endline ("\nLOC: " ^ string_of_int (lines_of_code));
+  print_endline ("Totol_execution_time: " ^ string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) ^ " s"); 
 
   L.(debug Capture Verbose) "@\n End buidling facts for '%a'.@\n" SourceFile.pp source_file ;
 
