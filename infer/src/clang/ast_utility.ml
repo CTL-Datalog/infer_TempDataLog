@@ -135,6 +135,8 @@ let (varSet: (string list) ref) = ref []
 let (handlerVar: string option ref) = ref None 
 let (spec_agaf: (string list) ref) = ref [] 
 let (explicitNondeterminism: (terms list) ref) = ref [] 
+let (env_summary: ((string * regularExpr) list) ref) = ref [] 
+
 
 (* Experimental Summary *)
 let allTheUniqueIDs = ref (-1)
@@ -321,6 +323,66 @@ let rec string_of_regularExpr re =
       "(" ^ string_of_regularExpr effIn ^ ")^w"
 
   | Guard (p, state) -> "[" ^ string_of_pure p^ "]" ^ string_of_loc state (*^ string_of_regularExpr effIn*)
+
+let twoStringSetOverlap (sli1) (sli2) = 
+  let rec helper str li = 
+    match li with 
+    | [] -> false 
+    | x :: xs -> if String.compare x str == 0 then true else helper str xs 
+  in 
+  let rec aux li = 
+    match li with 
+    | [] -> false 
+    | y :: ys -> if helper y sli2 then true else aux ys
+  in aux sli1
+
+let rec removeStart_ReturnSTatesPure p : pure = 
+  match p with
+  | PureOr (p1, p2) -> 
+    let p1' = removeStart_ReturnSTatesPure p1 in 
+    let p2' = removeStart_ReturnSTatesPure p2 in 
+    PureOr (p1', p2')
+
+  | PureAnd (p1, p2) -> 
+    let p1' = removeStart_ReturnSTatesPure p1 in 
+    let p2' = removeStart_ReturnSTatesPure p2 in 
+    PureAnd (p1', p2')
+
+  | Neg p -> 
+    let p' = removeStart_ReturnSTatesPure p in 
+    Neg p' 
+
+  | Predicate (str, termLi) -> 
+    if twoStringSetOverlap [str] [retKeyword; entryKeyWord] then TRUE 
+    else p 
+
+  | _ -> p 
+
+
+let rec removeStart_ReturnSTates re = 
+  match re with 
+  | Singleton (p, state)  -> 
+    let p' = removeStart_ReturnSTatesPure p in 
+    Singleton (p', state)
+  | Concate (eff1, eff2) -> 
+    let es1 = removeStart_ReturnSTates eff1 in 
+    let es2 = removeStart_ReturnSTates eff2 in 
+    Concate (es1, es2)
+  | Disjunction (eff1, eff2) ->
+    let es1 = removeStart_ReturnSTates eff1 in 
+    let es2 = removeStart_ReturnSTates eff2 in 
+    Disjunction (es1, es2)
+  | Kleene effIn          ->
+    let es1 = removeStart_ReturnSTates effIn in 
+     Kleene es1
+     
+  | Omega effIn          ->
+     let es1 = removeStart_ReturnSTates effIn in 
+     Omega es1
+  | _ -> re
+
+
+  
 
 let compareBasic_type (bt1:basic_type) (bt2:basic_type) : bool = 
   match (bt1, bt2) with 
@@ -1044,17 +1106,7 @@ let rec varFromTerm (t:terms): string list =
 let string_of_varSet (li: string list) : string = 
   (List.fold_left li ~init:"" ~f:(fun acc a -> acc ^ "," ^ a)) ^ "\n"
 
-let twoStringSetOverlap (sli1) (sli2) = 
-  let rec helper str li = 
-    match li with 
-    | [] -> false 
-    | x :: xs -> if String.compare x str == 0 then true else helper str xs 
-  in 
-  let rec aux li = 
-    match li with 
-    | [] -> false 
-    | y :: ys -> if helper y sli2 then true else aux ys
-  in aux sli1
+
  
 let rec varFromPure (p:pure): string list =   
     match p with

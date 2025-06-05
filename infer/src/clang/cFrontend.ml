@@ -832,6 +832,16 @@ let removeDotsInVarName str =
    | x ::xs  -> x ^ "_" ^ aux xs 
    in aux str_li
 
+let rec lookForExistingSummaries summaries str : regularExpr option = 
+  match summaries with 
+  | [] -> None 
+  | (x, s) :: xs -> 
+    (*print_endline ("fundefname = " ^ x) ; 
+    print_endline ("fname = " ^ str) ; 
+    *)
+
+    if String.compare x str == 0 then Some s else lookForExistingSummaries xs str
+
 let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  getNodeID node in
@@ -975,7 +985,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
 
     else 
       
-      (print_endline ("Call x = " ^ x); 
+      (
+      print_endline ("Call x = " ^ x); 
         match instrs with 
       | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
         let (argumentTerms:terms list) =  List.fold_left arg_ts ~init:[] ~f:(fun acc (eA, _) -> 
@@ -995,7 +1006,21 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         let funName = removeDotsInVarName funName in 
 
         predicateDeclearation:= (funName, argumentTermsType@["Number"]) :: !predicateDeclearation ;
-        Singleton (Predicate (funName, argumentTerms), node_key), [] 
+        
+
+
+        (match lookForExistingSummaries !env_summary funName with 
+        | None ->  Singleton (Predicate (funName, argumentTerms), node_key), [] 
+        | Some summary -> 
+          let summary' = removeStart_ReturnSTates summary in 
+          print_endline (string_of_regularExpr summary);
+          print_endline (string_of_regularExpr summary');
+
+          summary', [] 
+
+        
+        ) 
+
        
       | _ -> 
         let funName = String.sub x 5 (String.length x - 5) in 
@@ -2018,7 +2043,7 @@ let mergePureIntoTheFirstState (re:regularExpr) (p :  pure) : regularExpr =
   | [f]  -> 
     (match f with
     | PureEv (pure, state) -> 
-      let derivitives = (derivitives f re) in 
+      let derivitives = normalise_es (derivitives f re) in 
       Concate (Singleton (PureAnd(pure, p), state),  derivitives)
     | _ -> re
     )
@@ -2768,6 +2793,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let () = explicitNondeterminism := [] in 
 
+  let () = env_summary := [] in 
+
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
   (*
@@ -2788,6 +2815,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
         match summary with 
         | Some summary -> 
           finalheader := !finalheader @ [(procedure_name, getFirstState summary)]; 
+          env_summary := !env_summary @ [(procedure_name, summary)]; 
           List.append accs [summary] 
         | None -> 
         flag := false; 
