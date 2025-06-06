@@ -550,14 +550,17 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
   match exp with 
   | Var t -> 
     let tName = (Ident.to_string t) in 
-    (*print_endline ("!!!expressionToTerm tName " ^ tName) ; *)
+    (*print_endline ("!!!expressionToTerm Var tName " ^ tName) ;  *)
     (match existStack stack stack tName with 
     | Some (Lvar t) -> Some(Basic (BSTR (Pvar.to_string t ))) (** Pure variable: it is not an lvalue *)
     | Some exp -> Some(Basic (BSTR (Exp.to_string exp )))
     | None  ->  None (* Some (Basic (BSTR tName)) *)  
       (** Pure variable: it is not an lvalue *)
     )
-  | Lvar t -> Some (Basic (BSTR (Pvar.to_string t)))  (** The address of a program variable *)
+  | Lvar t -> 
+    (* print_endline ("!!!expressionToTerm Var tName " ^ Pvar.to_string t) ;  *)
+  
+    Some (Basic (BSTR (Pvar.to_string t)))  (** The address of a program variable *)
 
   | Const t ->  (** Constants *)
     (match t with 
@@ -606,7 +609,9 @@ let rec expressionToTerm (exp:Exp.t) stack : terms option  =
   | Sizeof _ -> None (*Basic (BSTR ("Sizeof"))*)
 
 let rec expressionToPure (exp:Exp.t) stack: pure option = 
+  (*
   print_endline ("expressionToPure : " ^ (Exp.to_string exp)); 
+  *)
   match exp with 
 
   | BinOp (bop, e1, e2) -> 
@@ -836,9 +841,9 @@ let rec lookForExistingSummaries summaries str : regularExpr option =
   match summaries with 
   | [] -> None 
   | (x, s) :: xs -> 
-    (*print_endline ("fundefname = " ^ x) ; 
+    print_endline ("fundefname = " ^ x) ; 
     print_endline ("fname = " ^ str) ; 
-    *)
+    
 
     if String.compare x str == 0 then Some s else lookForExistingSummaries xs str
 
@@ -872,8 +877,14 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
               Eq (Basic (BSTR v2), t2)
           | Neg (Eq (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
+              let str_li =  String.split_on_chars ~on:['/'] v2 in 
+              if List.length str_li > 2 then Ast_utility.TRUE 
+              else 
+              (print_endline ("stack: " ^ string_of_stack stack);
+              print_endline ("Prune Neg expressionToPure " ^ string_of_pure p);
               let p':pure = Neg (Eq (Basic (BSTR v2), t2)) in 
-              p'
+              print_endline ("Prune Neg expressionToPure " ^ string_of_pure p');
+              p')
 
           | (Gt (Basic (BSTR v1), t2)) -> 
               let v2= removeDotsInVarName v1 in 
@@ -897,12 +908,13 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
 
 
 
-          | _ -> p 
+          | _ -> 
+            (
+            p )
 
         in 
         Guard(p', node_key)
       | None -> 
-      print_endline ("expressionToPure none");
         Emp
         (*Guard(TRUE, node_key) *) ), stack'
     | Load l :: Prune (e, loc, f, _):: _ ->  
@@ -983,12 +995,16 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       Emp, [] 
       (* this is when if ( *  ), we omit it. *)
 
+    else if existAux (fun a b -> String.compare a b == 0) (["_fun_abort"]) x then 
+
+    Singleton (Predicate ((retKeyword, [Basic(BINT 0)])), node_key), []
+
     else 
       
       (
       print_endline ("Call x = " ^ x); 
         match instrs with 
-      | Call ((ret_id, _), e_fun, arg_ts, _, _)  :: _ -> 
+      | Call ((_, _), e_fun, arg_ts, _, _)  :: _ -> 
         let (argumentTerms:terms list) =  List.fold_left arg_ts ~init:[] ~f:(fun acc (eA, _) -> 
           match expressionToTerm eA stack with 
           | Some t -> acc@[t] 
@@ -1025,6 +1041,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       | _ -> 
         let funName = String.sub x 5 (String.length x - 5) in 
         let funName =removeDotsInVarName funName in 
+        predicateDeclearation:= (funName, ["Number"]) :: !predicateDeclearation ;
 
         Singleton (Predicate (funName, []), node_key), []
       )
@@ -1100,7 +1117,6 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
   let currentID = getNodeID currentState in
   
   
-  (*print_endline ("existCycleHelper stack: " ^ string_of_stack stack);*)
   (*
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
   print_endline ("existCycleHelper id: " ^ string_of_int currentID);
@@ -1819,12 +1835,6 @@ let rec convertAllTheKleeneToOmega (pathAcc:pure) (re:regularExpr) ctl: (regular
       match fst with 
       | [(GuardEv gv)] ->
         (
-        (*let (p, _) = gv in   
-        match p with 
-        | Ast_utility.FALSE -> 
-          None, pathAcc (*raise (Failure "reNonCycle does not start with a GuardEv")  *)
-        | _ -> 
-        *)
         let (reNonCyclePure, _), reNonCycle'  = gv, normalise_es (derivitives (GuardEv gv) reNonCycle) in (match (getLoopSummary ctl pathAcc cycleRe reNonCycle') with 
         | None -> None,  pathAcc
         | Some loopsummary -> 
@@ -2341,14 +2351,16 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
   match p with 
   | Eq (Basic(BSTR str), Basic (ANY)) ->
     
-    print_endline (str ^ " = *" );
+    (*print_endline (str ^ " = *" );
     print_endline ("findrelationFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
     (List.map ~f:(fun p -> string_of_pure p) (predicates))));   
+    *)
 
     let rel = findrelationFromPredicatesSpec (predicates) str loc in 
+    (*
     print_endline ("relationsFromPredicatesSpec \n" ^ (String.concat ~sep:",\n" 
     (List.map ~f:(fun p -> string_of_relation p) rel)));   
-
+    *)
 
     currentValuation, rel
 
@@ -2797,9 +2809,9 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let facts = (Cfg.fold_sorted cfg ~init:[] 
   ~f:(fun facts procedure -> List.append facts (get_facts procedure) )) in
-  (*
+  
 
-  print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); *)
+  print_endline (List.fold_left facts ~init:"" ~f:(fun acc a -> acc ^ "\n" ^ a )); 
 
   let finalheader = ref [] in 
 
@@ -2815,7 +2827,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
         match summary with 
         | Some summary -> 
           finalheader := !finalheader @ [(procedure_name, getFirstState summary)]; 
-          env_summary := !env_summary @ [(procedure_name, summary)]; 
+          (if existAux (fun a b -> String.compare  a b  == 0) [abortKeyWord] procedure_name then () else env_summary := !env_summary @ [(procedure_name, summary)]); 
           List.append accs [summary] 
         | None -> 
         flag := false; 

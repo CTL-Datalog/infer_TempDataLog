@@ -35,8 +35,7 @@ let geqKeyWordVar = geqKeyWord^ postfixPurePred
 let nonDetermineFunCall = ["_fun__nondet_int";"_fun___VERIFIER_nondet_int";"_nondet_int";"__VERIFIER_nondet_int"]
 
 
-let assertionFunCall = []
-(* "_fun___VERIFIER_assert" *)
+let assertionFunCall = ["_fun___VERIFIER_assert"]
 
 
 
