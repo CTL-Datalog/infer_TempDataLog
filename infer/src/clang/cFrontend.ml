@@ -468,6 +468,8 @@ let get_facts procedure =
         | ReturnStmt -> (Printf.sprintf "Stmt_Return(%s,[%s]). // %s" node_key instrs node_loc) 
         | DeclStmt -> (Printf.sprintf "Stmt_Decl(%s,[%s]). // %s" node_key instrs node_loc) 
         | UnaryOperator -> (Printf.sprintf "Stmt_UnaryOperator(%s,[%s]). // %s" node_key instrs node_loc) 
+        | SwitchStmt -> (Printf.sprintf "Stmt_Switch(%s,[%s]). // %s" node_key instrs node_loc) 
+
         | CXXTemporaryMarkerSet
         | CXXTry
         | CXXTypeidExpr
@@ -496,7 +498,6 @@ let get_facts procedure =
         | OutOfBound
         | Scope _
         | Skip _
-        | SwitchStmt
         | ThisNotNull
         | Throw
         | ThrowNPE -> 
@@ -850,6 +851,9 @@ let rec lookForExistingSummaries summaries str : regularExpr option =
 let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  getNodeID node in
+
+  print_endline ("regularExpr_of_Node: nodekey = " ^ string_of_int node_key);
+
   let instrs_raw =  (Procdesc.Node.get_instrs node) in  
   let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc (a:Sil.instr) -> 
       match a with 
@@ -915,6 +919,7 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         in 
         Guard(p', node_key)
       | None -> 
+      print_endline ("expressionToPure none: nodekey = " ^ string_of_int node_key);
         Emp
         (*Guard(TRUE, node_key) *) ), stack'
     | Load l :: Prune (e, loc, f, _):: _ ->  
@@ -1117,10 +1122,10 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
   let currentID = getNodeID currentState in
   
   
-  (*
+  
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
   print_endline ("existCycleHelper id: " ^ string_of_int currentID);
-  *)
+  
   let idHead, idTail = 
     match id with 
     | [] -> raise (Failure "existCycleHelper not possible")
@@ -1173,20 +1178,24 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
 
 and existCycle stack (currentState:Procdesc.Node.t) (id:state list) : (Procdesc.Node.t * regularExpr * stack) option = 
   
-  (*
-  print_endline ("existCycl:\n" ^ string_of_int (getNodeID currentState)); 
+  
+  print_endline ("existCycle:\n" ^ string_of_int (getNodeID currentState)); 
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
-  *)
+  
 
   let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
+
+  
 
 
   let nextStates = Procdesc.Node.get_succs currentState in 
   match nextStates with 
   | [succ] -> 
     
+    (*
     if List.length (Procdesc.Node.get_succs succ) == 1 then None 
     else 
+    *)
     (match Procdesc.Node.get_kind succ with 
     | Join_node -> None 
     | _ -> 
