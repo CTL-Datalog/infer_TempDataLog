@@ -386,6 +386,73 @@ let retrive_basic_info_from_AST ast_decl: (string * Clang_ast_t.decl list * ctl 
  
     | _ -> assert false
 
+
+
+
+let rec isASTsupportedStmt (instr: Clang_ast_t.stmt) : bool = 
+  (*print_endline (Clang_ast_proj.get_stmt_kind_string instr); 
+  *)
+  match instr with 
+
+  | ParenExpr(stmt_info, stmtLi, _) 
+  | ImplicitCastExpr (stmt_info, stmtLi, _, _, _) 
+  | CStyleCastExpr (stmt_info, stmtLi, _, _, _) 
+  | CompoundStmt (stmt_info, stmtLi) 
+  | UnaryOperator (stmt_info, stmtLi, _, _) 
+  | BinaryOperator (stmt_info, stmtLi, _, _)
+  | ArraySubscriptExpr (stmt_info, stmtLi, _)
+  | MemberExpr (stmt_info, stmtLi, _, _)
+  | ForStmt (stmt_info, stmtLi)
+  | IfStmt (stmt_info, stmtLi, _)
+  | WhileStmt (stmt_info, stmtLi) 
+  | CompoundAssignOperator (stmt_info, stmtLi, _, _, _) -> 
+
+    List.for_all ~f:(fun s -> isASTsupportedStmt s) stmtLi
+ 
+  | GotoStmt (_, _, _)
+  | DoStmt (_, _) -> false 
+  | _ -> true 
+
+
+
+let rec isASTsupportedDecl (dec: (Clang_ast_t.decl)) : bool = 
+  (*print_endline ("isASTsupportedDecl"); 
+  print_endline (Clang_ast_proj.get_decl_kind_string dec); 
+  *)
+
+
+  match dec with
+    | FunctionDecl ((* decl_info *) _, named_decl_info, _, function_decl_info) ->
+      (
+      match function_decl_info.fdi_body with 
+      | None -> true 
+      | Some stmt -> 
+
+        let funcName = named_decl_info.ni_name in 
+        let res = isASTsupportedStmt stmt in 
+        (*print_endline ("Is "^ funcName ^ "supported? " ^ string_of_bool res); 
+        *)
+        res 
+
+
+      )
+    | _ -> true 
+
+
+
+let isASTsupported ast_decl: bool = 
+    match ast_decl with
+    | Clang_ast_t.TranslationUnitDecl (decl_info, decl_list, _, translation_unit_decl_info) ->
+        List.for_all ~f:(fun d -> 
+          let t = isASTsupportedDecl d in 
+          print_endline (string_of_bool t);           
+          t) decl_list
+     
+    | _ -> assert false
+
+
+
+
 let getNodeID node : int  = 
   (* Here is to get the ID, which is unique *)
   let key = (string_of_int (Procdesc.Node.get_id node)) in
@@ -1192,10 +1259,10 @@ and existCycle stack (currentState:Procdesc.Node.t) (id:state list) : (Procdesc.
   match nextStates with 
   | [succ] -> 
     
-    (*
+    
     if List.length (Procdesc.Node.get_succs succ) == 1 then None 
     else 
-    *)
+    
     (match Procdesc.Node.get_kind succ with 
     | Join_node -> None 
     | _ -> 
@@ -2787,7 +2854,17 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let start = Unix.gettimeofday () in 
 
-  let source_file_string = SourceFile.to_string  (translation_unit_context.CFrontend_config.source_file) in
+
+  let isASTsupported = isASTsupported ast in 
+  if not isASTsupported then 
+    (
+    let total_time = string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) in 
+    print_endline ("Verification Res = Unknown. Because of unsupported prorgam features"); 
+    print_endline ("\nTotol_execution_time: " ^  total_time ^ " s"); )
+
+  else 
+
+  (let source_file_string = SourceFile.to_string  (translation_unit_context.CFrontend_config.source_file) in
 
   let source_file_root = "/" ^ Filename.dirname source_file_string ^ "/spec.c" in 
 
@@ -2845,7 +2922,6 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
       
       )) 
   in
-  let total_time = string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) in 
   let which_system = if String.compare (String.sub (Sys.getcwd()) 0 5 ) "/home" == 0 then 1 else 0 in 
   let loris1_path = "/home/yahui/ctl/infer_TempDataLog/"  in
   let mac_path = "/Users/yahuis/Desktop/git/infer_TempDataLog/" in 
@@ -2853,6 +2929,7 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let output_report =  path ^ "TempFix-out/report.csv" in 
 
   (*outputFinalReport (total_time^"\n") output_report ; *)
+  let total_time = string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) in 
 
   if !flag == false then   
     print_endline ("\nTotol_execution_time: " ^  total_time ^ " s")
@@ -2928,3 +3005,4 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   then DotCfg.emit_frontend_cfg source_file cfg ;
   L.debug Capture Verbose "Stored on disk:@[<v>%a@]@." Cfg.pp_proc_signatures cfg ;
   ()
+  )
