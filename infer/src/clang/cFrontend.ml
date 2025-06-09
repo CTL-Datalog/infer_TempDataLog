@@ -404,13 +404,10 @@ let rec isASTsupportedStmt (instr: Clang_ast_t.stmt) : bool =
   | MemberExpr (stmt_info, stmtLi, _, _)
   | ForStmt (stmt_info, stmtLi)
   | IfStmt (stmt_info, stmtLi, _)
+  | WhileStmt (stmt_info, stmtLi) 
   | CompoundAssignOperator (stmt_info, stmtLi, _, _, _) -> 
 
     List.for_all ~f:(fun s -> isASTsupportedStmt s) stmtLi
-
-  | WhileStmt (stmt_info, condition:: stmtLi) -> 
-    
-
 
   | LabelStmt (stmt_info, stmtLi, label_name) -> 
     String.compare label_name "ERROR" == 0 
@@ -959,7 +956,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
               let str_li =  String.split_on_chars ~on:['/'] v2 in 
               if List.length str_li > 2 then Ast_utility.TRUE 
               else 
-              (print_endline ("stack: " ^ string_of_stack stack);
+              (
+              (*print_endline ("stack: " ^ string_of_stack stack); *)
               let p':pure = Neg (Eq (Basic (BSTR v2), t2)) in 
               (*
               print_endline ("Prune Neg expressionToPure " ^ string_of_pure p);
@@ -1072,13 +1070,22 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
         Singleton (Predicate (retKeyword, [Basic(BINT 0)]), node_key), []
       )
     | Call x  -> 
-    if existAux (fun a b -> String.compare a b == 0) (nonDetermineFunCall@assertionFunCall) x then 
+    if existAux (fun a b -> String.compare a b == 0) (nonDetermineFunCall) x then 
       Emp, [] 
       (* this is when if ( *  ), we omit it. *)
 
+    else if existAux (fun a b -> String.compare a b == 0) assertionFunCall x then 
+      (print_endline ("assertionFunCall at : " ^ string_of_int node_key);
+      Singleton (Predicate (("assert", [Basic(BINT 0)])), node_key), [])
+
+
+    (*
     else if existAux (fun a b -> String.compare a b == 0) (["_fun_abort"]) x then 
 
-    Singleton (Predicate ((retKeyword, [Basic(BINT 0)])), node_key), []
+      (predicateDeclearation:= (exitKeyWord, ["Number"; "Number"]) :: !predicateDeclearation ;
+      Singleton (Predicate ((exitKeyWord, [Basic(BINT 0)])), node_key), [])
+
+    *)
 
     else 
       
@@ -2566,12 +2573,17 @@ let rec getFactFromPureEv (p:pure) (state:int) (predicates:pure list) (predicate
     let currentValuation2, res2 = getFactFromPureEv p2 state predicates predicatesSpec pathConstrint currentValuation in 
     currentValuation1@currentValuation2 , res1@ res2
 
+      
+
   | _ -> 
     print_endline (string_of_pure p ^ "is left out");
     currentValuation, []
   ;;
 
 let rec pureToBodies (p:pure) (state:int ): body list = 
+    match p with 
+    | FALSE -> [Pure FALSE]
+    | _ ->
     let relations = getFactFromPure p state in 
     List.map ~f:(fun ((str, args)) -> 
       updateRuleDeclearation bodyDeclearation (str^"D");

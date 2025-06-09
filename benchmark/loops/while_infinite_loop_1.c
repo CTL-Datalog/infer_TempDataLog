@@ -12,6 +12,8 @@ void __VERIFIER_assert(int cond) {
 int main() {
   int x=0;
 
+  // if (1) return;
+
   while(1)
   {
     __VERIFIER_assert(x==0);    

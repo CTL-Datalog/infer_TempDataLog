@@ -265,7 +265,7 @@ let rec string_of_li (f: 'a -> string) (tL: 'a list): string =
 let rec string_of_pure (p:pure):string =   
   match p with
     TRUE -> "⊤"
-  | FALSE -> "⊥"
+  | FALSE -> "false"
   | Gt (t1, t2) -> (string_of_terms t1) ^ ">" ^ (string_of_terms t2)
   | Lt (t1, t2) -> (string_of_terms t1) ^ "<" ^ (string_of_terms t2)
   | GtEq (t1, t2) -> (string_of_terms t1) ^ ">=" ^ (string_of_terms t2) (*"≥"*)
@@ -1657,7 +1657,8 @@ let rec getFactFromPure (p:pure) (state:int) : relation list =
 
   | PureOr (p1, p2) 
   | PureAnd (p1, p2) -> getFactFromPure p1 state @ getFactFromPure p2 state
-  | Neg _ | FALSE | TRUE -> [] 
+  | Neg _ | FALSE 
+  | TRUE -> [] 
   | _ -> 
     print_endline (string_of_pure p ^ "left out from getFactFromPure ");  
     []
