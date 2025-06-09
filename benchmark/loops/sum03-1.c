@@ -21,7 +21,7 @@ int main() {
           sn = sn + a;
       }
       x++;
-      __VERIFIER_assert(sn==x*a || sn == 0);
+      if (!(sn==x*a || sn == 0)) abort();
   }
 }
 

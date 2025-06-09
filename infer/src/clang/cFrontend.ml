@@ -404,10 +404,17 @@ let rec isASTsupportedStmt (instr: Clang_ast_t.stmt) : bool =
   | MemberExpr (stmt_info, stmtLi, _, _)
   | ForStmt (stmt_info, stmtLi)
   | IfStmt (stmt_info, stmtLi, _)
-  | WhileStmt (stmt_info, stmtLi) 
   | CompoundAssignOperator (stmt_info, stmtLi, _, _, _) -> 
 
     List.for_all ~f:(fun s -> isASTsupportedStmt s) stmtLi
+
+  | WhileStmt (stmt_info, condition:: stmtLi) -> 
+    
+
+
+  | LabelStmt (stmt_info, stmtLi, label_name) -> 
+    String.compare label_name "ERROR" == 0 
+
  
   | GotoStmt (_, _, _)
   | DoStmt (_, _) -> false 
