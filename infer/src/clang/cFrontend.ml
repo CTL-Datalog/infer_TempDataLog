@@ -445,7 +445,7 @@ let isASTsupported ast_decl: bool =
     | Clang_ast_t.TranslationUnitDecl (decl_info, decl_list, _, translation_unit_decl_info) ->
         List.for_all ~f:(fun d -> 
           let t = isASTsupportedDecl d in 
-          print_endline (string_of_bool t);           
+          (* print_endline (string_of_bool t);  *)         
           t) decl_list
      
     | _ -> assert false
@@ -909,9 +909,10 @@ let rec lookForExistingSummaries summaries str : regularExpr option =
   match summaries with 
   | [] -> None 
   | (x, s) :: xs -> 
+    (*
     print_endline ("fundefname = " ^ x) ; 
     print_endline ("fname = " ^ str) ; 
-    
+    *)
 
     if String.compare x str == 0 then Some s else lookForExistingSummaries xs str
 
@@ -919,8 +920,8 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  getNodeID node in
 
-  print_endline ("regularExpr_of_Node: nodekey = " ^ string_of_int node_key);
-
+  (*print_endline ("regularExpr_of_Node: nodekey = " ^ string_of_int node_key);
+*)
   let instrs_raw =  (Procdesc.Node.get_instrs node) in  
   let instrs = Instrs.fold instrs_raw ~init:[] ~f:(fun acc (a:Sil.instr) -> 
       match a with 
@@ -952,9 +953,10 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
               if List.length str_li > 2 then Ast_utility.TRUE 
               else 
               (print_endline ("stack: " ^ string_of_stack stack);
-              print_endline ("Prune Neg expressionToPure " ^ string_of_pure p);
               let p':pure = Neg (Eq (Basic (BSTR v2), t2)) in 
-              print_endline ("Prune Neg expressionToPure " ^ string_of_pure p');
+              (*
+              print_endline ("Prune Neg expressionToPure " ^ string_of_pure p);
+              print_endline ("Prune Neg expressionToPure " ^ string_of_pure p');*)
               p')
 
           | (Gt (Basic (BSTR v1), t2)) -> 
@@ -1190,9 +1192,11 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
   
   
   
+  (*
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
   print_endline ("existCycleHelper id: " ^ string_of_int currentID);
-  
+  *)
+
   let idHead, idTail = 
     match id with 
     | [] -> raise (Failure "existCycleHelper not possible")
@@ -1246,9 +1250,10 @@ let rec existCycleHelper stack (currentState:Procdesc.Node.t) (id:state list) : 
 and existCycle stack (currentState:Procdesc.Node.t) (id:state list) : (Procdesc.Node.t * regularExpr * stack) option = 
   
   
+  (*
   print_endline ("existCycle:\n" ^ string_of_int (getNodeID currentState)); 
   print_endline ("id:\n" ^  List.fold_left ~init:"" id ~f:(fun acc a -> acc ^ string_of_int (a))); 
-  
+  *)
 
   let reExtension, stack' = recordToRegularExpr ([currentState]) stack in 
 
@@ -2854,11 +2859,14 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
 
   let start = Unix.gettimeofday () in 
 
+  let (source_Address, decl_list, specifications_local, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in       
+
 
   let isASTsupported = isASTsupported ast in 
   if not isASTsupported then 
     (
     let total_time = string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) in 
+    print_endline ("\nLOC: " ^ string_of_int (lines_of_code));
     print_endline ("Verification Res = Unknown. Because of unsupported prorgam features"); 
     print_endline ("\nTotol_execution_time: " ^  total_time ^ " s"); )
 
@@ -2869,7 +2877,6 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let source_file_root = "/" ^ Filename.dirname source_file_string ^ "/spec.c" in 
 
 
-  let (source_Address, decl_list, specifications_local, lines_of_code, lines_of_spec, number_of_protocol) = retrive_basic_info_from_AST ast in       
   
   let path = Sys.getcwd () in
   let (specifications_macro, lines_of_spec_macro, _, number_of_protocol_macro) = retriveSpecifications (path ^ source_file_root) in 
@@ -2932,7 +2939,8 @@ let do_source_file (translation_unit_context : CFrontend_config.translation_unit
   let total_time = string_of_float ((Unix.gettimeofday () -. start) (* *.1000. *) ) in 
 
   if !flag == false then   
-    print_endline ("\nTotol_execution_time: " ^  total_time ^ " s")
+    (print_endline ("\nLOC: " ^ string_of_int (lines_of_code));
+    print_endline ("\nTotol_execution_time: " ^  total_time ^ " s"))
 
   else 
 

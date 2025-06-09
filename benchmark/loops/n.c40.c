@@ -4,15 +4,14 @@ void reach_error() { __assert_fail("0", "n.c40.c", 3, "reach_error"); }
 
 int __VERIFIER_nondet_int();
 
-
-int main() {  
   char x[100], y[100];
   int i,j,k;
 
+int main() {  
   k = __VERIFIER_nondet_int();
   
   i = 0;
-  while(i != 0){
+  while(x[i] != 0){
     y[i] = x[i];
     i++;
   }

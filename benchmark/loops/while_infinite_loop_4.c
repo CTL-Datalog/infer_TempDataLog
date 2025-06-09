@@ -26,8 +26,7 @@ int main() {
   while(1)
   {
     eval();
-    if (!(x==0)) abort(); 
-    // __VERIFIER_assert(x==0);    
+    __VERIFIER_assert(x==0);    
   }
 
   __VERIFIER_assert(x==0);

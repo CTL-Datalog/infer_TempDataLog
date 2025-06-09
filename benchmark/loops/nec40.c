@@ -17,7 +17,7 @@ int main() {
   k = __VERIFIER_nondet_int();
   
   i = 0;
-  while(i != 0){
+  while(x[i] != 0){
     y[i] = x[i];
     i++;
   }

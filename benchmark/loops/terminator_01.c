@@ -15,7 +15,7 @@ int main()
   int x=__VERIFIER_nondet_int();
   int *p = &x;
  
-  while(p<100) {
+  while(x<100) {
    (*p)++;
   }                       
   __VERIFIER_assert(0);    
