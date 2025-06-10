@@ -852,6 +852,11 @@ let rec normalise_pure (pi:pure) : pure =
 
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
 
+  | Eq (t1, Minus(Basic(BINT 0), Basic(BINT n))) -> Eq (t1, Basic(BINT ((-1) * n)) )
+
+
+
+  | Eq (t1, Plus(Basic(BINT 0), t2)) 
   | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
   | PureAnd (pi1,TRUE) 
   | PureAnd (TRUE, pi1) -> normalise_pure pi1
@@ -965,7 +970,7 @@ let rec normalise_pure_prime (pi:pure) : pure =
 
 
   | LtEq (t1, t2) -> LtEq (normalise_terms t1, normalise_terms t2)
-
+  | Eq (t1, Plus(Basic(BINT 0), t2)) 
   | Eq (t1, t2) -> Eq (normalise_terms t1, normalise_terms t2)
   | PureAnd (pi1,TRUE) 
   | PureAnd (TRUE, pi1) -> normalise_pure_prime pi1
