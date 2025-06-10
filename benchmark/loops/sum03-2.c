@@ -16,6 +16,7 @@ int main() {
   unsigned int loop1=__VERIFIER_nondet_uint(), n1=__VERIFIER_nondet_uint();
   unsigned int x=0;
 
+  // if (sn == 0 ) return; 
   while(1){
     sn = sn + a;
     x++;
@@ -23,3 +24,4 @@ int main() {
   }
 }
 
+// delete Eq("sn",16,0).
