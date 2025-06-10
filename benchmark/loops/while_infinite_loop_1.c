@@ -21,3 +21,5 @@ int main() {
 
   __VERIFIER_assert(x!=0);
 }
+
+// patch: delete Eq("x",16,0).

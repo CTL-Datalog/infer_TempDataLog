@@ -33,3 +33,5 @@ int main() {
 
   return 0;
 }
+
+// patch: delete GtEq("x",26,0).

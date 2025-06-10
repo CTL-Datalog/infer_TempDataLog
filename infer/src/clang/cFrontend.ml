@@ -920,6 +920,8 @@ let rec lookForExistingSummaries summaries str : regularExpr option =
 
     if String.compare x str == 0 then Some s else lookForExistingSummaries xs str
 
+let (assertVar: bool ref) = ref false 
+
 let regularExpr_of_Node node stack : (regularExpr * stack )= 
   let node_kind = Procdesc.Node.get_kind node in
   let node_key =  getNodeID node in
@@ -1075,8 +1077,14 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       (* this is when if ( *  ), we omit it. *)
 
     else if existAux (fun a b -> String.compare a b == 0) assertionFunCall x then 
-      (print_endline ("assertionFunCall at : " ^ string_of_int node_key);
-      Singleton (Predicate (("assert", [Basic(BINT 0)])), node_key), [])
+      (
+      (*print_endline ("assertionFunCall at : " ^ string_of_int node_key);
+      print_endline (string_of_stack stack); *)
+      if !assertVar == false then  
+          (predicateDeclearation:= (retKeyword, ["Number"; "Number"]) :: !predicateDeclearation ;
+      Singleton (Predicate ((retKeyword, [Basic(BINT 0)])), node_key), [])
+      else 
+        Emp, [])
 
 
     (*
@@ -1135,6 +1143,24 @@ let regularExpr_of_Node node stack : (regularExpr * stack )=
       )
     
       
+    | ConditionalStmtBranch -> 
+      (match instrs with 
+      | Store s :: _ -> 
+        (*print_endline (Exp.to_string s.e1 ^ " = " ^ Exp.to_string s.e2); *)
+        let exp2 = s.e2 in 
+        (*predicateDeclearation:= (retKeyword, ["Number";"Number"]) :: !predicateDeclearation ;
+        *)
+        (match expressionToTerm exp2 stack with
+        | Some (Basic(BINT 1)) -> assertVar := true 
+        | Some (Basic(BINT 0)) -> assertVar := false 
+        | _ ->  ()
+        );
+        Emp , []
+
+      | _ -> 
+        Emp , []
+      )
+
     | _ -> Singleton(TRUE, node_key) , []
 
 
@@ -1636,13 +1662,13 @@ pure * rankingfunction
         print_endline ("rankingTerm' = " ^ string_of_terms rankingTerm');
 
         let left_hand_side = PureAnd (guard, path) in 
-        let right_hand_side = normalise_pure_prime (Gt( (rankingTerm ), rankingTerm'))in
+        let right_hand_side = normalise_pure_prime (Gt(rankingTerm, rankingTerm'))in
         if containUnknown rankingTerm' then  Ast_utility.FALSE 
         else 
           if entailConstrains left_hand_side right_hand_side 
           then 
             if 
-            (entailConstrains TRUE (Eq( (rankingTerm ), Plus(rankingTerm', Basic (BINT 2))))) then Ast_utility.FALSE 
+            (entailConstrains TRUE (Eq(rankingTerm, Plus(rankingTerm', Basic (BINT 2))))) then Ast_utility.FALSE 
             else 
             (Ast_utility.TRUE)  
           else 
@@ -1735,7 +1761,7 @@ let computerNonTerminating (transitionSummaries:transitionSummary) upperbound ra
 
 let compute_deriv_of_concern re (ctl:ctl list) = 
   match ctl with 
-  | [AF(Atom (str, _) )] -> if String.compare str "EXIT" == 0 then Emp else re 
+  | [AF(Atom (str, _) )] -> if String.compare str exitKeyWord == 0 then Emp else re 
   | _ -> re
 
 
@@ -1780,11 +1806,16 @@ let commonVariable_rankingFunctions rankingFuns : bool =
 
   ;;
 
+let isBot (re:regularExpr) : bool = 
+  match re with 
+  | Bot -> true 
+  | _ -> false 
+
 let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr): regularExpr option  =  
   let re = normalise_es re in
 
   let (fstSet:(fstElem list)) = removeRedundant (fst re) compareEvent in 
-  let pi, rankingFuns, nonleakingBranches =  
+  let pi, rankingFuns, leakingBranches, nonleakingBranches =  
     (match fstSet with 
     | [GuardEv (pi, loc)] ->  
       let f = GuardEv (pi, loc) in 
@@ -1797,7 +1828,7 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
     
       let (rankingFuns:rankingfunction list ) = makeAGuess pi leakingBranches reNonCycle in 
       let rankingFuns = removeRedundant rankingFuns (fun (a, _) (b , _) -> stricTcompareTerm a b ) in 
-      pi, rankingFuns, nonleakingBranches 
+      pi, rankingFuns, leakingBranches, nonleakingBranches 
 
     | [PureEv (_, _)] -> raise (Failure "loop starting with PureEv") 
     | _-> raise (Failure "loop starting with more than one fst")
@@ -1820,7 +1851,11 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
     else 
       Some (Concate (Guard loopGuard, Omega (Concate (Singleton loopGuard, deriv_of_concern)))))
 
-  else if commonVariable_rankingFunctions rankingFuns then None 
+  else if commonVariable_rankingFunctions rankingFuns && isBot leakingBranches   then 
+    (print_endline ("commonVariable_rankingFunctions"); 
+    None)
+    
+    
     (* this is when there are more than one ranking functions upon one single varaible *)
   else 
   
@@ -1829,8 +1864,8 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
   let transitionSummaries = flattenList (List.map alldisjunctiveTransitions ~f:transitionSummary) in  
 
   print_endline("------------termination analysis"); 
-                                (* a trace,    Some(terminational wp, ranking function) *)
-  let (weakestPreTerm, (rfterm, leakingRE)) = wp4Termination transitionSummaries (pi) rankingFuns in 
+  (* a trace, Some(terminational wp, ranking function) *)
+  let (weakestPreTerm, (rfterm, leakingRE)) = wp4Termination transitionSummaries pi rankingFuns in 
 
   let deriv_of_concern = fiterOutTheUsedOperationChanges pi deriv_of_concern rfterm in 
 
@@ -1851,14 +1886,14 @@ let getLoopSummary ctl (pathAcc:pure) (re:regularExpr) (reNonCycle:regularExpr):
       let finalStatePure = 
         match rfterm with 
         | (Minus(Minus(t1, t2), Basic(BINT 1))) -> Eq(t1, t2)
-        | _ -> normalise_pure_prime (Eq(rfterm, Basic(BINT (-1)))) (*  (Lt(rfterm, Basic(BINT 0))) *)
+        | _ -> normalise_pure_prime (Eq(rfterm, Basic(BINT (-1)))) (* (Lt(rfterm, Basic(BINT 0))) *)
       in 
       let terminatingFinalState = Concate(deriv_of_concern , Singleton (finalStatePure
         , !allTheUniqueIDs)) in 
       Concate(terminatingGuard, Concate (terminatingFinalState, leakingRE))
   
   in 
-  print_endline("------------" ^ "non termination analysis WRT " ^ string_of_terms rfterm); 
+  print_endline("------------" ^ " non termination analysis WRT " ^ string_of_terms rfterm); 
 
   let weakestPreNT = computerNonTerminating transitionSummaries (Neg weakestPreTerm) rfterm pi in 
 
