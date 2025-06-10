@@ -27,3 +27,5 @@ int main() {
   __VERIFIER_assert(x!=0);
 }
 
+// delete // Eq("x",25,0). and // Eq("x",24,0).
+

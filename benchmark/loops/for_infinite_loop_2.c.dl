@@ -1,0 +1,298 @@
+/*(Start()∧"cond"=_)@0 · ((["cond"=0]@1 · ("cond"=0)@2 · (reach_error())@3 · (abort())@4 · (Return(0))@5) \/ ([("cond"!=0)]@6 · (("cond"!=0))@7 · (Return(0))@8))*/
+
+flow(1,2).
+flow(2,3).
+flow(3,4).
+flow(4,5).
+flow(5,5).
+flow(6,7).
+flow(7,8).
+flow(8,8).
+Start(0).
+NotEq("cond",0,0).
+Eq("cond",0,0).
+State(1).
+Eq("cond",2,0).
+State(2).
+reach_error(3).
+State(3).
+abort(4).
+State(4).
+Return(0,5).
+State(5).
+State(0).
+State(6).
+NotEq("cond",7,0).
+State(7).
+Return(0,8).
+State(8).
+control_flow(0,1) :- EqD("cond",0,0).
+control_flow(0,6) :- NotEqD("cond",0,0).
+/*𝝐 */
+
+
+/*𝝐 */
+
+
+/*𝝐 */
+
+
+/*(Start()∧"cond"=_)@9 · ((["cond"=0]@10 · ("cond"=0)@11 · (abort())@12 · (Return(0))@13) \/ ([("cond"!=0)]@14 · (("cond"!=0))@15 · (Return(0))@16))*/
+
+flow(10,11).
+flow(11,12).
+flow(12,13).
+flow(13,13).
+flow(14,15).
+flow(15,16).
+flow(16,16).
+Start(9).
+NotEq("cond",9,0).
+Eq("cond",9,0).
+State(10).
+Eq("cond",11,0).
+State(11).
+abort(12).
+State(12).
+Return(0,13).
+State(13).
+State(9).
+State(14).
+NotEq("cond",15,0).
+State(15).
+Return(0,16).
+State(16).
+control_flow(9,10) :- EqD("cond",9,0).
+control_flow(9,14) :- NotEqD("cond",9,0).
+/*("i"=0∧Start()∧"x"=_)@24 · ("x"=0)@25 · ("y"=0)@26 · ("n"=_)@27 · ((["n"<=0]@28 · ("n"<=0)@29 · (Return(0))@30) \/ (["n">0]@31 · ("n">0)@32 · ("i"=0)@33 · (([("x"!=0)]@36 · (("x"!=0))@37 · ("x"=1)@38 · (Return(0))@39) \/ (["x"=0]@40 · ("x"=0)@41 · (("x"<=0)@42)^w))))*/
+
+flow(24,25).
+flow(25,26).
+flow(26,27).
+flow(28,29).
+flow(29,30).
+flow(30,30).
+flow(31,32).
+flow(32,33).
+flow(36,37).
+flow(37,38).
+flow(38,39).
+flow(39,39).
+flow(40,41).
+flow(41,42).
+flow(42,42).
+Start(24).
+NotEq("x",24,0).
+// Eq("x",24,0).
+State(24).
+// Eq("x",25,0).
+State(25).
+State(26).
+LtEq("n",27,0).
+Gt("n",27,0).
+State(28).
+LtEq("n",29,0).
+State(29).
+Return(0,30).
+State(30).
+State(27).
+State(31).
+Gt("n",32,0).
+State(32).
+State(36).
+NotEq("x",37,0).
+State(37).
+NotEq("x",38,0).
+State(38).
+Return(0,39).
+State(39).
+State(33).
+State(40).
+Eq("x",41,0).
+State(41).
+State(42).
+control_flow(27,28) :- LtEqD("n",27,0).
+control_flow(27,31) :- GtD("n",27,0).
+control_flow(33,36) :- NotEqD("x",33,0).
+control_flow(33,40) :- EqD("x",33,0).
+/*(Return(0)∧Start()∧⊤)@44 · 𝝐 */
+
+flow(44,44).
+Return(0,44).
+Start(44).
+State(44).
+
+//AF(EXIT())
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl abort(n0:number)
+.decl reach_error(n0:number)
+.decl Gt(x:symbol,loc:number,n:number)
+.decl LtEq(x:symbol,loc:number,n:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl GtD(x:symbol,loc:number,n:number)
+.decl LtEqD(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl EXITPred(loc:number)
+.decl AF_EXITPred_T(interm_state:number,loc:number)
+.decl AF_EXITPred_S(loc:number)
+.decl AF_EXITPred(loc:number)
+.decl AF_EXITPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+GtD(x,loc,n) :- Gt(x,loc,n).
+GtD(x,loc,n) :- GtD(x,locI,n), control_flow(locI,loc), !Gt(x,loc,n), !LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEq(x,loc,n).
+LtEqD(x,loc,n) :- LtEqD(x,locI,n), control_flow(locI,loc), !LtEq(x,loc,n), !Gt(x,loc,n).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+EXITPred(loc) :- Return(_,loc).
+AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
+AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
+AF_EXITPred_S(loc) :- !EXITPred(loc), control_flow(loc,tempOne), AF_EXITPred_S(tempOne).
+AF_EXITPred_S(loc) :- AF_EXITPred_T(loc,loc).
+AF_EXITPred(loc) :- State(loc), !AF_EXITPred_S(loc).
+AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
+.output Gt
+.output LtEq
+.output NotEq
+.output Eq
+.output Start
+.output State
+.output flow
+.output Return
+.output abort
+.output reach_error
+.output AF_EXITPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_assert> 
+
+Flow(8,4). //@9:1-10:8
+Flow(8,5). //@9:1-10:8
+Flow(6,7). //@13:3-14:1
+Flow(3,6). //@10:3-13:3
+Flow(5,0). //@10:8-11:5
+Flow(4,3). //@10:8-10:3
+Flow(2,3). //@11:27-10:3
+Flow(1,2). //@11:13-11:27
+Flow(0,1). //@11:5-11:13
+Skip(0,GotoLabel_ERROR,[]).  // @11:5
+Stmt_Call(1,_fun_reach_error,[ICall(_fun_reach_error,,n$3)]). // @11:13
+Stmt_Call(2,_fun_abort,[ICall(_fun_abort,,n$2)]). // @11:27
+PruneNode(4,false,[ILoad(&cond,n$1),Prune(n$1, false)]). // @10:8
+PruneNode(5,true,[ILoad(&cond,n$1),Prune(!n$1, true)]). // @10:8
+Join(3,[]).  // @10:3
+Stmt_Return(6,[]). // @13:3
+Exit(7).  // @14:1
+Start(8). // @9:1
+//-- Facts for Procedure <__VERIFIER_nondet_int> 
+
+//-- Facts for Procedure <__assert_fail> 
+
+//-- Facts for Procedure <abort> 
+
+//-- Facts for Procedure <assume_abort_if_not> 
+
+Flow(8,4). //@6:1-7:7
+Flow(8,5). //@6:1-7:7
+Flow(6,3). //@7:3-7:3
+Flow(3,7). //@7:3-8:1
+Flow(5,2). //@7:7-7:14
+Flow(4,6). //@7:7-7:3
+Flow(2,6). //@7:14-7:3
+Stmt_Call(2,_fun_abort,[ICall(_fun_abort,,n$1)]). // @7:14
+PruneNode(4,false,[ILoad(&cond,n$0),Prune(n$0, false)]). // @7:7
+PruneNode(5,true,[ILoad(&cond,n$0),Prune(!n$0, true)]). // @7:7
+Stmt_BetweenJoinAndExit(3,[]). // @7:3
+Join(6,[]).  // @7:3
+Exit(7).  // @8:1
+Start(8). // @6:1
+//-- Facts for Procedure <main> 
+
+Flow(8,9). //@18:1-19:3
+Flow(6,0). //@27:21-27:3
+Flow(3,4). //@27:21-27:21
+Flow(3,5). //@27:21-27:21
+Flow(5,2). //@27:21-27:21
+Flow(4,1). //@27:21-27:21
+Flow(2,6). //@27:21-27:21
+Flow(1,6). //@27:21-27:21
+Flow(0,7). //@27:3-28:1
+Flow(29,27). //@23:3-23:12
+Flow(29,28). //@23:3-23:12
+Flow(18,29). //@23:7-23:3
+Flow(20,29). //@23:15-23:3
+Flow(28,26). //@23:12-25:23
+Flow(27,3). //@23:12-27:21
+Flow(22,19). //@25:23-25:5
+Flow(26,24). //@25:23-25:23
+Flow(26,25). //@25:23-25:23
+Flow(25,23). //@25:23-25:23
+Flow(24,21). //@25:23-25:23
+Flow(23,22). //@25:23-25:23
+Flow(21,22). //@25:23-25:23
+Flow(19,20). //@25:5-23:15
+Flow(16,18). //@22:3-23:7
+Flow(13,15). //@22:9-22:9
+Flow(13,17). //@22:9-22:9
+Flow(17,14). //@22:9-22:15
+Flow(15,16). //@22:9-22:3
+Flow(14,7). //@22:15-28:1
+Flow(12,13). //@21:3-22:9
+Flow(11,12). //@20:3-21:3
+Flow(10,11). //@20:3-20:3
+Flow(9,10). //@19:3-20:3
+Stmt_Decl(9,[IStore(&i,()0)]). // @19:3
+Stmt_Decl(10,[IStore(&x,0)]). // @20:3
+Stmt_Decl(11,[IStore(&y,0)]). // @20:3
+Stmt_Decl(12,[ICall(_fun___VERIFIER_nondet_int,,n$13),IStore(&n,n$13)]). // @21:3
+Stmt_Return(14,[IStore(&return,0)]). // @22:15
+PruneNode(15,false,[Prune((n$10 > 0), false)]). // @22:9
+PruneNode(17,true,[Prune(!(n$10 > 0), true)]). // @22:9
+Stmt_BinaryOperatorStmt(13,GT,[ILoad(&n,n$10)]). // @22:9
+Join(16,[]).  // @22:3
+Stmt_Call(19,_fun___VERIFIER_assert,[ILoad(&0$?%__sil_tmpSIL_temp_conditional___n$5,n$7),ICall(_fun___VERIFIER_assert,n$7,n$8)]). // @25:5
+Stmt_ConditionalStmtBranch(21,[IStore(&0$?%__sil_tmpSIL_temp_conditional___n$5,0)]). // @25:23
+Stmt_ConditionalStmtBranch(23,[IStore(&0$?%__sil_tmpSIL_temp_conditional___n$5,1)]). // @25:23
+PruneNode(24,false,[Prune(!(n$6 == 0), false)]). // @25:23
+PruneNode(25,true,[Prune((n$6 == 0), true)]). // @25:23
+Stmt_BinaryOperatorStmt(26,EQ,[ILoad(&x,n$6)]). // @25:23
+Join(22,[]).  // @25:23
+PruneNode(27,false,[Prune(!1, false)]). // @23:12
+PruneNode(28,true,[Prune(1, true)]). // @23:12
+Stmt_UnaryOperator(20,[ILoad(&i,n$4),IStore(&i,(n$4 + 1))]). // @23:15
+Stmt_BinaryOperatorStmt(18,Assign,[IStore(&i,()0)]). // @23:7
+Join(29,[]).  // @23:3
+Stmt_Call(0,_fun___VERIFIER_assert,[ILoad(&0$?%__sil_tmpSIL_temp_conditional___n$0,n$2),ICall(_fun___VERIFIER_assert,n$2,n$3)]). // @27:3
+Stmt_ConditionalStmtBranch(1,[IStore(&0$?%__sil_tmpSIL_temp_conditional___n$0,0)]). // @27:21
+Stmt_ConditionalStmtBranch(2,[IStore(&0$?%__sil_tmpSIL_temp_conditional___n$0,1)]). // @27:21
+PruneNode(4,false,[Prune(!(n$1 != 0), false)]). // @27:21
+PruneNode(5,true,[Prune((n$1 != 0), true)]). // @27:21
+Stmt_BinaryOperatorStmt(3,NE,[ILoad(&x,n$1)]). // @27:21
+Join(6,[]).  // @27:21
+Exit(7).  // @28:1
+Start(8). // @18:1
+//-- Facts for Procedure <reach_error> 
+
+Flow(8,6). //@3:1-3:22
+Flow(6,7). //@3:22-3:85
+PruneNode(6,true,[Prune(0, true)]). // @3:22
+Exit(7).  // @3:85
+Start(8). // @3:1
+*/
+
