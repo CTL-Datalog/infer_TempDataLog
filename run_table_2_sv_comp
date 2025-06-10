@@ -1,0 +1,96 @@
+
+infer/bin/infer run -- clang -c benchmark/loops/while_infinite_loop_4.c  
+infer/bin/infer run -- clang -c benchmark/loops/array-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/array-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/count_up_down-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/count_up_down-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/eureka_05.c  
+infer/bin/infer run -- clang -c benchmark/loops/for_bounded_loop1.c  
+infer/bin/infer run -- clang -c benchmark/loops/for_infinite_loop_1.c  
+infer/bin/infer run -- clang -c benchmark/loops/for_infinite_loop_2.c  
+infer/bin/infer run -- clang -c benchmark/loops/insertion_sort-1-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/insertion_sort-2-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/invert_string-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/invert_string-3.c  
+infer/bin/infer run -- clang -c benchmark/loops/matrix-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/matrix-2-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/n.c11.c  
+infer/bin/infer run -- clang -c benchmark/loops/n.c40.c  
+infer/bin/infer run -- clang -c benchmark/loops/nec11.c  
+infer/bin/infer run -- clang -c benchmark/loops/nec20.c  
+infer/bin/infer run -- clang -c benchmark/loops/nec40.c  
+infer/bin/infer run -- clang -c benchmark/loops/string-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/string-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/sum01_bug02.c  
+infer/bin/infer run -- clang -c benchmark/loops/sum01-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/sum03-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/sum03-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/sum04-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/sum04-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/terminator_01.c  
+infer/bin/infer run -- clang -c benchmark/loops/terminator_02-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/terminator_03-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex01-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex01-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex02-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex02-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex03-1.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex03-2.c  
+infer/bin/infer run -- clang -c benchmark/loops/trex04.c  
+infer/bin/infer run -- clang -c benchmark/loops/veris.c_NetBSD-libc_loop.c  
+infer/bin/infer run -- clang -c benchmark/loops/veris.c_OpenSER_cases1_stripFullBoth_arr.c  
+infer/bin/infer run -- clang -c benchmark/loops/veris.c_sendmail_tTflag_arr_one_loop.c  
+infer/bin/infer run -- clang -c benchmark/loops/verisec_NetBSD-libc_loop.c  
+infer/bin/infer run -- clang -c benchmark/loops/verisec_OpenSER_cases1_stripFullBoth_arr.c  
+infer/bin/infer run -- clang -c benchmark/loops/while_infinite_loop_1.c  
+infer/bin/infer run -- clang -c benchmark/loops/while_infinite_loop_2.c  
+infer/bin/infer run -- clang -c benchmark/loops/while_infinite_loop_3.c  
+
+
+
+time ./Ultimate.py --file ../loops/while_infinite_loop_4.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/array-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/array-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/count_up_down-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/count_up_down-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/eureka_05.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/for_bounded_loop1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/for_infinite_loop_1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/for_infinite_loop_2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/insertion_sort-1-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/insertion_sort-2-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/invert_string-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/invert_string-3.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/matrix-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/matrix-2-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/n.c11.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/n.c40.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/nec11.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/nec20.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/nec40.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/string-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/string-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/sum01_bug02.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/sum01-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/sum03-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/sum03-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/sum04-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/sum04-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/terminator_01.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/terminator_02-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/terminator_03-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex01-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex01-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex02-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex02-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex03-1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex03-2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/trex04.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/veris.c_NetBSD-libc_loop.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/veris.c_OpenSER_cases1_stripFullBoth_arr.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/veris.c_sendmail_tTflag_arr_one_loop.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/verisec_NetBSD-libc_loop.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/verisec_OpenSER_cases1_stripFullBoth_arr.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/while_infinite_loop_1.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/while_infinite_loop_2.c --spec ../prp.prp --architecture 64bit 
+time ./Ultimate.py --file ../loops/while_infinite_loop_3.c --spec ../prp.prp --architecture 64bit 
