@@ -1,0 +1,222 @@
+/*(Start()∧"cond"=_)@0 · ((["cond"=0]@1 · ("cond"=0)@2 · (reach_error())@3 · (abort())@4 · (Return(0))@5) \/ ([("cond"!=0)]@6 · (("cond"!=0))@7 · (Return(0))@8))*/
+
+flow(1,2).
+flow(2,3).
+flow(3,4).
+flow(4,5).
+flow(5,5).
+flow(6,7).
+flow(7,8).
+flow(8,8).
+Start(0).
+NotEq("cond",0,0).
+Eq("cond",0,0).
+State(1).
+Eq("cond",2,0).
+State(2).
+reach_error(3).
+State(3).
+abort(4).
+State(4).
+Return(0,5).
+State(5).
+State(0).
+State(6).
+NotEq("cond",7,0).
+State(7).
+Return(0,8).
+State(8).
+control_flow(0,1) :- EqD("cond",0,0).
+control_flow(0,6) :- NotEqD("cond",0,0).
+/*𝝐 */
+
+
+/*𝝐 */
+
+
+/*𝝐 */
+
+
+/*("len"=0∧Start()∧"len"=_)@13 · ("c"=_)@14 · ((["c"=0]@15 · ("c"=0)@16 · ((["len"=5]@17 · ("len"=5)@18 · (Return(1))@19) \/ ([("len"!=5)]@20 · (("len"!=5))@21 · (Return(0))@22 · (Return(1))@23))) \/ ([("c"!=0)]@24 · (("c"!=0))@25 · (("c">=1)@26)^w))*/
+
+flow(13,14).
+flow(15,16).
+flow(17,18).
+flow(18,19).
+flow(19,19).
+flow(20,21).
+flow(21,22).
+flow(22,23).
+flow(23,23).
+flow(24,25).
+flow(25,26).
+flow(26,26).
+Start(13).
+NotEq("len",13,5).
+Eq("len",13,5).
+State(13).
+// NotEq("c",14,0).
+Eq("c",14,0).
+State(15).
+Eq("c",16,0).
+State(17).
+Eq("len",18,5).
+State(18).
+Return(1,19).
+State(19).
+State(16).
+State(20).
+NotEq("len",21,5).
+State(21).
+Return(0,22).
+State(22).
+Return(1,23).
+State(23).
+State(14).
+State(24).
+NotEq("c",25,0).
+State(25).
+NotEq("c",26,0).
+State(26).
+control_flow(14,15) :- EqD("c",14,0).
+control_flow(16,17) :- EqD("len",16,5).
+control_flow(16,20) :- NotEqD("len",16,5).
+control_flow(14,24) :- NotEqD("c",14,0).
+/*(Return(0)∧Start()∧⊤)@28 · 𝝐 */
+
+flow(28,28).
+Return(0,28).
+Start(28).
+State(28).
+
+//AF(EXIT())
+.decl Start(x:number)
+.decl State(x:number)
+.decl flow(x:number,y:number)
+.decl control_flow(x:number,y:number)
+.decl transFlow(x:number,y:number)
+.decl NotTotal(loc:number)
+.decl Return(n0:number,n1:number)
+.decl abort(n0:number)
+.decl reach_error(n0:number)
+.decl NotEq(x:symbol,loc:number,n:number)
+.decl Eq(x:symbol,loc:number,n:number)
+.decl NotEqD(x:symbol,loc:number,n:number)
+.decl EqD(x:symbol,loc:number,n:number)
+.decl EXITPred(loc:number)
+.decl AF_EXITPred_T(interm_state:number,loc:number)
+.decl AF_EXITPred_S(loc:number)
+.decl AF_EXITPred(loc:number)
+.decl AF_EXITPred_Final(loc:number)transFlow(x,y) :- control_flow(x,y).
+transFlow(x,z) :- control_flow(x,y), transFlow(y,z).
+NotTotal(loc) :- State(loc), !control_flow(loc,_).
+NotTotal(loc) :- NotTotal(locI), control_flow(loc,locI).
+control_flow(x,y) :- flow(x,y).
+NotEqD(x,loc,n) :- NotEq(x,loc,n).
+NotEqD(x,loc,n) :- NotEqD(x,locI,n), control_flow(locI,loc), !NotEq(x,loc,n), !Eq(x,loc,n).
+EqD(x,loc,n) :- Eq(x,loc,n).
+EqD(x,loc,n) :- EqD(x,locI,n), control_flow(locI,loc), !Eq(x,loc,n), !NotEq(x,loc,n).
+EXITPred(loc) :- Return(_,loc).
+AF_EXITPred_T(interm_state,loc) :- AF_EXITPred_T(tempOne,loc), !EXITPred(tempOne), control_flow(tempOne,interm_state).
+AF_EXITPred_T(interm_state,loc) :- !EXITPred(loc), control_flow(loc,interm_state).
+AF_EXITPred_S(loc) :- !EXITPred(loc), control_flow(loc,tempOne), AF_EXITPred_S(tempOne).
+AF_EXITPred_S(loc) :- AF_EXITPred_T(loc,loc).
+AF_EXITPred(loc) :- State(loc), !AF_EXITPred_S(loc).
+AF_EXITPred_Final(loc) :- Start(loc), AF_EXITPred(loc), !NotTotal(loc).
+.output NotEq
+.output Eq
+.output Start
+.output State
+.output flow
+.output Return
+.output abort
+.output reach_error
+.output AF_EXITPred_Final(IO=stdout)
+
+.output NotTotal(IO=stdout)
+
+/* Other information 
+
+//-- Facts for Procedure <__VERIFIER_assert> 
+
+Flow(8,4). //@5:1-6:8
+Flow(8,5). //@5:1-6:8
+Flow(6,7). //@9:3-10:1
+Flow(3,6). //@6:3-9:3
+Flow(5,0). //@6:8-7:5
+Flow(4,3). //@6:8-6:3
+Flow(2,3). //@7:27-6:3
+Flow(1,2). //@7:13-7:27
+Flow(0,1). //@7:5-7:13
+Skip(0,GotoLabel_ERROR,[]).  // @7:5
+Stmt_Call(1,_fun_reach_error,[ICall(_fun_reach_error,,n$3)]). // @7:13
+Stmt_Call(2,_fun_abort,[ICall(_fun_abort,,n$2)]). // @7:27
+PruneNode(4,false,[ILoad(&cond,n$1),Prune(n$1, false)]). // @6:8
+PruneNode(5,true,[ILoad(&cond,n$1),Prune(!n$1, true)]). // @6:8
+Join(3,[]).  // @6:3
+Stmt_Return(6,[]). // @9:3
+Exit(7).  // @10:1
+Start(8). // @5:1
+//-- Facts for Procedure <__VERIFIER_nondet_bool> 
+
+//-- Facts for Procedure <__assert_fail> 
+
+//-- Facts for Procedure <abort> 
+
+//-- Facts for Procedure <main> 
+
+Flow(8,9). //@14:1-16:4
+Flow(6,7). //@31:4-34:1
+Flow(3,21). //@30:22-30:4
+Flow(5,2). //@30:22-30:22
+Flow(5,4). //@30:22-30:22
+Flow(4,1). //@30:22-30:22
+Flow(2,0). //@30:22-30:22
+Flow(1,3). //@30:22-30:22
+Flow(0,3). //@30:22-30:22
+Flow(21,6). //@30:4-31:4
+Flow(11,19). //@21:4-21:10
+Flow(11,20). //@21:4-21:10
+Flow(20,16). //@21:10-23:11
+Flow(19,5). //@21:10-30:22
+Flow(18,11). //@28:7-21:4
+Flow(17,18). //@26:7-28:7
+Flow(13,17). //@23:7-26:7
+Flow(16,14). //@23:11-23:11
+Flow(16,15). //@23:11-23:11
+Flow(15,12). //@23:11-24:10
+Flow(14,13). //@23:11-23:7
+Flow(12,13). //@24:10-23:7
+Flow(10,11). //@17:4-21:4
+Flow(9,10). //@16:4-17:4
+Stmt_Decl(9,[IStore(&len,0)]). // @16:4
+Stmt_Decl(10,[ICall(_fun___VERIFIER_nondet_bool,,n$11),IStore(&c,n$11)]). // @17:4
+Stmt_BinaryOperatorStmt(12,Assign,[IStore(&len,0)]). // @24:10
+PruneNode(14,false,[Prune(!(n$7 == 4), false)]). // @23:11
+PruneNode(15,true,[Prune((n$7 == 4), true)]). // @23:11
+Stmt_BinaryOperatorStmt(16,EQ,[ILoad(&len,n$7)]). // @23:11
+Join(13,[]).  // @23:7
+Stmt_BinaryOperatorStmt(17,Assign,[ILoad(&len,n$6),IStore(&a[n$6],0)]). // @26:7
+Stmt_UnaryOperator(18,[ILoad(&len,n$5),IStore(&len,(n$5 + 1))]). // @28:7
+PruneNode(19,false,[ILoad(&c,n$4),Prune(!n$4, false)]). // @21:10
+PruneNode(20,true,[ILoad(&c,n$4),Prune(n$4, true)]). // @21:10
+Join(11,[]).  // @21:4
+Stmt_Call(21,_fun___VERIFIER_assert,[ILoad(&0$?%__sil_tmpSIL_temp_conditional___n$0,n$2),ICall(_fun___VERIFIER_assert,n$2,n$3)]). // @30:4
+Stmt_ConditionalStmtBranch(0,[IStore(&0$?%__sil_tmpSIL_temp_conditional___n$0,0)]). // @30:22
+Stmt_ConditionalStmtBranch(1,[IStore(&0$?%__sil_tmpSIL_temp_conditional___n$0,1)]). // @30:22
+PruneNode(2,false,[Prune(!(n$1 == 5), false)]). // @30:22
+PruneNode(4,true,[Prune((n$1 == 5), true)]). // @30:22
+Stmt_BinaryOperatorStmt(5,EQ,[ILoad(&len,n$1)]). // @30:22
+Join(3,[]).  // @30:22
+Stmt_Return(6,[IStore(&return,1)]). // @31:4
+Exit(7).  // @34:1
+Start(8). // @14:1
+//-- Facts for Procedure <reach_error> 
+
+Flow(8,6). //@3:1-3:22
+Flow(6,7). //@3:22-3:71
+PruneNode(6,true,[Prune(0, true)]). // @3:22
+Exit(7).  // @3:71
+Start(8). // @3:1
+*/
+

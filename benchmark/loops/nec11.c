@@ -32,3 +32,5 @@ int main(){
 
    
 }
+
+// delete NotEq("c",14,0).
